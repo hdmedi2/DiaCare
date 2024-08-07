@@ -1,10 +1,22 @@
 const { chromium } = require('playwright');
+const path = require('path');
+const { app } = require('electron');
+
+function getChromeExecutablePath() {
+  const isPackaged = app.isPackaged;
+  const basePath = isPackaged ? process.resourcesPath : path.join(app.getAppPath(), 'resources');
+  const chromePath = path.join(basePath, 'chrome', 'chrome.exe');
+  return chromePath;
+}
 
 async function runAutomation(data) {
   console.log(`Using patient name: ${data.name}`);
   console.log(`Using patient SSN: ${data.ssn}`);
   
+  const chromeExecutablePath = getChromeExecutablePath();
+
   const browser = await chromium.launch({
+    executablePath: chromeExecutablePath,
     headless: false
   });
 
