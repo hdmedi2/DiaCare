@@ -10,7 +10,6 @@ if (require('electron-squirrel-startup')) {
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    fullscreen: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -18,11 +17,14 @@ const createWindow = () => {
     },
   });
 
+  // Maximize the window
+  mainWindow.maximize();
+
   // Load the initial URL.
   mainWindow.loadURL('https://pharm.hdmedi.kr/');
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 };
 
 // This method will be called when Electron has finished
