@@ -1,5 +1,6 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('node:path');
+const { runAutomation } = require('./automation');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
@@ -9,15 +10,16 @@ if (require('electron-squirrel-startup')) {
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    fullscreen: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      enableRemoteModule: false,
     },
   });
 
-  // and load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  // Load the initial URL.
+  mainWindow.loadURL('https://pharm.hdmedi.kr/');
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
@@ -47,5 +49,11 @@ app.on('window-all-closed', () => {
   }
 });
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.
+// Handle IPC messages from the renderer process.
+ipcMain.on('start-playwright', async (event, data) => {
+  try {
+    await runAutomation(data);
+  } catch (error) {
+    console.error('Error running automation:', error);
+  }
+});
