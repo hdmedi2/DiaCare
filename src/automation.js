@@ -35,8 +35,12 @@ async function runAutomation(data) {
   await page.getByRole('link', { name: '요양비', exact: true }).click();
   await page.getByRole('link', { name: '요양비청구등록', exact: true }).click();
   await page.frameLocator('iframe[name="windowContainer_subWindow1_iframe"]').locator('#sel_payClsfcCd').selectOption('당뇨병소모성재료');
-
+  await page.frameLocator('iframe[name="windowContainer_subWindow1_iframe"]').locator('#inp_sujinjaJuminNo1').fill(data.ssn.split('-')[0]);
+  await page.frameLocator('iframe[name="windowContainer_subWindow1_iframe"]').locator('#inp_sujinjaJuminNo2').fill(data.ssn.split('-')[1]);
+  await page.frameLocator('iframe[name="windowContainer_subWindow1_iframe"]').locator('#inp_sujinjaNm').fill(data.name);
   // await browser.close();
 }
 
 module.exports = { runAutomation };
+
+// npx playwright codegen https://medicare.nhis.or.kr/portal/index.do --viewport-size=1920,1080
