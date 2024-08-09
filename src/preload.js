@@ -1,27 +1,26 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Expose ipcRenderer to the renderer process via the window object
 contextBridge.exposeInMainWorld('electron', {
   send: (channel, data) => ipcRenderer.send(channel, data),
-  receive: (channel, func) => ipcRenderer.on(channel, (event, ...args) => func(...args))
+  receive: (channel, func) => ipcRenderer.on(channel, (event, ...args) => func(...args)),
 });
 
 window.addEventListener('DOMContentLoaded', () => {
-    const url = window.location.href;
-  
-    if (url.includes('/pharm/diabetes/calc-detail')) {
-      const button = document.querySelector('#updateBtn');
-      button.innerText = '자동 청구 시작';
+  const url = window.location.href;
 
-      // Add click event listener to the button
-      button.addEventListener('click', () => {
-          const patientName = document.querySelector('#patientName').value;
-          const patientSSN = document.querySelector('#patientSocialSecurityNumber').value;
-          const data = {
-          name: patientName,
-          ssn: patientSSN
-          };
-          ipcRenderer.send('start-playwright', data);
-      });
-    }
-  });
+  if (url.includes('/pharm/diabetes/calc-detail')) {
+    const button = document.querySelector('#updateBtn');
+    button.innerText = '자동 청구 시작';
+
+    // Add click event listener to the button
+    button.addEventListener('click', () => {
+      const patientName = document.querySelector('#patientName').value;
+      const patientSSN = document.querySelector('#patientSocialSecurityNumber').value;
+      const data = {
+        name: patientName,
+        ssn: patientSSN
+      };
+      ipcRenderer.send('start-playwright', data);
+    });
+  }
+});

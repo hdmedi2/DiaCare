@@ -19,22 +19,15 @@
   <script>
     document.getElementById('auth-form').addEventListener('submit', (event) => {
       event.preventDefault();
-
       const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
-
-      console.log("Sending settings to main process:", { username, password });
       window.electron.send('save-settings', { username, password });
-      alert("Settings saved!"); // Confirm that the function has been triggered
+      alert("Settings saved!");
     });
 
     window.electron.receive('load-settings', (data) => {
-      if (data.username) {
-        document.getElementById('username').value = data.username;
-      }
-      if (data.password) {
-        document.getElementById('password').value = data.password;
-      }
+      if (data.username) document.getElementById('username').value = data.username;
+      if (data.password) document.getElementById('password').value = data.password;
     });
 
     window.addEventListener('DOMContentLoaded', () => {

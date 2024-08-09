@@ -1,19 +1,15 @@
 const { chromium } = require('playwright');
 
 async function runAutomation(data) {
-  let browser;
   const channels = ["chrome", "chrome-beta", "chrome-dev", "chrome-canary", "msedge", "msedge-beta", "msedge-dev", "msedge-canary"];
+  let browser;
 
   for (const channel of channels) {
     try {
-      browser = await chromium.launch({
-        headless: false,
-        channel: channel
-      });
-      console.log(`Successfully launched ${channel}`);
+      browser = await chromium.launch({ headless: false, channel });
       break;
     } catch (error) {
-      console.log(`Failed to launch ${channel}: ${error.message}`);
+      console.warn(`Failed to launch ${channel}: ${error.message}`);
     }
   }
 
@@ -23,14 +19,14 @@ async function runAutomation(data) {
   }
 
   const page = await browser.newPage();
-
   await page.goto('https://medicare.nhis.or.kr/portal/index.do');
+
+  // Automation steps...
   await page.locator('#grp_loginBtn').click();
   await page.locator('#btnCorpLogin').click();
   await page.getByRole('radio', { name: '이동식디스크' }).click();
   await page.getByRole('link', { name: 'USB드라이브 (E:)' }).click();
   await page.getByText('유킹스파머시 가까운약국').click();
-  await page.getByRole('textbox', { name: '인증서 암호' }).click();
   await page.getByRole('textbox', { name: '인증서 암호' }).fill('korea8575!!');
   await page.getByRole('button', { name: '확인' }).click();
   await page.getByRole('link', { name: 'sunbi8575' }).click();
