@@ -103,8 +103,8 @@ const clearCache = () => {
 
 const createSettingWindow = () => {
   const settingWindow = new BrowserWindow({
-    width: 400,
-    height: 300,
+    width: 630,
+    height: 630,
     parent: BrowserWindow.getFocusedWindow(),
     modal: true,
     webPreferences: {
@@ -132,7 +132,7 @@ app.whenReady().then(() => {
     { label: 'View', submenu: [{ role: 'reload' }, { role: 'toggledevtools' }, { role: 'resetzoom' }, { role: 'zoomin' }, { role: 'zoomout' }, { role: 'togglefullscreen' }] },
     { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'close' }] },
     { label: 'Help', submenu: [{ label: 'Learn More', click: () => require('electron').shell.openExternal('https://electronjs.org') }] },
-    { label: 'Setting', submenu: [{ label: '인증 정보 관리하기', click: createSettingWindow }] }
+    { label: 'Setting', submenu: [{ label: 'Configuration', click: createSettingWindow }] }
   ]);
 
   Menu.setApplicationMenu(menu);
@@ -158,7 +158,17 @@ app.on('window-all-closed', async () => {
 
 ipcMain.on('start-playwright', async (event, data) => {
   try {
-    await runAutomation(data);
+    const settings = await manageLocalData('settings');
+    if (settings) {
+      // Merge the settings with the data received from the renderer process
+      const automationData = {
+        ...settings,
+        ...data
+      };
+      await runAutomation(automationData);
+    } else {
+      console.error('Failed to load settings.');
+    }
   } catch (error) {
     console.error('Error running automation:', error);
   }
