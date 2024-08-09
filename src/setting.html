@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>시스템 설정 관리하기</title>
+</head>
+<body>
+  <h1>시스템 설정 관리하기</h1>
+  <form id="auth-form">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+    <br>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+    <br>
+    <button type="submit">Save</button>
+  </form>
+  <script>
+    document.getElementById('auth-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      console.log("Sending settings to main process:", { username, password });
+      window.electron.send('save-settings', { username, password });
+      alert("Settings saved!"); // Confirm that the function has been triggered
+    });
+
+    window.electron.receive('load-settings', (data) => {
+      if (data.username) {
+        document.getElementById('username').value = data.username;
+      }
+      if (data.password) {
+        document.getElementById('password').value = data.password;
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      window.electron.send('load-settings');
+    });
+  </script>
+</body>
+</html>
