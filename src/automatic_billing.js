@@ -1,6 +1,8 @@
-const { chromium } = require('playwright');
+const { page, chromium } = require('playwright');
+const path = require('path');
+const fs = require('fs');
 
-async function runAutomation(data) {
+async function runAutomation_billing(data) {
   const channels = ["chrome", "chrome-beta", "chrome-dev", "chrome-canary", "msedge", "msedge-beta", "msedge-dev", "msedge-canary"];
   let browser;
 
@@ -12,7 +14,6 @@ async function runAutomation(data) {
       console.warn(`Failed to launch ${channel}: ${error.message}`);
     }
   }
-
   if (!browser) {
     console.error('No supported browser channels found.');
     return;
@@ -298,92 +299,91 @@ async function runAutomation(data) {
   }
 
   await frame.getByRole('link', { name: '제출 서류 첨부' }).click();
-/** 
+
   // 파일첨부
-  // 사용자 홈 디렉터리와 다운로드 디렉터리 경로 설정
-  const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
-  const downloadsDirectory = path.join(userHomeDirectory, 'Downloads');
-  const fileName = 'hello.pdf';
-  const filePath = path.join(downloadsDirectory, fileName);
+  // // 사용자 홈 디렉터리와 다운로드 디렉터리 경로 설정
+  // const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
+  // const downloadsDirectory = path.join(userHomeDirectory, 'Downloads');
+  // const fileName = 'hello.pdf';
+  // const filePath = path.join(downloadsDirectory, fileName);
 
-  // 파일이 실제로 존재하는지 확인
-  if (!fs.existsSync(filePath)) {
-    console.error('Error: File does not exist:', filePath);
-    process.exit(1); // 파일이 없으면 스크립트를 종료합니다.
-  }
-  console.log('File path:', filePath);
-  await frame.getByRole('link', { name: '제출 서류 첨부' }).click();
+  // // 파일이 실제로 존재하는지 확인
+  // if (!fs.existsSync(filePath)) {
+  //   console.error('Error: File does not exist:', filePath);
+  //   process.exit(1); // 파일이 없으면 스크립트를 종료합니다.
+  // }
+  // console.log('File path:', filePath);
+  // await frame.getByRole('link', { name: '제출 서류 첨부' }).click();
 
-  // 숨겨진 요소를 강제로 표시하는 코드 실행
-  await frame.evaluate(() => {
-    const dropTarget = document.querySelector('#dropStr');
-    if (dropTarget) {
-      dropTarget.style.display = 'block'; // 숨겨진 요소를 표시
-      dropTarget.classList.remove('__web-inspector-hide-shortcut__'); // 숨기는 클래스 제거
-    } else {
-      console.error('Error: Drop target not found');
-    }
-  });
+  // // 숨겨진 요소를 강제로 표시하는 코드 실행
+  // await frame.evaluate(() => {
+  //   const dropTarget = document.querySelector('#dropStr');
+  //   if (dropTarget) {
+  //     dropTarget.style.display = 'block'; // 숨겨진 요소를 표시
+  //     dropTarget.classList.remove('__web-inspector-hide-shortcut__'); // 숨기는 클래스 제거
+  //   } else {
+  //     console.error('Error: Drop target not found');
+  //   }
+  // });
 
-  // 프레임 내부의 숨겨진 요소가 표시될 때까지 대기
-  await frame.waitForSelector('#dropStr', { timeout: 15000, state: 'visible' }); // 요소가 표시될 때까지 대기
+  // // 프레임 내부의 숨겨진 요소가 표시될 때까지 대기
+  // await frame.waitForSelector('#dropStr', { timeout: 15000, state: 'visible' }); // 요소가 표시될 때까지 대기
 
-  // 드래그 앤 드롭 이벤트를 시뮬레이션하는 함수 정의
-  const simulateDragAndDrop = async (page, filePath) => {
-    await page.evaluate((filePath) => {
-      const dataTransfer = new DataTransfer();
-      const file = new File([fs.readFileSync(filePath)], 'hello.pdf', { type: 'application/pdf' });
+  // // 드래그 앤 드롭 이벤트를 시뮬레이션하는 함수 정의
+  // const simulateDragAndDrop = async (page, filePath) => {
+  //   await page.evaluate((filePath) => {
+  //     const dataTransfer = new DataTransfer();
+  //     const file = new File([fs.readFileSync(filePath)], 'hello.pdf', { type: 'application/pdf' });
 
-      dataTransfer.items.add(file);
+  //     dataTransfer.items.add(file);
 
-      const dropEvent = new DragEvent('drop', {
-        dataTransfer,
-        bubbles: true,
-        cancelable: true
-      });
+  //     const dropEvent = new DragEvent('drop', {
+  //       dataTransfer,
+  //       bubbles: true,
+  //       cancelable: true
+  //     });
 
-      const dragOverEvent = new DragEvent('dragover', {
-        dataTransfer,
-        bubbles: true,
-        cancelable: true
-      });
+  //     const dragOverEvent = new DragEvent('dragover', {
+  //       dataTransfer,
+  //       bubbles: true,
+  //       cancelable: true
+  //     });
 
-      const dropTarget = document.querySelector('#dropStr');
-      if (dropTarget) {
-        dropTarget.dispatchEvent(dragOverEvent);
-        dropTarget.dispatchEvent(dropEvent);
-      } else {
-        console.error('Error: Drop target not found');
-      }
-    }, filePath);
-  };
+  //     const dropTarget = document.querySelector('#dropStr');
+  //     if (dropTarget) {
+  //       dropTarget.dispatchEvent(dragOverEvent);
+  //       dropTarget.dispatchEvent(dropEvent);
+  //     } else {
+  //       console.error('Error: Drop target not found');
+  //     }
+  //   }, filePath);
+  // };
 
-  // 프레임이 올바르게 로드되었는지 확인하고 접근
-  const dragframe = await page.frameLocator('iframe[title="popup_fileUpload"]').frameLocator('#btrsFrame');
+  // // 프레임이 올바르게 로드되었는지 확인하고 접근
+  // const dragframe = await page.frameLocator('iframe[title="popup_fileUpload"]').frameLocator('#btrsFrame');
 
-  if (!dragframe) {
-    console.error('Error: dragframe not found');
-    process.exit(1);
-  }
+  // if (!dragframe) {
+  //   console.error('Error: dragframe not found');
+  //   process.exit(1);
+  // }
 
-  // 드래그 앤 드롭 시뮬레이션 실행
-  await simulateDragAndDrop(page, filePath);
+  // // 드래그 앤 드롭 시뮬레이션 실행
+  // await simulateDragAndDrop(page, filePath);
 
-  // 업로드가 완료될 때까지 기다리거나 후속 작업을 수행
-  try {
-    await page.waitForSelector('text=Upload successful', { timeout: 10000 }); // 10초 타임아웃 추가
-    console.log('Upload successful');
-  } catch (error) {
-    console.error('Error: Upload not successful or timed out');
-  }
+  // // 업로드가 완료될 때까지 기다리거나 후속 작업을 수행
+  // try {
+  //   await page.waitForSelector('text=Upload successful', { timeout: 10000 }); // 10초 타임아웃 추가
+  //   console.log('Upload successful');
+  // } catch (error) {
+  //   console.error('Error: Upload not successful or timed out');
+  // }
 
-  최종제출
-  <span id="wq_uuid_76" class="w2textbox ">최종제출</span>
-  await frame.getByRole('link', { name: '최종제출' }).click();
-  await browser.close();
-  */
+  // 최종제출
+  // <span id="wq_uuid_76" class="w2textbox ">최종제출</span>
+  // await frame.getByRole('link', { name: '최종제출' }).click();
+  // await browser.close();
 }
 
-module.exports = { runAutomation };
+module.exports = { runAutomation_billing };
 
 // npx playwright codegen https://medicare.nhis.or.kr/portal/index.do --viewport-size=1920,1080

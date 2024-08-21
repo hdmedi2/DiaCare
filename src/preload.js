@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electron', {
   send: (channel, data) => ipcRenderer.send(channel, data),
+  send: (channel, data_1) => ipcRenderer.send(channel, data_1),
   receive: (channel, func) => ipcRenderer.on(channel, (event, ...args) => func(...args)),
 });
 
@@ -11,6 +12,9 @@ window.addEventListener('DOMContentLoaded', () => {
   if (url.includes('/pharm/diabetes/calc-detail')) {
     const button = document.querySelector('#updateBtn');
     button.innerText = '자동 청구 시작';
+
+    const button_delegation = document.querySelector('#printBtn');
+    button_delegation.innerText = "위임 시작"
 
     // Add click event listener to the button
     button.addEventListener('click', () => {
@@ -76,6 +80,30 @@ window.addEventListener('DOMContentLoaded', () => {
       };
 
       ipcRenderer.send('start-playwright', data);
+    });
+
+    button_delegation.addEventListener('click', () => {
+      const patientName = document.querySelector('#patientName').value;
+      const patientSSN = document.querySelector('#patientSocialSecurityNumber').value;
+      const issueDate = document.querySelector("#prescriptionDate").value;
+      const phonenumber = document.querySelector("#patientPhoneNumber").value;
+      const selectElement = document.querySelector('#diabetesPatientBenefitTypeCd');
+      const selectedText = selectElement.options[selectElement.selectedIndex].textContent;
+
+      const data_1 = {
+        // 환자이름
+        name: patientName,
+        // 주민번호
+        ssn: patientSSN,
+        // 처방일자
+        issue: issueDate,
+        // 전화번호
+        phone: phonenumber,
+        // 당뇨 유형 | 투여 여부 | 기타
+        select: selectedText
+      }
+
+      ipcRenderer.send('start', data_1);
     });
   }
 });

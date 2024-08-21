@@ -1,7 +1,8 @@
 const { app, BrowserWindow, ipcMain, session, Menu, safeStorage } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { runAutomation } = require('./automation');
+const { runAutomation_billing } = require('./automatic_billing');
+const { runAutomation_delegation } = require('./automatic_delegation');
 
 const SESSION_FILE_PATH = path.join(app.getPath('userData'), 'session.json');
 const SETTINGS_FILE_PATH = path.join(app.getPath('userData'), 'settings.json');
@@ -26,7 +27,7 @@ const createWindow = async () => {
 
 const manageLocalData = async (type, data = null) => {
   const filePath = type === 'session' ? SESSION_FILE_PATH : SETTINGS_FILE_PATH;
-  
+
   if (data) {
     try {
       const serializedData = JSON.stringify(data);
@@ -62,8 +63,8 @@ const manageLocalData = async (type, data = null) => {
   }
 };
 
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools();
+// Open the DevTools.
+// mainWindow.webContents.openDevTools();
 const loadLocalData = async (type) => {
   const data = await manageLocalData(type);
   if (type === 'session' && data) {
@@ -165,7 +166,7 @@ ipcMain.on('start-playwright', async (event, data) => {
         ...settings,
         ...data
       };
-      await runAutomation(automationData);
+      await runAutomation_billing(automationData);
     } else {
       console.error('Failed to load settings.');
     }
@@ -174,8 +175,26 @@ ipcMain.on('start-playwright', async (event, data) => {
   }
 });
 
-ipcMain.on('save-settings', async (event, data) => {
-  await manageLocalData('settings', data);
+ipcMain.on('start', async (event, data_1) => {
+  try {
+    const settings = await manageLocalData('settings');
+    if (settings) {
+      // Merge the settings with the data_1 received from the renderer process
+      const automationData = {
+        ...settings,
+        ...data_1
+      };
+      await runAutomation_delegation(automationData);
+    } else {
+      console.error('Failed to load settings.');
+    }
+  } catch (error) {
+    console.error('Error running automation:', error);
+  }
+});
+
+ipcMain.on('save-settings', async (event, data_1) => {
+  await manageLocalData('settings', data_1);
 });
 
 ipcMain.on('load-settings', async (event) => {
