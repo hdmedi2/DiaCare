@@ -314,7 +314,7 @@ async function runAutomation_billing(data) {
     const fileChooser = await fileChooserPromise;
     const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
     const downloadsDirectory = path.join(userHomeDirectory, "Downloads");
-    await fileChooser.setFiles(path.join(downloadsDirectory, "hello.pdf"));
+    await fileChooser.setFiles(path.join(downloadsDirectory, "청구용문서.pdf"));
     // 파일 전송
     await frame
       .frameLocator('iframe[title="popup_fileUpload"]')

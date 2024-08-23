@@ -174,7 +174,7 @@ async function runAutomation_delegation(data_1) {
     const fileChooser = await fileChooserPromise;
     const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
     const downloadsDirectory = path.join(userHomeDirectory, "Downloads");
-    await fileChooser.setFiles(path.join(downloadsDirectory, "hello.pdf"));
+    await fileChooser.setFiles(path.join(downloadsDirectory, "위임장.pdf"));
     // 파일 전송
     await frame
         .frameLocator('iframe[title="popup_fileUpload"]')
