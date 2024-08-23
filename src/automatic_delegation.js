@@ -90,9 +90,10 @@ async function runAutomation_delegation(data_1) {
     }
 
     // 위임기간
-    // await frame.locator('#inp_mdtFrDt_input').click();
-    // await frame.locator('#inp_mdtFrDt_input').fill('');
-    // await frame.locator('#inp_mdtFrDt_input').fill();
+    await frame.locator('#inp_mdtFrDt_input').dblclick();
+    await frame.locator('#inp_mdtFrDt_input').fill('');
+    await frame.locator('#inp_mdtFrDt_input').fill(data_1.start.replace(/-/g, ''));
+
     await frame.locator('#inp_mdtToDt_input').dblclick();
     await frame.locator('#inp_mdtToDt_input').fill('');
     await frame.locator('#inp_mdtToDt_input').fill(data_1.end.replace(/-/g, ''));
