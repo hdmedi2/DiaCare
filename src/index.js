@@ -5,6 +5,7 @@ const { runAutomation_billing } = require('./automatic_billing');
 const { runAutomation_delegation } = require('./automatic_delegation');
 const { checkBilling } = require('./auto_checkBilling');
 const { checkDelegation } = require('./auto_checkDelegation');
+const { sendLogToServer } = require('./logUtil');
 
 const SESSION_FILE_PATH = path.join(app.getPath('userData'), 'session.json');
 const SETTINGS_FILE_PATH = path.join(app.getPath('userData'), 'settings.json');
@@ -64,7 +65,7 @@ const manageLocalData = async (type, data = null) => {
     return null;
   }
 };
-
+module.exports = { manageLocalData };
 // Open the DevTools.
 // mainWindow.webContents.openDevTools();
 const loadLocalData = async (type) => {
@@ -207,12 +208,14 @@ ipcMain.on('start-playwright', async (event, data) => {
         ...settings,
         ...data
       };
+      console.log('Automation Data:', automationData);    // 확인용 출력
       await runAutomation_billing(automationData);
     } else {
       console.error('Failed to load settings.');
     }
-  } catch (error) {
-    console.error('Error running automation:', error);
+  } catch (e) {
+    console.error('Error running automation:', e.message);
+    await sendLogToServer(data.docId, 'fail', `Automation task failed: ${e.message}`, data.csrfToken, data.csrfHeader);
   }
 });
 

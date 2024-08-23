@@ -18,6 +18,11 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Add click event listener to the button
     button.addEventListener('click', () => {
+      
+      const csrfToken = document.querySelector("meta[name='_csrf']").content;
+      const csrfHeader = document.querySelector("meta[name='_csrf_header']").content; 
+
+      const pharmacyPatientDiabetesTreatId = document.querySelector('#pharmacyPatientDiabetesTreatId').value;
       const patientName = document.querySelector('#patientName').value;
       const patientSSN = document.querySelector('#patientSocialSecurityNumber').value;
       const issueDate = document.querySelector("#prescriptionDate").value;
@@ -47,6 +52,8 @@ window.addEventListener('DOMContentLoaded', () => {
       }
 
       const data = {
+        // 당뇨진료이력 Id
+        docId: pharmacyPatientDiabetesTreatId,
         // 환자이름
         name: patientName,
         // 주민번호
@@ -76,7 +83,10 @@ window.addEventListener('DOMContentLoaded', () => {
         // 제품 가격
         p_price: productPrices,
         // 제품수
-        p_quantity: productQuantities
+        p_quantity: productQuantities,
+        // API 연결을 위한 token
+        csrfToken: csrfToken,
+        csrfHeader: csrfHeader
       };
 
       ipcRenderer.send('start-playwright', data);
