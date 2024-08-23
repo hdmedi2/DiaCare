@@ -9,12 +9,12 @@ contextBridge.exposeInMainWorld('electron', {
 window.addEventListener('DOMContentLoaded', () => {
   const url = window.location.href;
 
-  if (url.includes('/pharm/diabetes/calc-detail')) {
-    const button = document.querySelector('#updateBtn');
+  if (url.includes('/pharm/diabetes/calc-update') || url.includes('/pharm/diabetes/calc-detail')) { 
+    const button = document.querySelector('#autoBillBtn'); //id="autoBillBtn"
     button.innerText = '자동 청구 시작';
 
-    const button_delegation = document.querySelector('#printBtn');
-    button_delegation.innerText = "위임 시작"
+    const button_delegation = document.querySelector('#delegationBtn');
+    button_delegation.innerText = "위임 등록하기"
 
     // Add click event listener to the button
     button.addEventListener('click', () => {
@@ -89,6 +89,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const phonenumber = document.querySelector("#patientPhoneNumber").value;
       const selectElement = document.querySelector('#diabetesPatientBenefitTypeCd');
       const selectedText = selectElement.options[selectElement.selectedIndex].textContent;
+      const enddate = document.querySelector("#delegationEndDate").value;
 
       const data_1 = {
         // 환자이름
@@ -100,7 +101,9 @@ window.addEventListener('DOMContentLoaded', () => {
         // 전화번호
         phone: phonenumber,
         // 당뇨 유형 | 투여 여부 | 기타
-        select: selectedText
+        select: selectedText,
+        // 위임 종료일
+        end: enddate
       }
 
       ipcRenderer.send('start', data_1);
