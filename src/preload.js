@@ -90,6 +90,7 @@ window.addEventListener('DOMContentLoaded', () => {
       const selectElement = document.querySelector('#diabetesPatientBenefitTypeCd');
       const selectedText = selectElement.options[selectElement.selectedIndex].textContent;
       const enddate = document.querySelector("#delegationEndDate").value;
+      const startdate = document.querySelector("#delegationStartDate").value;
 
       const data_1 = {
         // 환자이름
@@ -102,6 +103,8 @@ window.addEventListener('DOMContentLoaded', () => {
         phone: phonenumber,
         // 당뇨 유형 | 투여 여부 | 기타
         select: selectedText,
+        // 위임 시작일(동의일)
+        start: startdate,
         // 위임 종료일
         end: enddate
       }
