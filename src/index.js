@@ -3,6 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const { runAutomation_billing } = require('./automatic_billing');
 const { runAutomation_delegation } = require('./automatic_delegation');
+const { checkBilling } = require('./auto_checkBilling');
+const { checkDelegation } = require('./auto_checkDelegation');
 
 const SESSION_FILE_PATH = path.join(app.getPath('userData'), 'session.json');
 const SETTINGS_FILE_PATH = path.join(app.getPath('userData'), 'settings.json');
@@ -102,10 +104,10 @@ const clearCache = () => {
   });
 };
 
-const createSettingWindow = () => {
+const createSettingWindow = (options = {}) => {
   const settingWindow = new BrowserWindow({
-    width: 630,
-    height: 630,
+    width: options.width || 630,
+    height: options.height || 630,
     parent: BrowserWindow.getFocusedWindow(),
     modal: true,
     webPreferences: {
@@ -116,7 +118,9 @@ const createSettingWindow = () => {
     autoHideMenuBar: true,
   });
 
-  settingWindow.loadFile(path.join(__dirname, 'setting.html'));
+  // HTML 파일 로드
+  const htmlFilePath = options.file ? path.join(__dirname, 'mediCare.html') : path.join(__dirname, 'setting.html');
+  settingWindow.loadFile(htmlFilePath);
 
   settingWindow.webContents.on('did-finish-load', async () => {
     const settings = await loadLocalData('settings');
@@ -133,7 +137,14 @@ app.whenReady().then(() => {
     { label: 'View', submenu: [{ role: 'reload' }, { role: 'toggledevtools' }, { role: 'resetzoom' }, { role: 'zoomin' }, { role: 'zoomout' }, { role: 'togglefullscreen' }] },
     { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'close' }] },
     { label: 'Help', submenu: [{ label: 'Learn More', click: () => require('electron').shell.openExternal('https://electronjs.org') }] },
-    { label: 'Setting', submenu: [{ label: 'Configuration', click: createSettingWindow }] }
+    { label: 'Setting', submenu: [{ label: 'Configuration', click: createSettingWindow }] },
+    { 
+      label: '요양마당', 
+      submenu: [{ 
+        label: '위임/청구 내역 가져오기', 
+        click: () => createSettingWindow({ width: 350, height: 250, file: 'mediCare.html'}) // 커스텀 설정 창
+      }] 
+    }
   ]);
 
   Menu.setApplicationMenu(menu);
@@ -154,6 +165,36 @@ app.on('window-all-closed', async () => {
   await saveSessionData();
   if (process.platform !== 'darwin') {
     app.quit();
+  }
+});
+
+ipcMain.on('start-check-delegation', async (event) => {
+  try {
+    const settings = await manageLocalData('settings');
+
+    if (settings) {
+      await checkDelegation(settings);
+      }
+    else {
+      console.error('Failed to load settings.');
+    }
+  } catch (error) {
+    console.error('Error Readung:', error);
+  }
+});
+
+ipcMain.on('start-check-bill', async (event) => {
+  try {
+    const settings = await manageLocalData('settings');
+
+    if (settings) {
+      await checkBilling(settings);
+      }
+    else {
+      console.error('Failed to load settings.');
+    }
+  } catch (error) {
+    console.error('Error Readung:', error);
   }
 });
 
@@ -193,8 +234,8 @@ ipcMain.on('start', async (event, data_1) => {
   }
 });
 
-ipcMain.on('save-settings', async (event, data_1) => {
-  await manageLocalData('settings', data_1);
+ipcMain.on('save-settings', async (event, data) => {
+  await manageLocalData('settings', data);
 });
 
 ipcMain.on('load-settings', async (event) => {
