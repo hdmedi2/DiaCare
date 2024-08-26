@@ -1,7 +1,11 @@
 const { app, BrowserWindow, ipcMain, session, Menu, safeStorage } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { runAutomation } = require('./automation');
+const { runAutomation_billing } = require('./automatic_billing');
+const { runAutomation_delegation } = require('./automatic_delegation');
+const { checkBilling } = require('./auto_checkBilling');
+const { checkDelegation } = require('./auto_checkDelegation');
+const { sendLogToServer } = require('./logUtil');
 
 const SESSION_FILE_PATH = path.join(app.getPath('userData'), 'session.json');
 const SETTINGS_FILE_PATH = path.join(app.getPath('userData'), 'settings.json');
@@ -26,7 +30,7 @@ const createWindow = async () => {
 
 const manageLocalData = async (type, data = null) => {
   const filePath = type === 'session' ? SESSION_FILE_PATH : SETTINGS_FILE_PATH;
-  
+
   if (data) {
     try {
       const serializedData = JSON.stringify(data);
@@ -61,9 +65,9 @@ const manageLocalData = async (type, data = null) => {
     return null;
   }
 };
-
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools();
+module.exports = { manageLocalData };
+// Open the DevTools.
+// mainWindow.webContents.openDevTools();
 const loadLocalData = async (type) => {
   const data = await manageLocalData(type);
   if (type === 'session' && data) {
@@ -101,10 +105,10 @@ const clearCache = () => {
   });
 };
 
-const createSettingWindow = () => {
+const createSettingWindow = (options = {}) => {
   const settingWindow = new BrowserWindow({
-    width: 630,
-    height: 630,
+    width: options.width || 630,
+    height: options.height || 630,
     parent: BrowserWindow.getFocusedWindow(),
     modal: true,
     webPreferences: {
@@ -115,7 +119,9 @@ const createSettingWindow = () => {
     autoHideMenuBar: true,
   });
 
-  settingWindow.loadFile(path.join(__dirname, 'setting.html'));
+  // HTML 파일 로드
+  const htmlFilePath = options.file ? path.join(__dirname, 'mediCare.html') : path.join(__dirname, 'setting.html');
+  settingWindow.loadFile(htmlFilePath);
 
   settingWindow.webContents.on('did-finish-load', async () => {
     const settings = await loadLocalData('settings');
@@ -132,7 +138,14 @@ app.whenReady().then(() => {
     { label: 'View', submenu: [{ role: 'reload' }, { role: 'toggledevtools' }, { role: 'resetzoom' }, { role: 'zoomin' }, { role: 'zoomout' }, { role: 'togglefullscreen' }] },
     { label: 'Window', submenu: [{ role: 'minimize' }, { role: 'close' }] },
     { label: 'Help', submenu: [{ label: 'Learn More', click: () => require('electron').shell.openExternal('https://electronjs.org') }] },
-    { label: 'Setting', submenu: [{ label: 'Configuration', click: createSettingWindow }] }
+    { label: 'Setting', submenu: [{ label: 'Configuration', click: createSettingWindow }] },
+    { 
+      label: '요양마당', 
+      submenu: [{ 
+        label: '위임/청구 내역 가져오기', 
+        click: () => createSettingWindow({ width: 350, height: 250, file: 'mediCare.html'}) // 커스텀 설정 창
+      }] 
+    }
   ]);
 
   Menu.setApplicationMenu(menu);
@@ -156,6 +169,36 @@ app.on('window-all-closed', async () => {
   }
 });
 
+ipcMain.on('start-check-delegation', async (event) => {
+  try {
+    const settings = await manageLocalData('settings');
+
+    if (settings) {
+      await checkDelegation(settings);
+      }
+    else {
+      console.error('Failed to load settings.');
+    }
+  } catch (error) {
+    console.error('Error Readung:', error);
+  }
+});
+
+ipcMain.on('start-check-bill', async (event) => {
+  try {
+    const settings = await manageLocalData('settings');
+
+    if (settings) {
+      await checkBilling(settings);
+      }
+    else {
+      console.error('Failed to load settings.');
+    }
+  } catch (error) {
+    console.error('Error Readung:', error);
+  }
+});
+
 ipcMain.on('start-playwright', async (event, data) => {
   try {
     const settings = await manageLocalData('settings');
@@ -165,7 +208,27 @@ ipcMain.on('start-playwright', async (event, data) => {
         ...settings,
         ...data
       };
-      await runAutomation(automationData);
+      console.log('Automation Data:', automationData);    // 확인용 출력
+      await runAutomation_billing(automationData);
+    } else {
+      console.error('Failed to load settings.');
+    }
+  } catch (e) {
+    console.error('Error running automation:', e.message);
+    await sendLogToServer(data.docId, 'fail', `Automation task failed: ${e.message}`, data.csrfToken, data.csrfHeader);
+  }
+});
+
+ipcMain.on('start', async (event, data_1) => {
+  try {
+    const settings = await manageLocalData('settings');
+    if (settings) {
+      // Merge the settings with the data_1 received from the renderer process
+      const automationData = {
+        ...settings,
+        ...data_1
+      };
+      await runAutomation_delegation(automationData);
     } else {
       console.error('Failed to load settings.');
     }
