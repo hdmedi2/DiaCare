@@ -75,8 +75,41 @@ async function runAutomation_delegation(data_1) {
     const parts = data_1.select.split('|').map(part => part.trim());
     const firstPart = parts[0].trim();  // 당뇨 유형
     const secondPart = parts[1].trim(); // 인슐린 투여 여부
-    if (firstPart === '2형' || firstPart === '임신중') {
+    if (firstPart === '2형') {
         await frame.getByLabel('당뇨병 소모성 재료').check();
+    }
+    else if (firstPart === '임신중'){
+        await frame.getByLabel('당뇨병 소모성 재료').check();
+        console.log('임신중 -- 팝업닫기 시작');
+        // 알림창
+        await page.waitForTimeout(2000);
+        const frames_confirm_alert = page.frames();
+        let dynamicFrame_confirm_alert;
+        let dynamicFrameId_confirm_alert;
+        for (let i = frames_confirm_alert.length - 1; i >= 0; i--) {
+            const frame_confirm_alert = frames_confirm_alert[i];
+            await page.waitForTimeout(1000);
+            const ids_confirm_alert = await frame_confirm_alert.evaluate(() => {
+            const iframes = Array.from(document.querySelectorAll('iframe'));
+            return iframes.map(iframe => iframe.id);
+            });
+            for (const id_confirm_alert of ids_confirm_alert) {
+            if (id_confirm_alert.startsWith('confirm_') && id_confirm_alert.endsWith('_iframe')) {
+                dynamicFrame_confirm_alert = frame_confirm_alert;
+                dynamicFrameId_confirm_alert = id_confirm_alert;
+                console.log('Dynamic iframe found with ID:', id_confirm_alert);
+                break;
+            }
+            }
+            if (dynamicFrame_confirm_alert) break;
+        }
+        if (dynamicFrame_confirm_alert && dynamicFrameId_confirm_alert) {
+            const innerFrame_confirm_alert = dynamicFrame_confirm_alert.frameLocator(`iframe[id="${dynamicFrameId_confirm_alert}"]`);
+            await innerFrame_confirm_alert.getByRole('link', { name: '예' }).waitFor();
+            await innerFrame_confirm_alert.getByRole('link', { name: '예' }).click();
+        } else {
+            console.error('Dynamic iframe not found.');
+        }
     }
     else if (firstPart === '1형') {
         if (secondPart === '연속혈당측정용 전극' ||
@@ -89,14 +122,14 @@ async function runAutomation_delegation(data_1) {
         }
     }
 
-    // 위임기간
-    await frame.locator('#inp_mdtFrDt_input').dblclick();
-    await frame.locator('#inp_mdtFrDt_input').fill('');
-    await frame.locator('#inp_mdtFrDt_input').fill(data_1.start.replace(/-/g, ''));
+    // 위임기간 -> 오늘 ~ 오늘 + 5년 - 1일까지인 디폴트로 넘겨버리는 것으로 우선은 진행
+    // await frame.locator('#inp_mdtFrDt_input').dblclick();
+    // await frame.locator('#inp_mdtFrDt_input').fill('');
+    // await frame.locator('#inp_mdtFrDt_input').fill(data_1.start.replace(/-/g, ''));
 
-    await frame.locator('#inp_mdtToDt_input').dblclick();
-    await frame.locator('#inp_mdtToDt_input').fill('');
-    await frame.locator('#inp_mdtToDt_input').fill(data_1.end.replace(/-/g, ''));
+    // await frame.locator('#inp_mdtToDt_input').dblclick();
+    // await frame.locator('#inp_mdtToDt_input').fill('');
+    // await frame.locator('#inp_mdtToDt_input').fill(data_1.end.replace(/-/g, ''));
 
     // 저장 버튼
     await frame.getByRole('link', { name: '저장' }).click();
