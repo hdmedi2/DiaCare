@@ -6,6 +6,8 @@ const { runAutomation_delegation } = require('./automatic_delegation');
 const { checkBilling } = require('./auto_checkBilling');
 const { checkDelegation } = require('./auto_checkDelegation');
 const { sendLogToServer } = require('./logUtil');
+const { autoUpdater } = require("electron-updater");
+
 
 const SESSION_FILE_PATH = path.join(app.getPath('userData'), 'session.json');
 const SETTINGS_FILE_PATH = path.join(app.getPath('userData'), 'settings.json');

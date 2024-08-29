@@ -99,13 +99,48 @@ async function runAutomation_billing(data) {
     // 처방일자
     await frame.locator('#cal_mprsc_issue_dt_input').click();
     await frame.locator('#cal_mprsc_issue_dt_input').fill(data.issue.replace(/-/g, ''));
-
+    await frame.locator('#cal_mprsc_issue_dt_input').press('Enter');
     // 당뇨 구분, 인슐린 투여 (나이(19세 미만))
     console.log('Selected Option Value:', data.select);
     const parts = data.select.split('|').map(part => part.trim());
     const firstPart = parts[0].trim();  // 당뇨 유형
     const secondPart = parts[1].trim(); // 인슐린 투여 여부
     const thirdPart = parts[2]?.trim(); // 나이(19세 미만)
+    
+    if (firstPart === '임신중') {
+      console.log('임신중 -- 팝업닫기 시작')
+      // 알림창
+      await page.waitForTimeout(2000);
+      const frames_save_alert = page.frames();
+      let dynamicFrame_save_alert;
+      let dynamicFrameId_save_alert;
+      for (let i = frames_save_alert.length - 1; i >= 0; i--) {
+        const frame_save_alert = frames_save_alert[i];
+        await page.waitForTimeout(1000);
+        const ids_save_alert = await frame_save_alert.evaluate(() => {
+          const iframes = Array.from(document.querySelectorAll('iframe'));
+          return iframes.map(iframe => iframe.id);
+        });
+        for (const id_save_alert of ids_save_alert) {
+          if (id_save_alert.startsWith('alert_') && id_save_alert.endsWith('_iframe')) {
+            dynamicFrame_save_alert = frame_save_alert;
+            dynamicFrameId_save_alert = id_save_alert;
+            console.log('Dynamic iframe found with ID:', id_save_alert);
+            break;
+          }
+        }
+        if (dynamicFrame_save_alert) break;
+      }
+      if (dynamicFrame_save_alert && dynamicFrameId_save_alert) {
+        const innerFrame_save_alert = dynamicFrame_save_alert.frameLocator(`iframe[id="${dynamicFrameId_save_alert}"]`);
+        await innerFrame_save_alert.getByRole('link', { name: '확인' }).waitFor();
+        await innerFrame_save_alert.getByRole('link', { name: '확인' }).click();
+      } else {
+        console.error('Dynamic iframe not found.');
+      }
+    }
+
+
     await page.waitForSelector('iframe[name="windowContainer_subWindow1_iframe"]');
     await frame.locator('#wframeDetail').click();
     const button = frame.locator('#sel_bcbnf_recv_cond_type1_label');
@@ -169,10 +204,23 @@ async function runAutomation_billing(data) {
       if (linkElement_1.length > 0) {
         await linkElement_1[0].click();
         await frame.frameLocator('iframe[title="bipbkz210p01"]').getByRole('link', { name: '선택' }).click();
-        console.log('Element was clicked.');
-      }
-      else {
-        console.log('No element found with the given text.');
+        console.log('Element with "내과" was clicked.');
+      } else {
+        const linkElement_2 = await frame.frameLocator('iframe[title="bipbkz210p01"]').locator('text="소아청소년과"').elementHandles();
+        if (linkElement_2.length > 0) {
+          await linkElement_2[0].click();
+          await frame.frameLocator('iframe[title="bipbkz210p01"]').getByRole('link', { name: '선택' }).click();
+          console.log('Element with "소아청소년과" was clicked.');
+        } else {
+          const linkElement_3 = await frame.frameLocator('iframe[title="bipbkz210p01"]').locator('text=소아내분비과').elementHandles();
+          if (linkElement_3.length > 0) {
+            await linkElement_3[0].click();
+            await frame.frameLocator('iframe[title="bipbkz210p01"]').getByRole('link', { name: '선택' }).click();
+            console.log('Element with "소아내분비과" was clicked.');
+          } else {
+            console.log('No element found with "내과", "청소년과", or containing "소아내분비과".');
+          }
+        }
       }
     }
     catch (error) {
@@ -216,7 +264,7 @@ async function runAutomation_billing(data) {
     await frame.locator('#cal_buy_dt_input').fill(data.purchase);
     await frame.locator('#inp_pay_freq').click();
     await frame.locator('#inp_pay_freq').fill(data.eat);
-
+    
     // 제품사용내역등록(식별번호등록)
     await frame.locator('#wq_uuid_787').waitFor({ state: 'visible' });
     await frame.locator('#wq_uuid_787').click();
@@ -294,6 +342,11 @@ async function runAutomation_billing(data) {
     }
     if (dynamicFrame_save_alert && dynamicFrameId_save_alert) {
       const innerFrame_save_alert = dynamicFrame_save_alert.frameLocator(`iframe[id="${dynamicFrameId_save_alert}"]`);
+      const exampleText = await innerFrame_save_alert.locator('p#tbx_Message').textContent();
+
+      // 콘솔에 exampleText 로깅합니다.
+      console.log("exampleText: ", exampleText);
+
       await innerFrame_save_alert.getByRole('link', { name: '확인' }).waitFor();
       await innerFrame_save_alert.getByRole('link', { name: '확인' }).click();
     } else {
