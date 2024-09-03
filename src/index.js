@@ -16,6 +16,7 @@ const { sendLogToServer } = require("./logUtil");
 const { autoUpdater } = require("electron-updater");
 
 const { crawlDelegation } = require("./crawl_delegation");
+const { sendDelegationToBack } = require("./sendDelegationToBack");
 
 const SESSION_FILE_PATH = path.join(app.getPath("userData"), "session.json");
 const SETTINGS_FILE_PATH = path.join(app.getPath("userData"), "settings.json");
@@ -268,6 +269,32 @@ ipcMain.on("start-check-bill", async (event) => {
     }
   } catch (error) {
     console.error("Error Readung:", error);
+  }
+});
+
+ipcMain.on("upload-delegation-list", async (event, data) => {
+  try {
+    const settings = await manageLocalData("settings");
+    if (settings) {
+      // Merge the settings with the data received from the renderer process
+      const automationData = {
+        ...settings,
+        ...data,
+      };
+      console.log("Automation Data:", automationData); // 확인용 출력
+      await runAutomation_billing(automationData);
+    } else {
+      console.error("Failed to load settings.");
+    }
+  } catch (e) {
+    console.error("Error running automation:", e.message);
+    await sendDelegationToBack(
+      data.docId,
+      "fail",
+      `Automation task failed: ${e.message}`,
+      data.csrfToken,
+      data.csrfHeader
+    );
   }
 });
 

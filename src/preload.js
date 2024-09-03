@@ -183,7 +183,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
       console.log("test start 123!");
 
-      ipcRenderer.send("start-crawl-delegation");
+      ipcRenderer.send("upload-delegation-list");
     });
   }
 });
