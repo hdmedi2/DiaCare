@@ -121,5 +121,25 @@ window.addEventListener('DOMContentLoaded', () => {
 
       ipcRenderer.send('start', data_1);
     });
+  }else if (url.includes('/pharm/diabetes/delegation-list') || url.includes('/pharm/diabetes/nhis-delegation-list') ){
+    const url = window.location.href;
+
+    const button = document.querySelector('#nhisBtn'); //id="autoBillBtn"
+    //button.innerText = '자동 청구 시작';
+
+    //const button_delegation = document.querySelector('#delegationBtn');
+    //button_delegation.innerText = "위임 등록하기"
+
+    // Add click event listener to the button
+    button.addEventListener('click', () => {
+      
+      const csrfToken = document.querySelector("meta[name='_csrf']").content;
+      const csrfHeader = document.querySelector("meta[name='_csrf_header']").content; 
+
+      console.log('test start!');
+
+      ipcRenderer.send('start-check-delegation' );
+      
+  });
   }
 });
