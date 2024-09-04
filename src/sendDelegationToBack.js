@@ -19,7 +19,7 @@ const sendDelegationToBack = async (
       .join("; ");
 
     const response = await axios.post(
-      "https://pharmdev.hdmedi.kr/pharm/diabetes/renew/delegation-list",
+      "https://pharm.hdmedi.kr/pharm/diabetes/renew/delegation-list",
       {
         pharmacyId,
         status: status,

@@ -36,7 +36,7 @@ const createWindow = async () => {
 
   mainWindow.maximize();
   await loadLocalData("session");
-  mainWindow.loadURL("https://pharmdev.hdmedi.kr/");
+  mainWindow.loadURL("https://pharm.hdmedi.kr/");
 };
 
 const manageLocalData = async (type, data = null) => {
