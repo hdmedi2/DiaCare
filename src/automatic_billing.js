@@ -1,5 +1,6 @@
 const { chromium } = require("playwright");
 const path = require("path");
+const fs = require("fs");
 const { sendLogToServer } = require("./logUtil");
 
 async function runAutomation_billing(data) {
@@ -25,6 +26,56 @@ async function runAutomation_billing(data) {
     }
     if (!browser) {
       console.error("No supported browser channels found.");
+      return;
+    }
+
+    const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
+    const downloadsDirectory = path.join(userHomeDirectory, "Downloads");
+
+    try {
+      // 구매영수증 다운로드
+      console.log("Start payment_receipt_file Download");
+      await downloadFile(
+        downloadsDirectory,
+        data.paymentReceiptFileName,
+        data.paymentReceiptSignedUrl
+      );
+
+      // 연속혈당측정용 전극 고유식별번호 다운로드
+      if (data.isCgmSensor) {
+        console.log("Start cgm_seq_no_file Download");
+        await downloadFile(
+          downloadsDirectory,
+          data.cgmSeqNoSignedUrl,
+          data.cgmSeqNoFileName
+        );
+      }
+
+      // 위임장 다운로드
+      console.log("Start payment_claim_delegation_file Download");
+      await downloadFile(
+        downloadsDirectory,
+        data.paymentClaimDelegationSignedUrl,
+        data.paymentClaimDelegationFileName
+      );
+
+      // 처방전 다운로드
+      console.log("Start prescription_file Download");
+      await downloadFile(
+        downloadsDirectory,
+        data.prescriptionSignedUrl,
+        data.prescriptionFileName
+      );
+
+      // 출력문서 다운로드
+      console.log("Start diabetes_doc_file Download");
+      await downloadFile(
+        downloadsDirectory,
+        data.diabetesDocSignedUrl,
+        data.diabetesDocFileName
+      );
+    } catch (error) {
+      console.error("CloudfrontUrl download error");
       return;
     }
 
@@ -478,9 +529,11 @@ async function runAutomation_billing(data) {
       .click();
     // 컴퓨터에서 파일 찾기
     const fileChooser = await fileChooserPromise;
-    const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
-    const downloadsDirectory = path.join(userHomeDirectory, "Downloads");
-    await fileChooser.setFiles(path.join(downloadsDirectory, "청구용문서.pdf"));
+    // 출력문서 파일 선택
+    await fileChooser.setFiles(
+      path.join(downloadsDirectory, data.prescriptionFileName)
+    );
+
     // 파일 전송
     await frame
       .frameLocator('iframe[title="popup_fileUpload"]')
@@ -526,3 +579,20 @@ async function runAutomation_billing(data) {
 module.exports = { runAutomation_billing };
 
 // npx playwright codegen https://medicare.nhis.or.kr/portal/index.do --viewport-size=1920,1080
+
+async function downloadFile(downloadsDirectory, url, filename) {
+  console.log("downloadFile start");
+  fetch(url)
+    .then((response) => response.arrayBuffer())
+    .then((data) => {
+      const filePath = path.join(downloadsDirectory, filename);
+      fs.writeFile(filePath, Buffer.from(data), (err) => {
+        if (err) {
+          console.error("Download failed:", err);
+        } else {
+          console.log("Download completed!");
+        }
+      });
+    })
+    .catch((err) => console.error("Fetch failed:", err));
+}

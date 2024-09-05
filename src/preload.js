@@ -14,14 +14,15 @@ window.addEventListener("DOMContentLoaded", () => {
     url.includes("/pharm/diabetes/calc-update") ||
     url.includes("/pharm/diabetes/calc-detail")
   ) {
-    const button = document.querySelector("#autoBillBtn"); //id="autoBillBtn"
-    button.innerText = "자동 청구 시작";
+    const button_bill = document.querySelector("#autoBillBtn"); //id="autoBillBtn"
+    button_bill.innerText = "자동 청구 시작";
 
-    const button_delegation = document.querySelector("#delegationBtn");
+    //const button_delegation = document.querySelector("#delegationBtn");
+    const button_delegation = document.querySelector("#autoDelegationBtn");
     button_delegation.innerText = "위임 등록하기";
 
     // Add click event listener to the button
-    button.addEventListener("click", () => {
+    button_bill.addEventListener("click", () => {
       const csrfToken = document.querySelector("meta[name='_csrf']").content;
       const csrfHeader = document.querySelector(
         "meta[name='_csrf_header']"
@@ -78,6 +79,45 @@ window.addEventListener("DOMContentLoaded", () => {
         }
         i++;
       }
+      // 구매영수증 파일
+      const paymentReceiptFileName = document.querySelector(
+        "#paymentReceiptFileName"
+      ).value;
+      const paymentReceiptSignedUrl = document.querySelector(
+        "#paymentReceiptSignedUrl"
+      ).value;
+
+      // 연속혈당측정용 전극 고유식별번호 파일
+      const isCgmSensor =
+        document.querySelector("#CGM_SENSOR").value === "true";
+      const cgmSeqNoFileName =
+        document.querySelector("#cgmSeqNoFileName").value;
+      const cgmSeqNoSignedUrl =
+        document.querySelector("#cgmSeqNoSignedUrl").value;
+
+      // 위임장 파일
+      const paymentClaimDelegationFileName = document.querySelector(
+        "#paymentClaimDelegationFileName"
+      ).value;
+      const paymentClaimDelegationSignedUrl = document.querySelector(
+        "#paymentClaimDelegationSignedUrl"
+      ).value;
+
+      // 처방전 파일
+      const prescriptionFileName = document.querySelector(
+        "#prescriptionFileName"
+      ).value;
+      const prescriptionSignedUrl = document.querySelector(
+        "#prescriptionSignedUrl"
+      ).value;
+
+      // 출력문서 파일
+      const diabetesDocFileName = document.querySelector(
+        "#diabetesDocFileName"
+      ).value;
+      const diabetesDocSignedUrl = document.querySelector(
+        "#diabetesDocSignedUrl"
+      ).value;
 
       const data = {
         // 당뇨진료이력 Id
@@ -112,6 +152,22 @@ window.addEventListener("DOMContentLoaded", () => {
         p_price: productPrices,
         // 제품수
         p_quantity: productQuantities,
+        // 구매영수증 파일
+        paymentReceiptFileName: paymentReceiptFileName,
+        paymentReceiptSignedUrl: paymentReceiptSignedUrl,
+        // 연속혈당측정용 전극 고유식별번호 파일
+        isCgmSensor: isCgmSensor,
+        cgmSeqNoFileName: cgmSeqNoFileName,
+        cgmSeqNoSignedUrl: cgmSeqNoSignedUrl,
+        // 위임장 파일
+        paymentClaimDelegationFileName: paymentClaimDelegationFileName,
+        paymentClaimDelegationSignedUrl: paymentClaimDelegationSignedUrl,
+        // 처방전 파일
+        prescriptionFileName: prescriptionFileName,
+        prescriptionSignedUrl: prescriptionSignedUrl,
+        // 출력문서 파일
+        diabetesDocFileName: diabetesDocFileName,
+        diabetesDocSignedUrl: diabetesDocSignedUrl,
         // API 연결을 위한 token
         csrfToken: csrfToken,
         csrfHeader: csrfHeader,
@@ -135,6 +191,46 @@ window.addEventListener("DOMContentLoaded", () => {
       const enddate = document.querySelector("#delegationEndDate").value;
       const startdate = document.querySelector("#delegationStartDate").value;
 
+      // 구매영수증 파일
+      const paymentReceiptFileName = document.querySelector(
+        "#paymentReceiptFileName"
+      ).value;
+      const paymentReceiptSignedUrl = document.querySelector(
+        "#paymentReceiptSignedUrl"
+      ).value;
+
+      // 연속혈당측정용 전극 고유식별번호 파일
+      const isCgmSensor =
+        document.querySelector("#CGM_SENSOR").value === "true";
+      const cgmSeqNoFileName =
+        document.querySelector("#cgmSeqNoFileName").value;
+      const cgmSeqNoSignedUrl =
+        document.querySelector("#cgmSeqNoSignedUrl").value;
+
+      // 위임장 파일
+      const paymentClaimDelegationFileName = document.querySelector(
+        "#paymentClaimDelegationFileName"
+      ).value;
+      const paymentClaimDelegationSignedUrl = document.querySelector(
+        "#paymentClaimDelegationSignedUrl"
+      ).value;
+
+      // 처방전 파일
+      const prescriptionFileName = document.querySelector(
+        "#prescriptionFileName"
+      ).value;
+      const prescriptionSignedUrl = document.querySelector(
+        "#prescriptionSignedUrl"
+      ).value;
+
+      // 출력문서 파일
+      const diabetesDocFileName = document.querySelector(
+        "#diabetesDocFileName"
+      ).value;
+      const diabetesDocSignedUrl = document.querySelector(
+        "#diabetesDocSignedUrl"
+      ).value;
+
       const data_1 = {
         // 환자이름
         name: patientName,
@@ -150,6 +246,22 @@ window.addEventListener("DOMContentLoaded", () => {
         start: startdate,
         // 위임 종료일
         end: enddate,
+        // 구매영수증 파일
+        paymentReceiptFileName: paymentReceiptFileName,
+        paymentReceiptSignedUrl: paymentReceiptSignedUrl,
+        // 연속혈당측정용 전극 고유식별번호 파일
+        isCgmSensor: isCgmSensor,
+        cgmSeqNoFileName: cgmSeqNoFileName,
+        cgmSeqNoSignedUrl: cgmSeqNoSignedUrl,
+        // 위임장 파일
+        paymentClaimDelegationFileName: paymentClaimDelegationFileName,
+        paymentClaimDelegationSignedUrl: paymentClaimDelegationSignedUrl,
+        // 처방전 파일
+        prescriptionFileName: prescriptionFileName,
+        prescriptionSignedUrl: prescriptionSignedUrl,
+        // 출력문서 파일
+        diabetesDocFileName: diabetesDocFileName,
+        diabetesDocSignedUrl: diabetesDocSignedUrl,
       };
 
       ipcRenderer.send("start", data_1);
@@ -162,7 +274,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     /*const button = document.querySelector("#nhisBtn"); 
 
-    button.addEventListener("click", () => {
+    button_bill.addEventListener("click", () => {
       const csrfToken = document.querySelector("meta[name='_csrf']").content;
       const csrfHeader = document.querySelector(
         "meta[name='_csrf_header']"

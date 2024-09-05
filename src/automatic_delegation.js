@@ -1,5 +1,6 @@
 const { chromium } = require("playwright");
 const path = require("path");
+const fs = require("fs");
 
 async function runAutomation_delegation(data_1) {
   const channels = [
@@ -24,6 +25,56 @@ async function runAutomation_delegation(data_1) {
   }
   if (!browser) {
     console.error("No supported browser channels found.");
+    return;
+  }
+
+  const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
+  const downloadsDirectory = path.join(userHomeDirectory, "Downloads");
+
+  try {
+    // 구매영수증 다운로드
+    console.log("Start payment_receipt_file Download");
+    await downloadFile(
+      downloadsDirectory,
+      data_1.paymentReceiptFileName,
+      data_1.paymentReceiptSignedUrl
+    );
+
+    // 연속혈당측정용 전극 고유식별번호 다운로드
+    console.log("Start cgm_seq_no_file Download");
+    if (data_1.isCgmSensor) {
+      await downloadFile(
+        downloadsDirectory,
+        data_1.cgmSeqNoSignedUrl,
+        data_1.cgmSeqNoFileName
+      );
+    }
+
+    // 위임장 다운로드
+    console.log("Start payment_claim_delegation_file Download");
+    await downloadFile(
+      downloadsDirectory,
+      data_1.paymentClaimDelegationSignedUrl,
+      data_1.paymentClaimDelegationFileName
+    );
+
+    // 처방전 다운로드
+    console.log("Start prescription_file Download");
+    await downloadFile(
+      downloadsDirectory,
+      data_1.prescriptionSignedUrl,
+      data_1.prescriptionFileName
+    );
+
+    // 출력문서 다운로드
+    console.log("Start diabetes_doc_file Download");
+    await downloadFile(
+      downloadsDirectory,
+      data_1.diabetesDocSignedUrl,
+      data_1.diabetesDocFileName
+    );
+  } catch (error) {
+    console.error("CloudfrontUrl download error");
     return;
   }
 
@@ -224,20 +275,29 @@ async function runAutomation_delegation(data_1) {
   }
 
   // 제출 서류 첨부
+  console.log("Start 제출 서류 첨부 click");
   await frame.getByRole("link", { name: "제출 서류 첨부" }).click();
+  console.log("End 제출 서류 첨부 click");
+
   // 파일 첨부
+  console.log("Start 파일 첨부 click");
   const fileChooserPromise = page.waitForEvent("filechooser");
   await frame
     .frameLocator('iframe[title="popup_fileUpload"]')
     .frameLocator("#btrsFrame")
     .getByRole("button", { name: "① 파일추가" })
     .click();
+  console.log("End 파일 첨부 click");
+
   // 컴퓨터에서 파일 찾기
   const fileChooser = await fileChooserPromise;
-  const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
-  const downloadsDirectory = path.join(userHomeDirectory, "Downloads");
-  await fileChooser.setFiles(path.join(downloadsDirectory, "위임장.pdf"));
+  // 위임장 선택
+  await fileChooser.setFiles(
+    path.join(downloadsDirectory, data_1.paymentClaimDelegationFileName)
+  );
+
   // 파일 전송
+  console.log("Start 파일 전송 click");
   await frame
     .frameLocator('iframe[title="popup_fileUpload"]')
     .frameLocator("#btrsFrame")
@@ -249,12 +309,16 @@ async function runAutomation_delegation(data_1) {
     .locator("text=저장완료")
     .waitFor({ timeout: 0 }); // 저장완료 text가 나타날때까지 무한 대기
   console.log('"저장완료" 텍스트가 프레임 내에 나타났습니다.');
+  console.log("End 파일 전송 click");
+
   // 파일 저장
+  console.log("Start 파일 저장 click");
   await frame
     .frameLocator('iframe[title="popup_fileUpload"]')
     .frameLocator("#btrsFrame")
     .getByRole("button", { name: "③ 적 용" })
     .click();
+  console.log("End 파일 저장 click");
 
   // 최종제출
   await frame.getByRole("link", { name: "최종제출" }).click();
@@ -265,3 +329,20 @@ async function runAutomation_delegation(data_1) {
 module.exports = { runAutomation_delegation };
 
 // npx playwright codegen https://medicare.nhis.or.kr/portal/index.do --viewport-size=1920,1080
+
+async function downloadFile(downloadsDirectory, url, filename) {
+  console.log("downloadFile start");
+  fetch(url)
+    .then((response) => response.arrayBuffer())
+    .then((data) => {
+      const filePath = path.join(downloadsDirectory, filename);
+      fs.writeFile(filePath, Buffer.from(data), (err) => {
+        if (err) {
+          console.error("Download failed:", err);
+        } else {
+          console.log("Download completed!");
+        }
+      });
+    })
+    .catch((err) => console.error("Fetch failed:", err));
+}
