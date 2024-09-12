@@ -287,7 +287,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     const buttonToBack = document.querySelector("#nhisToBackBtn");
 
-    buttonToBack.addEventListener("click", () => {
+    /*buttonToBack.addEventListener("click", () => {
       const csrfToken = document.querySelector("meta[name='_csrf']").content;
       const csrfHeader = document.querySelector(
         "meta[name='_csrf_header']"
@@ -296,6 +296,6 @@ window.addEventListener("DOMContentLoaded", () => {
       console.log("test start 123!");
 
       ipcRenderer.send("upload-delegation-list");
-    });
+    });*/
   }
 });
