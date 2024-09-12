@@ -64,7 +64,7 @@ window.addEventListener("DOMContentLoaded", () => {
       while (true) {
         const prices = Array.from(
           document.querySelectorAll(
-            `#diabetesSuppliesResDtoList${i}\\.unitPrice`
+            `#diabetesSuppliesResDtoList${i}\\.totalPrice`
           )
         ).map((element) => element.value);
         const quantities = Array.from(
