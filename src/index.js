@@ -190,8 +190,8 @@ app.whenReady().then(() => {
       ],
     },
     {
-      label: "Setting",
-      submenu: [{ label: "Configuration", click: createSettingWindow }],
+      label: "공인인증서",
+      submenu: [{ label: "인증서 설정", click: createSettingWindow }],
     },
     {
       label: "요양마당",
