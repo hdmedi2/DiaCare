@@ -100,18 +100,35 @@ async function checkDelegation(data) {
     if (responseBody.dl_tbbibo59) {
       console.log("Number of rows:", responseBody.dl_tbbibo59.length);
 
+      const filePos = "C:\\output.json";
+      const filePosRead = "file://output.json"
+
       fs.writeFileSync(
         //path.join(__dirname, "output.json"),
-        "C:\\output.json",
+        filePos ,
         JSON.stringify(responseBody.dl_tbbibo59)
       );
 
-      // CSV로 저장
-      const fields = Object.keys(responseBody.dl_tbbibo59[0]); // CSV 헤더로 사용될 필드명
-      const csv = parse(responseBody.dl_tbbibo59, { fields });
+      var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 
-      fs.writeFileSync("output_delegation.csv", csv);
-      console.log("Data saved to output.csv");
+      let rawFile = new XMLHttpRequest();
+      rawFile.open("GET", filePosRead, false);
+      rawFile.onreadystatechange = function () {
+        if (rawFile.readyState === 4) {
+          if (rawFile.status === 200 || rawFile.status == 0) {
+            var allText = rawFile.responseText;
+
+            console.log(allText);
+          }
+        }
+      };
+
+      // CSV로 저장
+      //const fields = Object.keys(responseBody.dl_tbbibo59[0]); // CSV 헤더로 사용될 필드명
+      //const csv = parse(responseBody.dl_tbbibo59, { fields });
+
+      //fs.writeFileSync("output_delegation.csv", csv);
+      //console.log("Data saved to output.csv");
     } else {
       console.log("No data found in the response");
     }
