@@ -534,6 +534,20 @@ async function runAutomation_billing(data) {
       path.join(downloadsDirectory, data.prescriptionFileName)
     );
 
+
+    await frame
+      .frameLocator('iframe[title="popup_fileUpload"]')
+      .frameLocator("#btrsFrame")
+      .getByRole("button", { name: "① 파일추가" })
+      .click();
+    // 컴퓨터에서 파일 찾기
+    // 출력문서 파일 선택
+    await fileChooser.setFiles(
+      path.join(downloadsDirectory, data.paymentReceiptFileName ) 
+    );
+
+    
+
     // 파일 전송
     await frame
       .frameLocator('iframe[title="popup_fileUpload"]')
