@@ -542,23 +542,36 @@ async function runAutomation_billing(data) {
       .click();
     // 컴퓨터에서 파일 찾기
     // 출력문서 파일 선택
-    await fileChooser.setFiles(
-      path.join(downloadsDirectory, data.paymentReceiptFileName ) 
-    );
-
     
+    
+    await fileChooser.setFiles([
+      path.join(downloadsDirectory, data.prescriptionFileName),
+      path.join(downloadsDirectory, data.diabetesDocFileName),
+    ]);
 
     // 파일 전송
+
     await frame
       .frameLocator('iframe[title="popup_fileUpload"]')
       .frameLocator("#btrsFrame")
       .getByRole("button", { name: "② 파일전송" })
       .click();
-    await frame
-      .frameLocator('iframe[title="popup_fileUpload"]')
-      .frameLocator("#btrsFrame")
-      .locator("text=저장완료")
-      .waitFor({ timeout: 0 }); // 저장완료 text가 나타날때까지 무한 대기
+
+    while (true) {
+      const elements = frame
+        .frameLocator('iframe[title="popup_fileUpload"]')
+        .frameLocator("#btrsFrame")
+        .locator("text=저장완료");
+
+      if ((await elements.count()) >= 2) {
+        break;
+      }
+
+      await page.waitForTimeout(500);
+    }
+
+    
+
     console.log('"저장완료" 텍스트가 프레임 내에 나타났습니다.');
     // 파일 저장
     await frame
