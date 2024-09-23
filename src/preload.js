@@ -80,9 +80,9 @@ window.addEventListener("DOMContentLoaded", () => {
         i++;
       }
       // 구매영수증 파일
-      const paymentReceiptFileName = document.querySelector(
-        "#paymentReceiptFileName"
-      ).value;
+      const paymentReceiptFileName = document
+        .querySelector("#paymentReceiptFileName")
+        .value.replace(" ", "+"); // 다운로드를 위해 빈칸=>+ 로 replace
       const paymentReceiptSignedUrl = document.querySelector(
         "#paymentReceiptSignedUrl"
       ).value;
@@ -90,31 +90,32 @@ window.addEventListener("DOMContentLoaded", () => {
       // 연속혈당측정용 전극 고유식별번호 파일
       const isCgmSensor =
         document.querySelector("#CGM_SENSOR").value === "true";
-      const cgmSeqNoFileName =
-        document.querySelector("#cgmSeqNoFileName").value;
+      const cgmSeqNoFileName = document
+        .querySelector("#cgmSeqNoFileName")
+        .value.replace(" ", "+"); // 다운로드를 위해 빈칸=>+ 로 replace
       const cgmSeqNoSignedUrl =
         document.querySelector("#cgmSeqNoSignedUrl").value;
 
       // 위임장 파일
-      const paymentClaimDelegationFileName = document.querySelector(
-        "#paymentClaimDelegationFileName"
-      ).value;
+      const paymentClaimDelegationFileName = document
+        .querySelector("#paymentClaimDelegationFileName")
+        .value.replace(" ", "+"); // 다운로드를 위해 빈칸=>+ 로 replace
       const paymentClaimDelegationSignedUrl = document.querySelector(
         "#paymentClaimDelegationSignedUrl"
       ).value;
 
       // 처방전 파일
-      const prescriptionFileName = document.querySelector(
-        "#prescriptionFileName"
-      ).value;
+      const prescriptionFileName = document
+        .querySelector("#prescriptionFileName")
+        .value.replace(" ", "+"); // 다운로드를 위해 빈칸=>+ 로 replace
       const prescriptionSignedUrl = document.querySelector(
         "#prescriptionSignedUrl"
       ).value;
 
       // 출력문서 파일
-      const diabetesDocFileName = document.querySelector(
-        "#diabetesDocFileName"
-      ).value;
+      const diabetesDocFileName = document
+        .querySelector("#diabetesDocFileName")
+        .value.replace(" ", "+"); // 다운로드를 위해 빈칸=>+ 로 replace
       const diabetesDocSignedUrl = document.querySelector(
         "#diabetesDocSignedUrl"
       ).value;
@@ -192,9 +193,9 @@ window.addEventListener("DOMContentLoaded", () => {
       const startdate = document.querySelector("#delegationStartDate").value;
 
       // 구매영수증 파일
-      const paymentReceiptFileName = document.querySelector(
-        "#paymentReceiptFileName"
-      ).value;
+      const paymentReceiptFileName = document
+        .querySelector("#paymentReceiptFileName")
+        .value.replace(" ", "+"); // 다운로드를 위해 빈칸=>+ 로 replace
       const paymentReceiptSignedUrl = document.querySelector(
         "#paymentReceiptSignedUrl"
       ).value;
@@ -202,31 +203,32 @@ window.addEventListener("DOMContentLoaded", () => {
       // 연속혈당측정용 전극 고유식별번호 파일
       const isCgmSensor =
         document.querySelector("#CGM_SENSOR").value === "true";
-      const cgmSeqNoFileName =
-        document.querySelector("#cgmSeqNoFileName").value;
+      const cgmSeqNoFileName = document
+        .querySelector("#cgmSeqNoFileName")
+        .value.replace(" ", "+"); // 다운로드를 위해 빈칸=>+ 로 replace
       const cgmSeqNoSignedUrl =
         document.querySelector("#cgmSeqNoSignedUrl").value;
 
       // 위임장 파일
-      const paymentClaimDelegationFileName = document.querySelector(
-        "#paymentClaimDelegationFileName"
-      ).value;
+      const paymentClaimDelegationFileName = document
+        .querySelector("#paymentClaimDelegationFileName")
+        .value.replace(" ", "+"); // 다운로드를 위해 빈칸=>+ 로 replace
       const paymentClaimDelegationSignedUrl = document.querySelector(
         "#paymentClaimDelegationSignedUrl"
       ).value;
 
       // 처방전 파일
-      const prescriptionFileName = document.querySelector(
-        "#prescriptionFileName"
-      ).value;
+      const prescriptionFileName = document
+        .querySelector("#prescriptionFileName")
+        .value.replace(" ", "+"); // 다운로드를 위해 빈칸=>+ 로 replace
       const prescriptionSignedUrl = document.querySelector(
         "#prescriptionSignedUrl"
       ).value;
 
       // 출력문서 파일
-      const diabetesDocFileName = document.querySelector(
-        "#diabetesDocFileName"
-      ).value;
+      const diabetesDocFileName = document
+        .querySelector("#diabetesDocFileName")
+        .value.replace(" ", "+"); // 다운로드를 위해 빈칸=>+ 로 replace
       const diabetesDocSignedUrl = document.querySelector(
         "#diabetesDocSignedUrl"
       ).value;

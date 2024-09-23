@@ -37,8 +37,8 @@ async function runAutomation_billing(data) {
       console.log("Start payment_receipt_file Download");
       await downloadFile(
         downloadsDirectory,
-        data.paymentReceiptFileName,
-        data.paymentReceiptSignedUrl
+        data.paymentReceiptSignedUrl,
+        data.paymentReceiptFileName
       );
 
       // 연속혈당측정용 전극 고유식별번호 다운로드
@@ -530,24 +530,15 @@ async function runAutomation_billing(data) {
     // 컴퓨터에서 파일 찾기
     const fileChooser = await fileChooserPromise;
     // 출력문서 파일 선택
-    await fileChooser.setFiles(
-      path.join(downloadsDirectory, data.prescriptionFileName)
-    );
 
-
-    await frame
-      .frameLocator('iframe[title="popup_fileUpload"]')
-      .frameLocator("#btrsFrame")
-      .getByRole("button", { name: "① 파일추가" })
-      .click();
-    // 컴퓨터에서 파일 찾기
-    // 출력문서 파일 선택
-    
-    
-    await fileChooser.setFiles([
+    const fileArr = [
       path.join(downloadsDirectory, data.prescriptionFileName),
       path.join(downloadsDirectory, data.diabetesDocFileName),
-    ]);
+      path.join(downloadsDirectory, data.paymentReceiptFileName)
+    ]
+    
+    
+    await fileChooser.setFiles(fileArr);
 
     // 파일 전송
 
@@ -563,7 +554,7 @@ async function runAutomation_billing(data) {
         .frameLocator("#btrsFrame")
         .locator("text=저장완료");
 
-      if ((await elements.count()) >= 2) {
+      if ((await elements.count()) >= fileArr.length) {
         break;
       }
 
