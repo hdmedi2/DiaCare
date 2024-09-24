@@ -272,8 +272,8 @@ async function runAutomation_billing(data) {
     }
 
     // 요양기관, 의사 번호, 전문의 번호
-    await frame.locator("#wq_uuid_657").click();
-    await frame.locator("#wq_uuid_657").press("Enter");
+    await frame.locator("#wq_uuid_673").click();
+    await frame.locator("#wq_uuid_673").press("Enter");
     try {
       await page.waitForTimeout(2000);
       await frame
@@ -398,9 +398,9 @@ async function runAutomation_billing(data) {
     await frame.locator("#inp_pay_freq").fill(data.eat);
 
     // 제품사용내역등록(식별번호등록)
-    await frame.locator("#wq_uuid_787").waitFor({ state: "visible" });
-    await frame.locator("#wq_uuid_787").click();
-    await frame.locator("#wq_uuid_787").press("Enter");
+    await frame.locator("#wq_uuid_803").waitFor({ state: "visible" });
+    await frame.locator("#wq_uuid_803").click();
+    await frame.locator("#wq_uuid_803").press("Enter");
     // 제품명, 수량, 금액
     for (let i = 0; i < 10; i++) {
       let k = 2 * i + 1;
@@ -522,11 +522,23 @@ async function runAutomation_billing(data) {
     await frame.getByRole("link", { name: "제출 서류 첨부" }).click();
     // 파일 첨부
     const fileChooserPromise = page.waitForEvent("filechooser");
-    await frame
+
+    const parentDiv = frame
       .frameLocator('iframe[title="popup_fileUpload"]')
       .frameLocator("#btrsFrame")
-      .getByRole("button", { name: "① 파일추가" })
-      .click();
+      .locator("#btnsNormal");
+
+    //console.log("btnsNormal " + (await parentDiv.textContent()));
+
+    const button1 = parentDiv.locator("button").first();
+    await button1.click();
+
+    //await frame
+    //  .frameLocator('iframe[title="popup_fileUpload"]')
+    //  .frameLocator("#btrsFrame")
+    //  .getByRole("div", { id })
+    //  .getByRole("button", { name: "① 파일추가" }) // ①&nbsp;파일추가   // ① 파일추가
+    //  .click();
     // 컴퓨터에서 파일 찾기
     const fileChooser = await fileChooserPromise;
     // 출력문서 파일 선택
@@ -534,19 +546,21 @@ async function runAutomation_billing(data) {
     const fileArr = [
       path.join(downloadsDirectory, data.prescriptionFileName),
       path.join(downloadsDirectory, data.diabetesDocFileName),
-      path.join(downloadsDirectory, data.paymentReceiptFileName)
-    ]
-    
-    
+      path.join(downloadsDirectory, data.paymentReceiptFileName),
+    ];
+
     await fileChooser.setFiles(fileArr);
 
     // 파일 전송
 
-    await frame
+    const button2 = parentDiv.locator("button").nth(1);
+    button2.click();
+
+    /*await frame
       .frameLocator('iframe[title="popup_fileUpload"]')
       .frameLocator("#btrsFrame")
       .getByRole("button", { name: "② 파일전송" })
-      .click();
+      .click();*/
 
     while (true) {
       const elements = frame
@@ -561,15 +575,17 @@ async function runAutomation_billing(data) {
       await page.waitForTimeout(500);
     }
 
-    
-
     console.log('"저장완료" 텍스트가 프레임 내에 나타났습니다.');
     // 파일 저장
-    await frame
+
+    const button3 = parentDiv.locator("button").nth(2);
+    button3.click();
+
+    /*await frame
       .frameLocator('iframe[title="popup_fileUpload"]')
       .frameLocator("#btrsFrame")
       .getByRole("button", { name: "③ 적 용" })
-      .click();
+      .click();*/
 
     // 최종제출
     await frame.getByRole("link", { name: "최종제출" }).click();

@@ -51,7 +51,7 @@ window.addEventListener("DOMContentLoaded", () => {
         "#insulinInjectionNumber"
       ).value;
       const diseaseCode = document.querySelector("#diseaseCodeName").value;
-      const purchaseDate = document.querySelector("#prescriptionDate").value;
+      const purchaseDate = document.querySelector("#purchaseDate").value;
       const eatDays = document.querySelector("#eatDays").value;
       const productNames = Array.from(
         document.querySelectorAll(
