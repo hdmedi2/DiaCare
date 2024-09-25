@@ -378,7 +378,7 @@ async function runAutomation_billing(data) {
     await frame.locator("#cal_buy_dd_input").click();
     await frame.locator("#cal_buy_dd_input").fill(data.purchase);
 
-    await frame.locator("#wq_uuid_797").click();
+    await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
 
     await page.waitForTimeout(6000);
 
@@ -396,15 +396,16 @@ async function runAutomation_billing(data) {
         const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId2}"]`);
         await innerFrame.locator('a#btn_Confirm').waitFor();
         await innerFrame.locator('a#btn_Confirm').click();
-      }
-      await page.waitForTimeout(6000);
 
-      const dupIframeId3 = await searchIframePopup(page, "alert_", "_iframe");
+        await page.waitForTimeout(6000);
 
-      if(dupIframeId3){
-        const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId3}"]`);
-        await innerFrame.locator('a#btn_Confirm').waitFor();
-        await innerFrame.locator('a#btn_Confirm').click();
+        const dupIframeId3 = await searchIframePopup(page, "alert_", "_iframe");
+
+        if(dupIframeId3){
+          const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId3}"]`);
+          await innerFrame.locator('a#btn_Confirm').waitFor();
+          await innerFrame.locator('a#btn_Confirm').click();
+        }
       }
 
     }else{
