@@ -1,4 +1,4 @@
-const { chromium } = require("playwright");
+﻿const { chromium } = require("playwright");
 const path = require("path");
 const fs = require("fs");
 const { sendLogToServer } = require("./logUtil");
@@ -134,25 +134,10 @@ async function runAutomation_billing(data) {
     // 팝업 창(일반적인 요양비 청구가 맞습니까?) 확인 버튼 -> 약국 선택
     // 동적으로 생성되는 태그 값 찾기
     await page.waitForTimeout(3000);
-    const frames = page.frames();
-    let dynamicFrame;
-    let dynamicFrameId;
-    for (const frame of frames) {
-      const ids = await frame.evaluate(() => {
-        const iframes = Array.from(document.querySelectorAll("iframe"));
-        return iframes.map((iframe) => iframe.id);
-      });
-      for (const id of ids) {
-        if (id.startsWith("confirm_") && id.endsWith("_iframe")) {
-          dynamicFrame = frame;
-          dynamicFrameId = id;
-          console.log("Dynamic iframe found with ID:", id);
-          break;
-        }
-      }
-      if (dynamicFrame) break;
-    }
-    if (dynamicFrame && dynamicFrameId) {
+
+    const dynamicFrameId = await searchIframePopup(page, "confirm_", "_iframe");
+
+    if (dynamicFrameId) {
       const innerFrame = frame.frameLocator(`iframe[id="${dynamicFrameId}"]`);
       await innerFrame.getByRole("link", { name: "예" }).waitFor();
       await innerFrame.getByRole("link", { name: "예" }).click();
@@ -392,8 +377,43 @@ async function runAutomation_billing(data) {
     // 구매일, 사용개시일, 지급일수
     await frame.locator("#cal_buy_dd_input").click();
     await frame.locator("#cal_buy_dd_input").fill(data.purchase);
-    await frame.locator("#cal_buy_dt_input").click();
-    await frame.locator("#cal_buy_dt_input").fill(data.purchase);
+
+    await frame.locator("#wq_uuid_797").click();
+
+    await page.waitForTimeout(6000);
+
+    const dupIframeId = await searchIframePopup(page, "confirm_", "_iframe");
+
+    if(dupIframeId){
+      const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId}"]`);
+      await innerFrame.locator('a#btn_Yes').waitFor();
+      await innerFrame.locator('a#btn_Yes').click();
+
+      await page.waitForTimeout(6000);
+
+      const dupIframeId2 = await searchIframePopup(page, "alert_", "_iframe");
+      if(dupIframeId2){
+        const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId2}"]`);
+        await innerFrame.locator('a#btn_Confirm').waitFor();
+        await innerFrame.locator('a#btn_Confirm').click();
+      }
+      await page.waitForTimeout(6000);
+
+      const dupIframeId3 = await searchIframePopup(page, "alert_", "_iframe");
+
+      if(dupIframeId3){
+        const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId3}"]`);
+        await innerFrame.locator('a#btn_Confirm').waitFor();
+        await innerFrame.locator('a#btn_Confirm').click();
+      }
+
+    }else{
+      await frame.locator("#cal_buy_dt_input").click();
+      await frame.locator("#cal_buy_dt_input").fill(data.purchase);
+    }
+
+
+
     await frame.locator("#inp_pay_freq").click();
     await frame.locator("#inp_pay_freq").fill(data.eat);
 
@@ -613,6 +633,31 @@ async function runAutomation_billing(data) {
 module.exports = { runAutomation_billing };
 
 // npx playwright codegen https://medicare.nhis.or.kr/portal/index.do --viewport-size=1920,1080
+
+
+async function searchIframePopup( page, startWord, endWord ) {
+  const frames = page.frames();
+  let dynamicFrame;
+  let dynamicFrameId;
+  for (const frame of frames) {
+    const ids = await frame.evaluate(() => {
+      const iframes = Array.from(document.querySelectorAll("iframe"));
+      return iframes.map((iframe) => iframe.id);
+    });
+    for (const id of ids) {
+      if (id.startsWith(startWord) && id.endsWith(endWord)) {
+        dynamicFrame = frame;
+        dynamicFrameId = id;
+        console.log("Dynamic iframe found with ID:", id);
+        break;
+      }
+    }
+    if (dynamicFrame) break;
+  }
+
+  return dynamicFrameId;
+
+}
 
 async function downloadFile(downloadsDirectory, url, filename) {
   console.log("downloadFile start");
