@@ -217,6 +217,17 @@ window.addEventListener("DOMContentLoaded", () => {
         "#paymentClaimDelegationSignedUrl"
       ).value;
 
+      // 신분증
+
+
+      const idCardFileName = document
+        .querySelector("#idCardFileName")
+        .value.replace(" ","+");
+      const idCardSignedUrl = document
+        .querySelector("#idCardSignedUrl")
+        .value.replace(" ","+");
+      
+
       // 처방전 파일
       const prescriptionFileName = document
         .querySelector("#prescriptionFileName")
@@ -258,6 +269,9 @@ window.addEventListener("DOMContentLoaded", () => {
         // 위임장 파일
         paymentClaimDelegationFileName: paymentClaimDelegationFileName,
         paymentClaimDelegationSignedUrl: paymentClaimDelegationSignedUrl,
+
+        idCardFileName: idCardFileName,
+        idCardSignedUrl: idCardSignedUrl,
         // 처방전 파일
         prescriptionFileName: prescriptionFileName,
         prescriptionSignedUrl: prescriptionSignedUrl,

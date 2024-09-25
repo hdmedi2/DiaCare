@@ -58,6 +58,14 @@ async function runAutomation_delegation(data_1) {
       data_1.paymentClaimDelegationFileName
     );
 
+    // 신분증 다운로드
+    console.log("Start id_card_file download");
+    await downloadFile(
+      downloadsDirectory,
+      data_1.idCardSignedUrl,
+      data_1.idCardFileName
+    )
+
     // 처방전 다운로드
     console.log("Start prescription_file Download");
     await downloadFile(
@@ -282,42 +290,74 @@ async function runAutomation_delegation(data_1) {
   // 파일 첨부
   console.log("Start 파일 첨부 click");
   const fileChooserPromise = page.waitForEvent("filechooser");
-  await frame
+
+  const parentDiv = frame
+  .frameLocator('iframe[title="popup_fileUpload"]')
+  .frameLocator("#btrsFrame")
+  .locator("#btnsNormal");
+
+  /*await frame
     .frameLocator('iframe[title="popup_fileUpload"]')
     .frameLocator("#btrsFrame")
     .getByRole("button", { name: "① 파일추가" })
     .click();
-  console.log("End 파일 첨부 click");
+  console.log("End 파일 첨부 click");*/
+
+  const button1 = parentDiv.locator("button").first();
+  await button1.click();
+
+  const fileArr = [path.join(downloadsDirectory, data_1.paymentClaimDelegationFileName),
+    path.join(downloadsDirectory, data_1.idCardFileName   ) 
+  ];
 
   // 컴퓨터에서 파일 찾기
   const fileChooser = await fileChooserPromise;
   // 위임장 선택
   await fileChooser.setFiles(
-    path.join(downloadsDirectory, data_1.paymentClaimDelegationFileName)
+    fileArr
   );
 
   // 파일 전송
   console.log("Start 파일 전송 click");
-  await frame
+  /*await frame
     .frameLocator('iframe[title="popup_fileUpload"]')
     .frameLocator("#btrsFrame")
     .getByRole("button", { name: "② 파일전송" })
-    .click();
-  await frame
+    .click();*/
+
+  const button2 = parentDiv.locator("button").nth(1);
+  await button2.click();
+
+  while(true){
+    const elements = frame
+      .frameLocator('iframe[title="popup_fileUpload"]')
+      .frameLocator("#btrsFrame")
+      .locator("text=저장완료");
+
+    if( (await elements.count()) >= fileArr.length  ){
+      break;
+    }
+
+  }
+
+  /*await frame
     .frameLocator('iframe[title="popup_fileUpload"]')
     .frameLocator("#btrsFrame")
     .locator("text=저장완료")
-    .waitFor({ timeout: 0 }); // 저장완료 text가 나타날때까지 무한 대기
+    .waitFor({ timeout: 0 }); // 저장완료 text가 나타날때까지 무한 대기*/
   console.log('"저장완료" 텍스트가 프레임 내에 나타났습니다.');
   console.log("End 파일 전송 click");
 
+  const button3 = parentDiv.locator("button").nth(2);
+  await button3.click();
+
   // 파일 저장
   console.log("Start 파일 저장 click");
-  await frame
+  /*await frame
     .frameLocator('iframe[title="popup_fileUpload"]')
     .frameLocator("#btrsFrame")
     .getByRole("button", { name: "③ 적 용" })
-    .click();
+    .click();*/
   console.log("End 파일 저장 click");
 
   // 최종제출

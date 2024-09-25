@@ -554,7 +554,7 @@ async function runAutomation_billing(data) {
     // 파일 전송
 
     const button2 = parentDiv.locator("button").nth(1);
-    button2.click();
+    await button2.click();
 
     /*await frame
       .frameLocator('iframe[title="popup_fileUpload"]')
@@ -579,7 +579,7 @@ async function runAutomation_billing(data) {
     // 파일 저장
 
     const button3 = parentDiv.locator("button").nth(2);
-    button3.click();
+    await button3.click();
 
     /*await frame
       .frameLocator('iframe[title="popup_fileUpload"]')
