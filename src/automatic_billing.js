@@ -414,9 +414,20 @@ async function runAutomation_billing(data) {
     }
 
 
-
     await frame.locator("#inp_pay_freq").click();
     await frame.locator("#inp_pay_freq").fill(data.eat);
+
+    await frame.locator("#wq_uuid_797").click();
+
+    await page.waitForTimeout(3000);
+
+    const dupIframeId4 = await searchIframePopup(page, "alert_", "_iframe");
+
+    if(dupIframeId4){
+      const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId4}"]`);
+      await innerFrame.locator('a#btn_Confirm').waitFor();
+      await innerFrame.locator('a#btn_Confirm').click();
+    }
 
     // 제품사용내역등록(식별번호등록)
     await frame.locator("#wq_uuid_803").waitFor({ state: "visible" });
