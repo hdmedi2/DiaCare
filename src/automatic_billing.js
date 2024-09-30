@@ -157,7 +157,7 @@ async function runAutomation_billing(data) {
       .getByRole("link", { name: "선택" })
       .click();
 
-    // 처방일자
+    // 처방전발행일
     await frame.locator("#cal_mprsc_issue_dt_input").click();
     await frame
       .locator("#cal_mprsc_issue_dt_input")
