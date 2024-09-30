@@ -236,6 +236,11 @@ ipcMain.on("start-check-delegation", async (event) => {
 
     if (settings) {
       await checkDelegation(settings);
+
+      const buttonToBack = document.getElementById("triggerBtn");
+      buttonToBack.click();
+
+
     } else {
       console.error("Failed to load settings.");
     }
