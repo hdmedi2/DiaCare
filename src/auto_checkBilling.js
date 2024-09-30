@@ -1,6 +1,7 @@
-const { chromium } = require("playwright");
+﻿const { chromium } = require("playwright");
 const fs = require("fs");
 const { parse } = require("json2csv");
+const {XMLHttpRequest} = require("xmlhttprequest");
 
 async function checkBilling(data) {
   const channels = [
@@ -89,18 +90,45 @@ async function checkBilling(data) {
     if (responseBody.dl_tbbibo05) {
       console.log("Number of rows:", responseBody.dl_tbbibo05.length);
 
-      // CSV로 저장
-      const fields = Object.keys(responseBody.dl_tbbibo05[0]); // CSV 헤더로 사용될 필드명
-      const csv = parse(responseBody.dl_tbbibo05, { fields });
+      const filePos = "C:\\bill"+Date.now()+".json";
+      const filePosRead = "file://"+Date.now()+"output.json"
 
-      fs.writeFileSync("output_bill.csv", csv);
-      console.log("Data saved to output.csv");
+      fs.writeFileSync(
+          //path.join(__dirname, "output.json"),
+          filePos ,
+          JSON.stringify(responseBody.dl_tbbibo05)
+      );
+
+      var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+
+      let rawFile = new XMLHttpRequest();
+      rawFile.open("GET", filePosRead, false);
+      rawFile.onreadystatechange = function () {
+
+        console.log(rawFile.readyState, " ", rawFile.status );
+        if (rawFile.readyState === 4) {
+          if (rawFile.status === 200 || rawFile.status == 0) {
+            var allText = rawFile.responseText;
+
+            console.log(allText);
+          }
+        }
+      };
+
+      //rawFile.send(null);
+
+      // CSV로 저장
+      // const fields = Object.keys(responseBody.dl_tbbibo05[0]); // CSV 헤더로 사용될 필드명
+      // const csv = parse(responseBody.dl_tbbibo05, { fields });
+
+      //fs.writeFileSync("output_bill.csv", csv);
+      //console.log("Data saved to output.csv");
     } else {
       console.log("No data found in the response");
     }
   } catch (error) {
     console.error("Failed to get response body:", error);
   }
-  await browser.close();
+  //await browser.close();
 }
 module.exports = { checkBilling };

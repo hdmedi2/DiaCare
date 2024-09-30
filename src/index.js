@@ -237,10 +237,6 @@ ipcMain.on("start-check-delegation", async (event) => {
     if (settings) {
       await checkDelegation(settings);
 
-      const buttonToBack = document.getElementById("triggerBtn");
-      buttonToBack.click();
-
-
     } else {
       console.error("Failed to load settings.");
     }
@@ -279,7 +275,7 @@ ipcMain.on("start-check-bill", async (event) => {
 
 ipcMain.on("upload-delegation-list", async (event, data) => {
   try {
-    const settings = await manageLocalData("settings");
+    const settings = await manageLocalData("settings"); //
     if (settings) {
       // Merge the settings with the data received from the renderer process
       const automationData = {
