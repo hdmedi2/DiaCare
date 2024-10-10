@@ -2,6 +2,7 @@
 const path = require("path");
 const fs = require("fs");
 const { sendLogToServer } = require("./logUtil");
+const { pharmacyListByBizNo } = require("./logUtil");
 
 async function runAutomation_billing(data) {
   const channels = [
@@ -141,21 +142,31 @@ async function runAutomation_billing(data) {
       const innerFrame = frame.frameLocator(`iframe[id="${dynamicFrameId}"]`);
       await innerFrame.getByRole("link", { name: "예" }).waitFor();
       await innerFrame.getByRole("link", { name: "예" }).click();
+
     } else {
       console.error("Dynamic iframe not found.");
     }
-    await frame
-      .frameLocator('iframe[title="bipbkz300p01"]')
-      .locator(`text=${extractedText}`)
-      .waitFor();
-    await frame
-      .frameLocator('iframe[title="bipbkz300p01"]')
-      .getByText(extractedText)
-      .click();
-    await frame
-      .frameLocator('iframe[title="bipbkz300p01"]')
-      .getByRole("link", { name: "선택" })
-      .click();
+
+    // 페이지의 모든 쿠키 가져오기
+    const cookieData = await page.context().cookies();
+    let pharmacyDataNum = await pharmacyListByBizNo(cookieData, data.pharmacyBizNo);
+
+    if (pharmacyDataNum > 1) {
+      // 업체목록이 2건 이상이면 선택
+      await frame
+          .frameLocator('iframe[title="bipbkz300p01"]')
+          .locator(`text=${extractedText}`)
+          .waitFor();
+      await frame
+          .frameLocator('iframe[title="bipbkz300p01"]')
+          .getByText(extractedText)
+          .click();
+      await frame
+          .frameLocator('iframe[title="bipbkz300p01"]')
+          .getByRole("link", { name: "선택" })
+          .click();
+
+    }
 
     // 처방전발행일
     await frame.locator("#cal_mprsc_issue_dt_input").click();

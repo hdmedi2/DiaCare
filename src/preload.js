@@ -31,6 +31,9 @@ window.addEventListener("DOMContentLoaded", () => {
       const pharmacyPatientDiabetesTreatId = document.querySelector(
         "#pharmacyPatientDiabetesTreatId"
       ).value;
+      const pharmacyBizNo = document.querySelector(
+          "#pharmacyBizNo"
+      ).value;
       const patientName = document.querySelector("#patientName").value;
       const patientSSN = document.querySelector(
         "#patientSocialSecurityNumber"
@@ -123,6 +126,8 @@ window.addEventListener("DOMContentLoaded", () => {
       const data = {
         // 당뇨진료이력 Id
         docId: pharmacyPatientDiabetesTreatId,
+        // 약국 사업자등록번호
+        pharmacyBizNo: pharmacyBizNo,
         // 환자이름
         name: patientName,
         // 주민번호

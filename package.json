@@ -1,7 +1,7 @@
 {
   "name": "iyac_diebates",
   "productName": "아이약_당뇨",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "My Electron application description",
   "main": "src/index.js",
   "scripts": {
@@ -24,8 +24,8 @@
   },
   "keywords": [],
   "author": {
-    "name": "hdmedi-taeo",
-    "email": "taeo@hdmedi.co.kr"
+    "name": "hdmedi",
+    "email": "hdmedi@hdmedi.co.kr"
   },
   "license": "MIT",
   "dependencies": {
