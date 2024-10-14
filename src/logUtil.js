@@ -34,6 +34,38 @@ const sendLogToServer = async (docId, status, message, csrfToken, csrfHeader) =>
 
 module.exports = { sendLogToServer };
 
+const sendCrawlingFileToServer = async (json, csrfToken, csrfHeader) => {
+  try {
+    console.log(`Status: ${json}, csrfToken: ${csrfToken}, csrfHeader: ${csrfHeader}`);
+
+    const { manageLocalData } = require('./index');
+    const data = await manageLocalData('session');
+    const cookieHeader = data.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
+
+    const response = await axios.post('https://pharm.hdmedi.kr/pharm/diabetes/calc-detail/claims',
+        {
+          stringifiedList: json
+        }, {
+          headers: {
+            'Cookie': cookieHeader,
+            'Content-Type': 'application/json',
+            [csrfHeader]: csrfToken
+          }
+        });
+    console.log('Response Status:', response.status);
+  } catch (error) {
+    console.error('Error sending log:', error);
+    if(error.response){
+      console.log('Error Response Headers:', error.response.headers);
+      console.error('Server responded with:', error.response.data);
+    } else {
+      console.error('No response from server:', error.message);
+    }
+  }
+};
+
+module.exports = { sendCrawlingFileToServer };
+
 const pharmacyListByBizNo = async (cookieData, bizNo) => {
   try {
     let param = {
