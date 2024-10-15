@@ -1,26 +1,28 @@
 {
   "name": "iyac_diabetes",
   "productName": "아이약_당뇨",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "My Electron application description",
   "main": "src/index.js",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
-    "make": "electron-forge make",
+    "obfuscate": "javascript-obfuscator src --output src-obfuscated",
+    "make": "npm run obfuscate && electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\""
   },
   "devDependencies": {
-    "@electron-forge/cli": "^7.4.0",
-    "@electron-forge/maker-deb": "^7.4.0",
-    "@electron-forge/maker-rpm": "^7.4.0",
-    "@electron-forge/maker-squirrel": "^7.4.0",
-    "@electron-forge/maker-zip": "^7.4.0",
-    "@electron-forge/plugin-auto-unpack-natives": "^7.4.0",
-    "@electron-forge/plugin-fuses": "^7.4.0",
+    "@electron-forge/cli": "^7.5.0",
+    "@electron-forge/maker-deb": "^7.5.0",
+    "@electron-forge/maker-rpm": "^7.5.0",
+    "@electron-forge/maker-squirrel": "^7.5.0",
+    "@electron-forge/maker-zip": "^7.5.0",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.5.0",
+    "@electron-forge/plugin-fuses": "^7.5.0",
     "@electron/fuses": "^1.8.0",
-    "electron": "31.3.1"
+    "electron": "^32.2.0",
+    "javascript-obfuscator": "^4.1.1"
   },
   "keywords": [],
   "author": {
@@ -29,12 +31,12 @@
   },
   "license": "MIT",
   "dependencies": {
-    "axios": "^1.7.4",
-    "electron-builder": "^24.13.3",
+    "axios": "^1.7.7",
+    "electron-builder": "^25.1.8",
     "electron-squirrel-startup": "^1.0.1",
-    "electron-updater": "^6.2.1",
+    "electron-updater": "^6.3.9",
     "json2csv": "^6.0.0-alpha.2",
-    "playwright": "^1.46.0",
+    "playwright": "^1.48.0",
     "xmlhttprequest": "^1.8.0"
   }
 }
