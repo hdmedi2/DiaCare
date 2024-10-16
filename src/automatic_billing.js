@@ -396,9 +396,12 @@ async function runAutomation_billing(data) {
     const dupIframeId = await searchIframePopup(page, "confirm_", "_iframe");
 
     if(dupIframeId){
+      /*
+          직전 동일 준요양기관의 청구내역이 있습니다. 동일한 내역으로 청구하시겠습니까? Yes / No
+       */
       const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId}"]`);
-      await innerFrame.locator('a#btn_Yes').waitFor();
-      await innerFrame.locator('a#btn_Yes').click();
+      await innerFrame.locator('a#btn_No').waitFor();
+      await innerFrame.locator('a#btn_No').click();
 
       await page.waitForTimeout(6000);
 
@@ -407,7 +410,8 @@ async function runAutomation_billing(data) {
         const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId2}"]`);
         await innerFrame.locator('a#btn_Confirm').waitFor();
         await innerFrame.locator('a#btn_Confirm').click();
-
+        /*
+        // 이부분은 Yes 를 눌렀을 때 수행되는 확인 팝업처리 부분
         await page.waitForTimeout(6000);
 
         const dupIframeId3 = await searchIframePopup(page, "alert_", "_iframe");
@@ -417,13 +421,14 @@ async function runAutomation_billing(data) {
           await innerFrame.locator('a#btn_Confirm').waitFor();
           await innerFrame.locator('a#btn_Confirm').click();
         }
+
+        */
       }
 
     }else{
       await frame.locator("#cal_buy_dt_input").click();
       await frame.locator("#cal_buy_dt_input").fill(data.purchase);
     }
-
 
     await frame.locator("#inp_pay_freq").click();
     await frame.locator("#inp_pay_freq").fill(data.eat);
