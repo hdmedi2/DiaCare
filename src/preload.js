@@ -191,6 +191,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const isSelfClaim = document.querySelector("#isSelfClaim").value;
       const deputyName = document.querySelector("#deputyName").value;
       const deputyBirthDateAbbr = document.querySelector("#deputyBirthDateAbbr").value;
+      const deputyRelationshipIndex = document.querySelector("#deputyRelationshipIndex").value;
       const deputyRelationshipName = document.querySelector("#deputyRelationshipName").value;
       const receivePhoneNo = document.querySelector("#receivePhoneNo").value;
 
@@ -267,6 +268,8 @@ window.addEventListener("DOMContentLoaded", () => {
         deputyName: deputyName,
         // 대리인 생년월일
         deputyBirthDateAbbr: deputyBirthDateAbbr,
+        // 가입자 피부양자와의 관계 index
+        deputyRelationshipIndex: deputyRelationshipIndex,
         // 가입자 피부양자와의 관계
         deputyRelationshipName: deputyRelationshipName,
         // 수신용 휴대전화번호
