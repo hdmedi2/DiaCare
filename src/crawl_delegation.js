@@ -1,9 +1,9 @@
-﻿const { chromium } = require("playwright");
+const { chromium } = require("playwright");
 const fs = require("fs");
+const path = require("path");
 const { parse } = require("json2csv");
-const {XMLHttpRequest} = require("xmlhttprequest");
 
-async function checkBilling(data) {
+async function crawlDelegation(data) {
   const channels = [
     "chrome",
     "chrome-beta",
@@ -55,18 +55,29 @@ async function checkBilling(data) {
     .getByRole("textbox", { name: "인증서 암호" })
     .fill(data.certificatePassword);
   await page.getByRole("button", { name: "확인" }).click();
-  //await page.getByRole('link', { name: data.corporateId }).click();
+  //await page.getByRole("link", { name: data.corporateId }).click();
 
-  // 요양비청구위임내역 조회
+  // 요양비청구위임내역등록
   await page.getByRole("link", { name: "요양비", exact: true }).click();
   await page
-    .getByRole("link", { name: "요양비청구내역조회", exact: true })
+    .getByRole("link", { name: "요양비청구위임내역조회", exact: true })
     .click();
 
+  const today = new Date();
+  // const year = today.getFullYear();
+  // const month = today.getMonth() + 1;
+  const day = today.getDate();
   const frame = page.frameLocator(
     'iframe[name="windowContainer_subWindow1_iframe"]'
   );
-  await frame.locator("#wq_uuid_39").click();
+
+  //await frame.locator("#cal_s_fr_dt_img").click();
+  //await frame.getByRole("button", { name: "현재일" }).click();
+  //await frame.getByRole("button", { name: `${day}` }).click();
+  await page
+    .frameLocator('iframe[name="windowContainer_subWindow1_iframe"]')
+    .getByRole("link", { name: "조회" })
+    .click();
 
   // 버튼 클릭 후 발생하는 특정 URL의 네트워크 응답을 기다림
   const [response] = await Promise.all([
@@ -74,9 +85,8 @@ async function checkBilling(data) {
     page.waitForResponse(
       (response) =>
         response.url() ===
-        "https://medicare.nhis.or.kr/portal/bk/c/230/selectBcbnfDmdResultList.do"
+        "https://medicare.nhis.or.kr/portal/bk/c/193/selectBcbnfDmdMdtResultList.do"
     ),
-    // 특정 버튼 클릭 (이 클릭에 의해 네트워크 요청이 발생한다고 가정)
   ]);
 
   // 응답 상태와 URL을 콘솔에 출력
@@ -85,50 +95,36 @@ async function checkBilling(data) {
   try {
     // 응답 본문 데이터를 JSON 형식으로 가져오기
     const responseBody = await response.json();
-    //console.log('Response body:', responseBody);
+    //console.log("Response body:", responseBody);
 
-    if (responseBody.dl_tbbibo05) {
-      console.log("Number of rows:", responseBody.dl_tbbibo05.length);
+    if (responseBody.dl_tbbibo59) {
+      console.log("Number of rows:", responseBody.dl_tbbibo59.length);
 
-      const filePos = "C:\\bill"+Date.now()+".json";
-      const filePosRead = "file://"+Date.now()+"output.json"
+      //console.log(responseBody.dl_tbbibo59[0]);
+      //console.log(responseBody.dl_tbbibo59[1]);
+
+      //const position = path.join(__dirname, "output.json");
+
+      //console.log(position);
 
       fs.writeFileSync(
-          //path.join(__dirname, "output.json"),
-          filePos ,
-          JSON.stringify(responseBody.dl_tbbibo05)
+        //path.join(__dirname, "output.json"),
+        "C:\\output.json",
+        JSON.stringify(responseBody.dl_tbbibo59)
       );
 
-      var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-
-      let rawFile = new XMLHttpRequest();
-      rawFile.open("GET", filePosRead, false);
-      rawFile.onreadystatechange = function () {
-
-        console.log(rawFile.readyState, " ", rawFile.status );
-        if (rawFile.readyState === 4) {
-          if (rawFile.status === 200 || rawFile.status == 0) {
-            var allText = rawFile.responseText;
-
-            console.log(allText);
-          }
-        }
-      };
-
-      //rawFile.send(null);
-
       // CSV로 저장
-      // const fields = Object.keys(responseBody.dl_tbbibo05[0]); // CSV 헤더로 사용될 필드명
-      // const csv = parse(responseBody.dl_tbbibo05, { fields });
+      const fields = Object.keys(responseBody.dl_tbbibo59[0]); // CSV 헤더로 사용될 필드명
+      const csv = parse(responseBody.dl_tbbibo59, { fields });
 
-      //fs.writeFileSync("output_bill.csv", csv);
-      //console.log("Data saved to output.csv");
+      fs.writeFileSync("output_delegation.csv", csv);
+      console.log("Data saved to output.csv");
     } else {
       console.log("No data found in the response");
     }
   } catch (error) {
     console.error("Failed to get response body:", error);
   }
-  //await browser.close();
+  await browser.close();
 }
-module.exports = { checkBilling };
+module.exports = { crawlDelegation };
