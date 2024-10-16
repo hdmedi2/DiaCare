@@ -1,7 +1,6 @@
 const { chromium } = require("playwright");
 const fs = require("fs");
 const { parse } = require("json2csv");
-const {sendCrawlingFileToServer} = require("./logUtil");
 
 async function checkDelegation(data) {
   const channels = [
@@ -101,7 +100,7 @@ async function checkDelegation(data) {
     if (responseBody.dl_tbbibo59) {
       console.log("Number of rows:", responseBody.dl_tbbibo59.length);
 
-      /*const filePos = "C:\\output.json";
+      const filePos = "C:\\output.json";
       const filePosRead = "file://output.json"
 
       fs.writeFileSync(
@@ -122,19 +121,7 @@ async function checkDelegation(data) {
             console.log(allText);
           }
         }
-      };*/
-
-      // 백엔드로 파일 요청 테스트
-      let stringifiedList = JSON.stringify(responseBody.dl_tbbibo59);
-      /*const formData = new FormData();
-
-      formData.append('stringifiedList', stringifiedList);*/
-
-      await sendCrawlingFileToServer(
-          stringifiedList,
-          data.csrfToken,
-          data.csrfHeader
-      );
+      };
 
       // CSV로 저장
       //const fields = Object.keys(responseBody.dl_tbbibo59[0]); // CSV 헤더로 사용될 필드명
