@@ -211,8 +211,16 @@ window.addEventListener("DOMContentLoaded", () => {
       );
       const selectedText =
         selectElement.options[selectElement.selectedIndex].textContent;
-      const enddate = document.querySelector("#delegationEndDate").value;
-      const startdate = document.querySelector("#delegationStartDate").value;
+      // 구매일
+      let startDate = new Date(document.querySelector("#purchaseDate").value);
+      let endDate = new Date(startDate);
+      // 5년 후
+      endDate.setFullYear(endDate.getFullYear() + 5);
+      // 1일 전으로 설정
+      endDate.setDate(endDate.getDate() - 1);
+
+      startDate = formatDate(startDate);
+      endDate = formatDate(endDate);
 
       // 구매영수증 파일
       const paymentReceiptFileName = document
@@ -290,9 +298,9 @@ window.addEventListener("DOMContentLoaded", () => {
         // 당뇨 유형 | 투여 여부 | 기타
         select: selectedText,
         // 위임 시작일(동의일)
-        start: startdate,
+        start: startDate,
         // 위임 종료일
-        end: enddate,
+        end: endDate,
         // 구매영수증 파일
         paymentReceiptFileName: paymentReceiptFileName,
         paymentReceiptSignedUrl: paymentReceiptSignedUrl,
@@ -350,3 +358,16 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+/**
+ * date -> str (yyyy.mm.dd)
+ * @param date
+ * @returns {string}
+ */
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 1을 더해줍니다.
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}.${month}.${day}`;
+}
