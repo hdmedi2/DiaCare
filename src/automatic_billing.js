@@ -359,17 +359,21 @@ async function runAutomation_billing(data) {
           .frameLocator('iframe[title="bipbkz220p01"]')
           .locator("text=" + data.code)
           .elementHandles();
-        if (frameExists.length > 0) {
+
+        // 상병코드 조회결과가 1개 이상일때
+        if (frameExists.length > 1) {
           await frame
-            .frameLocator('iframe[title="bipbkz220p01"]')
-            .locator("text=" + data.code)
-            .click();
+              .frameLocator('iframe[title="bipbkz220p01"]')
+              .locator("#grv_list_cell_0_0")
+              .click();
           await frame
-            .frameLocator('iframe[title="bipbkz220p01"]')
-            .getByRole("link", { name: "선택" })
-            .click();
+              .frameLocator('iframe[title="bipbkz220p01"]')
+              .getByRole("link", { name: "선택" })
+              .click();
           console.log("Element was clicked.");
+
         }
+
       } catch (innerError) {
         console.log("Frame or element not found:", innerError.message);
       }
