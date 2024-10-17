@@ -18,6 +18,7 @@ window.addEventListener("DOMContentLoaded", () => {
                         csrfToken : csrfToken,
                         pharmacyBizNo: pharmacyBizNo,
                       };
+
   // 계산기 > 데이터 수정하기 calc-update ,  계산목록 > 환자 한명 선택하면 calc-detail
   if (
     url.includes("/pharm/diabetes/calc-update") ||
