@@ -738,6 +738,7 @@
       });
 
       alert("Settings saved!");
+      window.close();
     });
 
     window.electron.receive('load-settings', (data) => {
@@ -751,6 +752,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       window.electron.send('load-settings');
     });
+
   </script>
 </body>
 </html>

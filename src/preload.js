@@ -2,14 +2,23 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electron", {
   send: (channel, data) => ipcRenderer.send(channel, data),
-  send: (channel, data_1) => ipcRenderer.send(channel, data_1),
-  receive: (channel, func) =>
-    ipcRenderer.on(channel, (event, ...args) => func(...args)),
+  receive: (channel, func) => ipcRenderer.on(channel, (event, ...args) => func(...args)),
 });
 
 window.addEventListener("DOMContentLoaded", () => {
   const url = window.location.href;
 
+  // csrfToken, csrfHeader,
+  const csrfToken = document.querySelector("meta[name='_csrf']").content;
+  const csrfHeader = document.querySelector("meta[name='_csrf_header']").content;
+  const pharmacyBizNo = document.querySelector("#pharmacyBizNo").value;
+
+  const data_0 = {
+                        csrfHeader : csrfHeader,
+                        csrfToken : csrfToken,
+                        pharmacyBizNo: pharmacyBizNo,
+                      };
+  // 계산기 > 데이터 수정하기 calc-update ,  계산목록 > 환자 한명 선택하면 calc-detail
   if (
     url.includes("/pharm/diabetes/calc-update") ||
     url.includes("/pharm/diabetes/calc-detail")
@@ -308,8 +317,9 @@ window.addEventListener("DOMContentLoaded", () => {
       ipcRenderer.send("start", data_1);
     });
   } else if (
-    url.includes("/pharm/diabetes/delegation-list") ||
-    url.includes("/pharm/diabetes/nhis-delegation-list")
+   // 위임등록현황 delegation-list,
+    url.includes("/pharm/diabetes/delegation-list")  /*||
+    url.includes("/pharm/diabetes/nhis-delegation-list") */
   ) {
     const url = window.location.href;
 
@@ -336,7 +346,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
       console.log("test start 123!");
 
-      ipcRenderer.send("start-crawl-delegation");
+      ipcRenderer.send("start-crawl-delegation", data_0);
     });
   }
 });

@@ -138,6 +138,7 @@ const createSettingWindow = (options = {}) => {
     autoHideMenuBar: true,
   });
 
+
   // HTML 파일 로드
   const htmlFilePath = options.file
     ? path.join(__dirname, "mediCare.html")
@@ -235,7 +236,10 @@ ipcMain.on("start-check-delegation", async (event) => {
     const settings = await manageLocalData("settings");
 
     if (settings) {
-      await checkDelegation(settings);
+
+
+
+        await checkDelegation(settings);
 
     } else {
       console.error("Failed to load settings.");
@@ -245,12 +249,17 @@ ipcMain.on("start-check-delegation", async (event) => {
   }
 });
 
-ipcMain.on("start-crawl-delegation", async (event) => {
+ipcMain.on("start-crawl-delegation", async (event, data_0) => {
   try {
     const settings = await manageLocalData("settings");
 
     if (settings) {
-      await crawlDelegation(settings);
+     const automationData = {
+       ...settings,
+       ...data_0,
+     };
+
+      await crawlDelegation(automationData);
     } else {
       console.error("Failed to load settings.");
     }
