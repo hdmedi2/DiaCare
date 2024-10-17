@@ -2,14 +2,23 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electron", {
   send: (channel, data) => ipcRenderer.send(channel, data),
-  send: (channel, data_1) => ipcRenderer.send(channel, data_1),
-  receive: (channel, func) =>
-    ipcRenderer.on(channel, (event, ...args) => func(...args)),
+  receive: (channel, func) => ipcRenderer.on(channel, (event, ...args) => func(...args)),
 });
 
 window.addEventListener("DOMContentLoaded", () => {
   const url = window.location.href;
 
+  // csrfToken, csrfHeader,
+  const csrfToken = document.querySelector("meta[name='_csrf']").content;
+  const csrfHeader = document.querySelector("meta[name='_csrf_header']").content;
+  const pharmacyBizNo = document.querySelector("#pharmacyBizNo").value;
+
+  const data_0 = {
+                        csrfHeader : csrfHeader,
+                        csrfToken : csrfToken,
+                        pharmacyBizNo: pharmacyBizNo,
+                      };
+  // 계산기 > 데이터 수정하기 calc-update ,  계산목록 > 환자 한명 선택하면 calc-detail
   if (
     url.includes("/pharm/diabetes/calc-update") ||
     url.includes("/pharm/diabetes/calc-detail")
@@ -202,8 +211,16 @@ window.addEventListener("DOMContentLoaded", () => {
       );
       const selectedText =
         selectElement.options[selectElement.selectedIndex].textContent;
-      const enddate = document.querySelector("#delegationEndDate").value;
-      const startdate = document.querySelector("#delegationStartDate").value;
+      // 구매일
+      let startDate = new Date(document.querySelector("#purchaseDate").value);
+      let endDate = new Date(startDate);
+      // 5년 후
+      endDate.setFullYear(endDate.getFullYear() + 5);
+      // 1일 전으로 설정
+      endDate.setDate(endDate.getDate() - 1);
+
+      startDate = formatDate(startDate);
+      endDate = formatDate(endDate);
 
       // 구매영수증 파일
       const paymentReceiptFileName = document
@@ -281,9 +298,9 @@ window.addEventListener("DOMContentLoaded", () => {
         // 당뇨 유형 | 투여 여부 | 기타
         select: selectedText,
         // 위임 시작일(동의일)
-        start: startdate,
+        start: startDate,
         // 위임 종료일
-        end: enddate,
+        end: endDate,
         // 구매영수증 파일
         paymentReceiptFileName: paymentReceiptFileName,
         paymentReceiptSignedUrl: paymentReceiptSignedUrl,
@@ -308,8 +325,9 @@ window.addEventListener("DOMContentLoaded", () => {
       ipcRenderer.send("start", data_1);
     });
   } else if (
-    url.includes("/pharm/diabetes/delegation-list") ||
-    url.includes("/pharm/diabetes/nhis-delegation-list")
+   // 위임등록현황 delegation-list,
+    url.includes("/pharm/diabetes/delegation-list")  /*||
+    url.includes("/pharm/diabetes/nhis-delegation-list") */
   ) {
     const url = window.location.href;
 
@@ -336,7 +354,20 @@ window.addEventListener("DOMContentLoaded", () => {
 
       console.log("test start 123!");
 
-      ipcRenderer.send("start-crawl-delegation");
+      ipcRenderer.send("start-crawl-delegation", data_0);
     });
   }
 });
+
+/**
+ * date -> str (yyyy.mm.dd)
+ * @param date
+ * @returns {string}
+ */
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 1을 더해줍니다.
+  const day = String(date.getDate()).padStart(2, '0');
+
+  return `${year}.${month}.${day}`;
+}

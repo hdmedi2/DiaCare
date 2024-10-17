@@ -174,7 +174,6 @@ async function runAutomation_delegation(data_1) {
 
   }
 
-
   // 위임사항 체크박스
   console.log("Selected Option Value:", data_1.select);
   const parts = data_1.select.split("|").map((part) => part.trim());
@@ -234,13 +233,13 @@ async function runAutomation_delegation(data_1) {
   }
 
   // 위임기간 -> 오늘 ~ 오늘 + 5년 - 1일까지인 디폴트로 넘겨버리는 것으로 우선은 진행
-  // await frame.locator('#inp_mdtFrDt_input').dblclick();
-  // await frame.locator('#inp_mdtFrDt_input').fill('');
-  // await frame.locator('#inp_mdtFrDt_input').fill(data_1.start.replace(/-/g, ''));
+  await frame.locator('#inp_mdtFrDt_input').dblclick();
+  await frame.locator('#inp_mdtFrDt_input').fill('');
+  await frame.locator('#inp_mdtFrDt_input').fill(data_1.start.replace(/-/g, ''));
 
-  // await frame.locator('#inp_mdtToDt_input').dblclick();
-  // await frame.locator('#inp_mdtToDt_input').fill('');
-  // await frame.locator('#inp_mdtToDt_input').fill(data_1.end.replace(/-/g, ''));
+  await frame.locator('#inp_mdtToDt_input').dblclick();
+  await frame.locator('#inp_mdtToDt_input').fill('');
+  await frame.locator('#inp_mdtToDt_input').fill(data_1.end.replace(/-/g, ''));
 
   // 저장 버튼
   await frame.getByRole("link", { name: "저장" }).click();

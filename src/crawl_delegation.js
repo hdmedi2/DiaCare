@@ -109,7 +109,7 @@ async function crawlDelegation(data) {
 
       fs.writeFileSync(
         //path.join(__dirname, "output.json"),
-        "C:\\output.json",
+        "/Users/west/output.json",
         JSON.stringify(responseBody.dl_tbbibo59)
       );
 
