@@ -62,7 +62,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const insulinNumber = document.querySelector(
         "#insulinInjectionNumber"
       ).value;
-      const diseaseCode = document.querySelector("#diseaseCodeName").value;
+      const diseaseCode = document.querySelector("#diseaseCodeName").value.replace('.', '').replace(',', '').replace('-', '').replace('_', '').replace(' ', '');
       const purchaseDate = document.querySelector("#purchaseDate").value;
       const eatDays = document.querySelector("#eatDays").value;
       const productNames = Array.from(
