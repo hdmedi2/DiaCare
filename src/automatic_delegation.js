@@ -135,15 +135,45 @@ async function runAutomation_delegation(data_1) {
   await frame.locator("#inp_sujinjaNm").press("Enter");
 
   // 위임자와 수진자 동일인 체크박스
-  await page.waitForTimeout(2000);
-  await frame.getByLabel("위임자와 수진자 동일인").check();
+  //console.log("data_1 : {}", data_1);
+  if (data_1.isSelfClaim === 'true') {
+    // 본인청구인 경우
+    await page.waitForTimeout(2000);
+    await frame.getByLabel("위임자와 수진자 동일인").check();
 
-  // 전화번호
-  await page.waitForTimeout(1500);
-  await frame.locator("#inp_apctTelBurNo").click();
-  await frame.locator("#inp_apctTelBurNo").fill(data_1.phone.split("-")[1]);
-  await frame.locator("#inp_apctTelSeqNo").click();
-  await frame.locator("#inp_apctTelSeqNo").fill(data_1.phone.split("-")[2]);
+    // 전화번호
+    await page.waitForTimeout(1500);
+    await frame.locator("#inp_apctTelBurNo").click();
+    await frame.locator("#inp_apctTelBurNo").fill(data_1.phone.split("-")[1]);
+    await frame.locator("#inp_apctTelSeqNo").click();
+    await frame.locator("#inp_apctTelSeqNo").fill(data_1.phone.split("-")[2]);
+
+  } else {
+    // 대리인청구인 경우
+    // 위임자 생년월일
+    await page.waitForTimeout(1500);
+    await frame.locator("#inp_proxyJuminNo").click();
+    await frame.locator("#inp_proxyJuminNo").fill(data_1.deputyBirthDateAbbr);
+
+    // 위임자 성명
+    //await page.waitForTimeout(1500);
+    await frame.locator("#inp_proxyNm").click();
+    await frame.locator("#inp_proxyNm").fill(data_1.deputyName);
+
+    // 수진자와의 관계
+    await frame.locator("#sel_proxyRelCd_main_tbody").click();
+    let deputyRelationshipIndex = "#sel_proxyRelCd_itemTable_" + data_1.deputyRelationshipIndex;
+    await frame.locator(deputyRelationshipIndex).click();
+
+    // 전화번호
+    //await page.waitForTimeout(1500);
+    await frame.locator("#inp_apctTelBurNo").click();
+    await frame.locator("#inp_apctTelBurNo").fill(data_1.receivePhoneNo.split("-")[1]);
+    await frame.locator("#inp_apctTelSeqNo").click();
+    await frame.locator("#inp_apctTelSeqNo").fill(data_1.receivePhoneNo.split("-")[2]);
+
+  }
+
 
   // 위임사항 체크박스
   console.log("Selected Option Value:", data_1.select);

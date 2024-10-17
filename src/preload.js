@@ -187,6 +187,14 @@ window.addEventListener("DOMContentLoaded", () => {
       const patientSSN = document.querySelector(
         "#patientSocialSecurityNumber"
       ).value;
+      // 대리인 정보
+      const isSelfClaim = document.querySelector("#isSelfClaim").value;
+      const deputyName = document.querySelector("#deputyName").value;
+      const deputyBirthDateAbbr = document.querySelector("#deputyBirthDateAbbr").value;
+      const deputyRelationshipIndex = document.querySelector("#deputyRelationshipIndex").value;
+      const deputyRelationshipName = document.querySelector("#deputyRelationshipName").value;
+      const receivePhoneNo = document.querySelector("#receivePhoneNo").value;
+
       const issueDate = document.querySelector("#prescriptionDate").value;
       const phonenumber = document.querySelector("#patientPhoneNumber").value;
       const selectElement = document.querySelector(
@@ -254,6 +262,18 @@ window.addEventListener("DOMContentLoaded", () => {
         name: patientName,
         // 주민번호
         ssn: patientSSN,
+        // 본인청구 여부
+        isSelfClaim: isSelfClaim,
+        // 대리인 성명
+        deputyName: deputyName,
+        // 대리인 생년월일
+        deputyBirthDateAbbr: deputyBirthDateAbbr,
+        // 가입자 피부양자와의 관계 index
+        deputyRelationshipIndex: deputyRelationshipIndex,
+        // 가입자 피부양자와의 관계
+        deputyRelationshipName: deputyRelationshipName,
+        // 수신용 휴대전화번호
+        receivePhoneNo: receivePhoneNo,
         // 처방일자
         issue: issueDate,
         // 전화번호
