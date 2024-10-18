@@ -114,6 +114,8 @@ async function runAutomation_delegation(data_1) {
   await page.getByRole("button", { name: "확인" }).click();
   //await page.getByRole('link', { name: data_1.corporateId }).click();
 
+  /*** 요양마당 위임등록 순서 : 1.위임자정보 - 2.위임받는자정보 - 5.위임기간 - 4.위임사항 ***/
+
   // 요양비청구위임내역등록
   await page.getByRole("link", { name: "요양비", exact: true }).click();
   await page
