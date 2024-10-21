@@ -12,11 +12,11 @@ module.exports = {
       config: {
         name: 'iyac_diabetes',
         exe: '아이약_당뇨.exe',
-        setupExe: '아이약_당뇨_setup.exe',
+        setupExe: '아이약_당뇨_${version}_setup.exe',
         setupIcon: './assets/icon.ico',
         // 권리자 권한으로 실행하도록 설정
-        iconUrl: './assets/icon.ico',
-        loadingGif: './assets/loading.gif',
+        iconUrl: './assets/iyac_app_logo.ico',
+        // loadingGif: './assets/loading.gif',
         noMsi: true,
         setupMsi: '아이약_당뇨.msi',
         // EV 인증서 경로와 비밀번호
