@@ -8,7 +8,7 @@
     "start": "electron-forge start",
     "package": "electron-forge package",
     "obfuscate": "javascript-obfuscator src --output src-obfuscated",
-    "make": "npm run obfuscate && electron-forge make",
+    "make": "npm run obfuscate && node version-bump.js && electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\""
   },
@@ -21,7 +21,7 @@
     "@electron-forge/plugin-auto-unpack-natives": "^7.5.0",
     "@electron-forge/plugin-fuses": "^7.5.0",
     "@electron/fuses": "^1.8.0",
-    "electron": "^32.2.0",
+    "electron": "^33.0.1",
     "javascript-obfuscator": "^4.1.1"
   },
   "keywords": [],
