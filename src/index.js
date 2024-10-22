@@ -25,6 +25,15 @@ if (require("electron-squirrel-startup")) {
   app.quit();
 }
 
+// 중복실행 방지 체크
+// 다른 인스턴스가 실행 중인지 확인
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  // 이미 애플리케이션이 실행 중이면 새 인스턴스 종료
+  app.quit();
+}
+
 const createWindow = async () => {
   const mainWindow = new BrowserWindow({
     webPreferences: {

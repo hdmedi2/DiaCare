@@ -94,3 +94,8 @@ typings/
 # Electron-Forge
 out/
 /src-obfuscated/
+
+#cert 폴더 아래 모두 무시
+cert/
+cert/cert.pfx
+cert/cert_password.json

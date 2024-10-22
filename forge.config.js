@@ -1,5 +1,17 @@
 const { FusesPlugin } = require("@electron-forge/plugin-fuses");
 const { FuseV1Options, FuseVersion } = require("@electron/fuses");
+const { certPfxPassword } = require("./cert/cert_password.json");
+const { buildVersion } = require("./build/version.json");
+
+// console.debug('certPfxPassword:', certPfxPassword);
+// console.debug('buildVersion', buildVersion);
+
+
+/*
+  cert 폴더에 cert_password.json 파일 생성하고, 내용은 { "certPfxPassword": "인증서 비밀번호" } 로 저장할 것.
+  cert.pfx 파일과 비밀번호 파일은 git ignore 대상이며, 별도 보관하여 보안 수준을 높이도록 한다.
+  2024.10.22 서정현
+ */
 
 module.exports = {
   packagerConfig: {
@@ -12,7 +24,7 @@ module.exports = {
       config: {
         name: 'iyac_diabetes',
         exe: '아이약_당뇨.exe',
-        setupExe: '아이약_당뇨_${version}_setup.exe',
+        setupExe: '아이약_당뇨_'+ buildVersion +'_setup.exe',
         setupIcon: './assets/icon.ico',
         // 권리자 권한으로 실행하도록 설정
         iconUrl: './assets/iyac_app_logo.ico',
@@ -20,8 +32,8 @@ module.exports = {
         noMsi: true,
         setupMsi: '아이약_당뇨.msi',
         // EV 인증서 경로와 비밀번호
-        // certificateFile: './path-to-your-cert.pfx',
-        // certificatePassword: 'dlwjddml@hdmedi',
+        certificateFile: './cert/cert.pfx',
+        certificatePassword: certPfxPassword,
         // 관리자 권한 실행을 요구하는 설정
         requestedExecutionLevel: 'requireAdministrator',
       },
