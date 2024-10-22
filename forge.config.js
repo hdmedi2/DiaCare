@@ -6,7 +6,7 @@ const path = require('path');
 
 // console.log('certPfxPassword:', certPfxPassword);
 console.log('buildVersion', buildVersion);
-
+console.log('icon file path = ',path.resolve(__dirname, './assets/iyac_app_logo.ico'));
 
 /*
   cert 폴더에 cert_password.json 파일 생성하고, 내용은 { "certPfxPassword": "인증서 비밀번호" } 로 저장할 것.
@@ -26,8 +26,8 @@ module.exports = {
         name: 'iyac_diabetes',
         exe: '아이약_당뇨.exe',
         setupExe: '아이약_당뇨_'+ buildVersion +'_setup.exe',
-        setupIcon: path.resolve(__dirname, './assets/iyac_app_logo.ico'),
-        iconUrl: path.resolve(__dirname, './assets/iyac_app_logo.ico'),
+        //setupIcon: path.resolve(__dirname, './assets/iyac_app_logo.ico'),
+        //iconUrl: path.resolve(__dirname, './assets/iyac_app_logo.ico'),
         // loadingGif: './assets/loading.gif',
         noMsi: true,
         setupMsi: '아이약_당뇨.msi',
