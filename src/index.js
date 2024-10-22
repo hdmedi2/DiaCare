@@ -20,6 +20,7 @@ const { sendDelegationToBack } = require("./sendDelegationToBack");
 
 const SESSION_FILE_PATH = path.join(app.getPath("userData"), "session.json");
 const SETTINGS_FILE_PATH = path.join(app.getPath("userData"), "settings.json");
+const PHARM_URL = "https://pharm.hdmedi.kr/";
 
 if (require("electron-squirrel-startup")) {
   app.quit();
@@ -45,7 +46,7 @@ const createWindow = async () => {
 
   mainWindow.maximize();
   await loadLocalData("session");
-  mainWindow.loadURL("https://pharm.hdmedi.kr/");
+  mainWindow.loadURL(PHARM_URL);
 };
 
 const manageLocalData = async (type, data = null) => {
@@ -203,7 +204,7 @@ app.whenReady().then(() => {
       label: "공인인증서",
       submenu: [{ label: "인증서 설정", click: createSettingWindow }],
     },
-    {
+    /*{
       label: "요양마당",
       submenu: [
         {
@@ -216,7 +217,7 @@ app.whenReady().then(() => {
             }), // 커스텀 설정 창
         },
       ],
-    },
+    },*/
   ]);
 
   Menu.setApplicationMenu(menu);
@@ -245,9 +246,6 @@ ipcMain.on("start-check-delegation", async (event) => {
     const settings = await manageLocalData("settings");
 
     if (settings) {
-
-
-
         await checkDelegation(settings);
 
     } else {
@@ -369,3 +367,28 @@ ipcMain.on("load-settings", async (event) => {
   const settings = await loadLocalData("settings");
   event.reply("load-settings", settings || {});
 });
+
+/**
+ * 일렉트론에서 웹페이지로 JS 이벤트를 실행시키고 싶을때 쓰는 로직
+ * @param processLogic JS 로직
+ */
+/*
+function electronToWebEventRun(processLogic) {
+  BrowserWindow.getAllWindows().forEach((window) => {
+    let url = window.webContents.getURL();
+    if (url.includes(PHARM_URL)) {
+      window.webContents.executeJavaScript(processLogic)
+          .then((clicked) => {
+            if (clicked) {
+              console.log('요소를 클릭했습니다.');
+            } else {
+              console.log('해당 ID를 가진 요소가 존재하지 않습니다.');
+            }
+          }).catch((error) => {
+        console.error('JavaScript 실행 중 오류가 발생했습니다:', error);
+      });
+
+    }
+
+  });
+}*/

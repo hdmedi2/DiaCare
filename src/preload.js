@@ -11,13 +11,24 @@ window.addEventListener("DOMContentLoaded", () => {
   // csrfToken, csrfHeader,
   const csrfToken = document.querySelector("meta[name='_csrf']").content;
   const csrfHeader = document.querySelector("meta[name='_csrf_header']").content;
-  const pharmacyBizNo = document.querySelector("#pharmacyBizNo").value;
+  /*const pharmacyBizNo = document.querySelector("#pharmacyBizNo").value;*/
 
   const data_0 = {
                         csrfHeader : csrfHeader,
                         csrfToken : csrfToken,
-                        pharmacyBizNo: pharmacyBizNo,
+                        pharmacyBizNo: "",
                       };
+
+  const button_delegation_history = document.querySelector("#autoDelegationHistory"); //id="autoDelegationHistory"
+  button_delegation_history.addEventListener('click', () => {
+    console.log("Delegation History clicked");
+    ipcRenderer.send('start-check-delegation');
+  });
+  const button_billing_history = document.querySelector("#autoBillingHistory"); //id="autoBillingHistory"
+  button_billing_history.addEventListener('click', () => {
+    console.log("Billing History clicked");
+    ipcRenderer.send('start-check-bill');
+  });
 
   // 계산기 > 데이터 수정하기 calc-update ,  계산목록 > 환자 한명 선택하면 calc-detail
   if (
