@@ -2,8 +2,9 @@ const { FusesPlugin } = require("@electron-forge/plugin-fuses");
 const { FuseV1Options, FuseVersion } = require("@electron/fuses");
 const { certPfxPassword } = require("./cert/cert_password.json");
 const { buildVersion } = require("./build/version.json");
+const path = require('path');
 
-console.log('certPfxPassword:', certPfxPassword);
+// console.log('certPfxPassword:', certPfxPassword);
 console.log('buildVersion', buildVersion);
 
 
@@ -25,13 +26,13 @@ module.exports = {
         name: 'iyac_diabetes',
         exe: '아이약_당뇨.exe',
         setupExe: '아이약_당뇨_'+ buildVersion +'_setup.exe',
-        // setupIcon: './assets/iyac_app_logo.ico',
-        // iconUrl: 'assets/iyac_app_logo.ico',
+        setupIcon: path.resolve(__dirname, './assets/iyac_app_logo.ico'),
+        iconUrl: path.resolve(__dirname, './assets/iyac_app_logo.ico'),
         // loadingGif: './assets/loading.gif',
         noMsi: true,
         setupMsi: '아이약_당뇨.msi',
         // EV 인증서 경로와 비밀번호
-        certificateFile: './cert/cert.pfx',
+        certificateFile: path.resolve(__dirname, './cert/cert.pfx'),
         certificatePassword: certPfxPassword,
         // 관리자 권한 실행을 요구하는 설정
         requestedExecutionLevel: 'requireAdministrator',
