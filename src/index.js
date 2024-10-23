@@ -288,7 +288,7 @@ ipcMain.on("start-check-delegation", async (event) => {
       console.error("Failed to load settings.");
     }
   } catch (error) {
-    console.error("Error Readung:", error);
+    console.error("Error Reading:", error);
   }
 });
 
@@ -307,7 +307,7 @@ ipcMain.on("start-crawl-delegation", async (event, data_0) => {
       console.error("Failed to load settings.");
     }
   } catch (error) {
-    console.error("Error Readung:", error);
+    console.error("Error Reading:", error);
   }
 });
 
@@ -321,7 +321,7 @@ ipcMain.on("start-check-bill", async (event) => {
       console.error("Failed to load settings.");
     }
   } catch (error) {
-    console.error("Error Readung:", error);
+    console.error("Error Reading:", error);
   }
 });
 
