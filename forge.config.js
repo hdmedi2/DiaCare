@@ -73,7 +73,7 @@ module.exports = {
       },
     },
   ],
-
+  // postMake hook
   hooks: {
     postMake: async (forgeConfig, options) => {
       const { Octokit } = await import("@octokit/rest"); // 동적 import
