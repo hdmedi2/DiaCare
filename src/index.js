@@ -242,12 +242,17 @@ app.on("window-all-closed", async () => {
   }
 });
 
-ipcMain.on("start-check-delegation", async (event) => {
+ipcMain.on("start-check-delegation", async (event, data_0) => {
   try {
     const settings = await manageLocalData("settings");
 
     if (settings) {
-        await checkDelegation(settings);
+      const automationData = {
+        ...settings,
+        ...data_0,
+      };
+      console.log("Automation Data:", automationData); // 확인용 출력
+      await checkDelegation(automationData);
 
     } else {
       console.error("Failed to load settings.");

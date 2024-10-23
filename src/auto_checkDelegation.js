@@ -2,6 +2,7 @@ const { chromium } = require("playwright");
 const fs = require("fs");
 const { parse } = require("json2csv");
 const config = require('config');
+const {sendDelegationJsonToServer} = require("./sendDelegationToBack");
 const MEDICARE_URL = config.get('MEDICARE_URL');
 
 async function checkDelegation(data) {
@@ -102,7 +103,7 @@ async function checkDelegation(data) {
     if (responseBody.dl_tbbibo59) {
       console.log("Number of rows:", responseBody.dl_tbbibo59.length);
 
-      const filePos = "C:\\output.json";
+      /*const filePos = "C:\\output.json";
       const filePosRead = "file://output.json"
 
       fs.writeFileSync(
@@ -123,7 +124,17 @@ async function checkDelegation(data) {
             console.log(allText);
           }
         }
-      };
+      };*/
+
+      /* start send json */
+      try {
+        await sendDelegationJsonToServer(JSON.stringify(responseBody.dl_tbbibo59), data);
+
+      } catch (error) {
+        console.error('sendDelegationJsonToServer error : ', error);
+      }
+
+      /* end send json */
 
       // CSV로 저장
       //const fields = Object.keys(responseBody.dl_tbbibo59[0]); // CSV 헤더로 사용될 필드명
