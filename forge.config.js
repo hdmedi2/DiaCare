@@ -12,7 +12,7 @@ console.log('buildVersion', buildVersion);
 console.log('icon file path = ',path.resolve(__dirname, './assets/iyac_app_logo.ico'));
 
 // 환경 변수에 GH_TOKEN 설정
-process.env.GH_TOKEN = GH_TOKEN;
+process.env.GITHUB_TOKEN = GH_TOKEN;
 /*
   cert 폴더에 cert_password.json 파일 생성하고, 내용은 { "certPfxPassword": "인증서 비밀번호" } 로 저장할 것.
   cert.pfx 파일과 비밀번호 파일은 git ignore 대상이며, 별도 보관하여 보안 수준을 높이도록 한다.
