@@ -1,4 +1,8 @@
 const axios = require('axios');
+const {BrowserWindow} = require("electron");
+const config = require('config');
+const PHARM_URL = config.get('PHARM_URL');
+const MEDICARE_FIND_PHARMCY_BY_BIZNO_URL = config.get('MEDICARE_FIND_PHARMCY_BY_BIZNO_URL');
 
 const sendLogToServer = async (docId, status, message, csrfToken, csrfHeader) => {
   try {
@@ -8,7 +12,7 @@ const sendLogToServer = async (docId, status, message, csrfToken, csrfHeader) =>
     const data = await manageLocalData('session');
     const cookieHeader = data.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
 
-    const response = await axios.post('https://pharm.hdmedi.kr/pharm/diabetes/calc-detail/claims',
+    const response = await axios.post(PHARM_URL+'pharm/diabetes/calc-detail/claims',
     {
       pharmacyPatientDiabetesTreatId: docId,
       status: status,
@@ -43,8 +47,8 @@ const pharmacyListByBizNo = async (cookieData, bizNo) => {
     };
 
     const cookieHeader = cookieData.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
-    const url = 'https://medicare.nhis.or.kr/portal/bk/z/300/selectBcbnfSlEntrUnityMgmtList.do';
-    const response = await axios.post(url,
+    //const url = 'https://medicare.nhis.or.kr/portal/bk/z/300/selectBcbnfSlEntrUnityMgmtList.do';
+    const response = await axios.post(MEDICARE_FIND_PHARMCY_BY_BIZNO_URL,
         {
           param
         }, {
@@ -78,3 +82,26 @@ const pharmacyListByBizNo = async (cookieData, bizNo) => {
 };
 
 module.exports = { pharmacyListByBizNo };
+
+/**
+ * 일렉트론에서 웹페이지로 JS 이벤트를 실행시키고 싶을때 쓰는 로직
+ * @param processLogic JS 로직
+ */
+const electronToWebEventRun = async (processLogic) => {
+  BrowserWindow.getAllWindows().forEach((window) => {
+    let url = window.webContents.getURL();
+    console.log(url);
+    if (url.includes(PHARM_URL)) {
+      window.webContents.executeJavaScript(processLogic)
+          .then(() => {
+            console.log("WebContents executed with code:");
+          })
+          .catch((error) => {
+            console.error('JavaScript 실행 중 오류가 발생했습니다:', error);
+          });
+
+    }
+
+  });
+}
+module.exports = { electronToWebEventRun };
