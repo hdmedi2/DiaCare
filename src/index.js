@@ -162,8 +162,23 @@ const createSettingWindow = (options = {}) => {
   });
 };
 
+let mainWindow;
+// 프로그램이 기동되면 새로운 창을 만들고, 메뉴를 붙이고,
 app.whenReady().then(() => {
-  createWindow();
+
+  mainWindow = new BrowserWindow({
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      enableRemoteModule: false,
+    }
+
+  });
+
+  // 자동 업데이트 체크
+  autoUpdater.checkForUpdatesAndNotify().then(r => {
+    console.log("최신 버전이 있는지 확인합니다");
+  } );
 
   const menu = Menu.buildFromTemplate([
     { label: "File", submenu: [{ role: "quit" }] },
@@ -222,7 +237,27 @@ app.whenReady().then(() => {
   ]);
 
   Menu.setApplicationMenu(menu);
+
 });
+
+// 업데이트 이벤트
+
+autoUpdater.on('update-available', () => {
+
+  mainWindow.webContents.send('update_available');
+
+});
+
+autoUpdater.on('update-downloaded', () => {
+  mainWindow.webContents.send('update_downloaded');
+});
+
+// 사용자가 모든 창을 닫을 때 앱 종료_
+app.on('window-all-closed', () => {
+  app.quit();
+});
+
+
 
 app.on("web-contents-created", (event, webContents) => {
   webContents.on("crashed", clearCache);
@@ -369,3 +404,27 @@ ipcMain.on("load-settings", async (event) => {
   event.reply("load-settings", settings || {});
 });
 
+/**
+ * 일렉트론에서 웹페이지로 JS 이벤트를 실행시키고 싶을때 쓰는 로직
+ * @param processLogic JS 로직
+ */
+/*
+function electronToWebEventRun(processLogic) {
+  BrowserWindow.getAllWindows().forEach((window) => {
+    let url = window.webContents.getURL();
+    if (url.includes(PHARM_URL)) {
+      window.webContents.executeJavaScript(processLogic)
+          .then((clicked) => {
+            if (clicked) {
+              console.log('요소를 클릭했습니다.');
+            } else {
+              console.log('해당 ID를 가진 요소가 존재하지 않습니다.');
+            }
+          }).catch((error) => {
+        console.error('JavaScript 실행 중 오류가 발생했습니다:', error);
+      });
+
+    }
+
+  });
+}*/
