@@ -21,6 +21,7 @@ const { sendDelegationToBack } = require("./sendDelegationToBack");
 const SESSION_FILE_PATH = path.join(app.getPath("userData"), "session.json");
 const SETTINGS_FILE_PATH = path.join(app.getPath("userData"), "settings.json");
 const config = require('config');
+const {create} = require("axios");
 const PHARM_URL = config.get('PHARM_URL');
 
 if (require("electron-squirrel-startup")) {
@@ -48,6 +49,16 @@ const createWindow = async () => {
   mainWindow.maximize();
   await loadLocalData("session");
   mainWindow.loadURL(PHARM_URL);
+  // 업데이트 이벤트
+
+  autoUpdater.on('update-available', () => {
+    mainWindow.webContents.send('update_available');
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    mainWindow.webContents.send('update_downloaded');
+  });
+
 };
 
 const manageLocalData = async (type, data = null) => {
@@ -162,19 +173,19 @@ const createSettingWindow = (options = {}) => {
   });
 };
 
-let mainWindow;
+
 // 프로그램이 기동되면 새로운 창을 만들고, 메뉴를 붙이고,
 app.whenReady().then(() => {
+  createWindow();
 
-  mainWindow = new BrowserWindow({
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-      contextIsolation: true,
-      enableRemoteModule: false,
-    }
+  autoUpdater.autoDownload = false;
+  process.env.NODE_ENV = "development";
+  console.log("process.env.NODE_ENV = ", process.env.NODE_ENV);
 
-  });
-
+  // 개발 환경에서 강제로 업데이트를 체크
+  // if (process.env.NODE_ENV === 'development') {
+  //  autoUpdater.updateConfigPath = path.join(__dirname, './dev-app-update.yml');
+  // }
   // 자동 업데이트 체크
   autoUpdater.checkForUpdatesAndNotify().then(() => {
     console.log("최신 버전이 있는지 확인합니다");
@@ -240,17 +251,6 @@ app.whenReady().then(() => {
 
 });
 
-// 업데이트 이벤트
-
-autoUpdater.on('update-available', () => {
-
-  mainWindow.webContents.send('update_available');
-
-});
-
-autoUpdater.on('update-downloaded', () => {
-  mainWindow.webContents.send('update_downloaded');
-});
 
 // 사용자가 모든 창을 닫을 때 앱 종료_
 app.on('window-all-closed', () => {
