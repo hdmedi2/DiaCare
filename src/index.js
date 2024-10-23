@@ -176,7 +176,7 @@ app.whenReady().then(() => {
   });
 
   // 자동 업데이트 체크
-  autoUpdater.checkForUpdatesAndNotify().then(r => {
+  autoUpdater.checkForUpdatesAndNotify().then(() => {
     console.log("최신 버전이 있는지 확인합니다");
   } );
 
