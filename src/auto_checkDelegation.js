@@ -1,6 +1,8 @@
 const { chromium } = require("playwright");
 const fs = require("fs");
 const { parse } = require("json2csv");
+const config = require('config');
+const MEDICARE_URL = config.get('MEDICARE_URL');
 
 async function checkDelegation(data) {
   const channels = [
@@ -29,7 +31,7 @@ async function checkDelegation(data) {
   }
 
   const page = await browser.newPage();
-  await page.goto("https://medicare.nhis.or.kr/portal/index.do");
+  await page.goto(MEDICARE_URL);
   //const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   // 공인인증서 로그인

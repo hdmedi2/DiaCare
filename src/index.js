@@ -20,7 +20,8 @@ const { sendDelegationToBack } = require("./sendDelegationToBack");
 
 const SESSION_FILE_PATH = path.join(app.getPath("userData"), "session.json");
 const SETTINGS_FILE_PATH = path.join(app.getPath("userData"), "settings.json");
-const PHARM_URL = "https://pharm.hdmedi.kr/";
+const config = require('config');
+const PHARM_URL = config.get('PHARM_URL');
 
 if (require("electron-squirrel-startup")) {
   app.quit();
@@ -368,27 +369,3 @@ ipcMain.on("load-settings", async (event) => {
   event.reply("load-settings", settings || {});
 });
 
-/**
- * 일렉트론에서 웹페이지로 JS 이벤트를 실행시키고 싶을때 쓰는 로직
- * @param processLogic JS 로직
- */
-/*
-function electronToWebEventRun(processLogic) {
-  BrowserWindow.getAllWindows().forEach((window) => {
-    let url = window.webContents.getURL();
-    if (url.includes(PHARM_URL)) {
-      window.webContents.executeJavaScript(processLogic)
-          .then((clicked) => {
-            if (clicked) {
-              console.log('요소를 클릭했습니다.');
-            } else {
-              console.log('해당 ID를 가진 요소가 존재하지 않습니다.');
-            }
-          }).catch((error) => {
-        console.error('JavaScript 실행 중 오류가 발생했습니다:', error);
-      });
-
-    }
-
-  });
-}*/

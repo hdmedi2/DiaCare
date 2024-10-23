@@ -1,4 +1,6 @@
 const axios = require("axios");
+const config = require('config');
+const PHARM_URL = config.get('PHARM_URL');
 
 const sendDelegationToBack = async (
   pharmacyId,
@@ -19,7 +21,7 @@ const sendDelegationToBack = async (
       .join("; ");
 
     const response = await axios.post(
-      "https://pharm.hdmedi.kr/pharm/diabetes/renew/delegation-list",
+        PHARM_URL+"pharm/diabetes/renew/delegation-list",
       {
         pharmacyId,
         status: status,

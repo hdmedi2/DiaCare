@@ -1,8 +1,9 @@
 ﻿const { chromium } = require("playwright");
 const path = require("path");
 const fs = require("fs");
-const { sendLogToServer } = require("./logUtil");
-const { pharmacyListByBizNo } = require("./logUtil");
+const { sendLogToServer, pharmacyListByBizNo, electronToWebEventRun } = require("./logUtil");
+const config = require('config');
+const MEDICARE_URL = config.get('MEDICARE_URL');
 
 async function runAutomation_billing(data) {
   const channels = [
@@ -80,8 +81,21 @@ async function runAutomation_billing(data) {
       return;
     }
 
+    try {
+      // 공인인증서 vaildation
+      if ( isEmptyCertificationInfo(data) ) {
+        let processLogic = `makeSwal('공인인증서 정보가 없습니다.\\n상단 메뉴 중 [공인인증서] > [인증서 설정]\\n으로 정보를 입력해 주세요.')`;
+        await electronToWebEventRun(processLogic);
+        return;
+      }
+
+    } catch (error) {
+      console.error("electronToWebEventRun error");
+      return
+    }
+
     const page = await browser.newPage();
-    await page.goto("https://medicare.nhis.or.kr/portal/index.do");
+    await page.goto(MEDICARE_URL);
     //const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     // 공인인증서 로그인
@@ -706,4 +720,25 @@ async function downloadFile(downloadsDirectory, url, filename) {
       });
     })
     .catch((err) => console.error("Fetch failed:", err));
+}
+
+function isEmptyCertificationInfo(data) {
+  if (isEmpty(data.certificateLocation)) return true;
+  if (isEmpty(data.certificatePath)) return true;
+  if (isEmpty(data.certificateName)) return true;
+  if (isEmpty(data.certificatePassword)) return true;
+
+}
+
+/**
+ * 빈값 체크
+ * @param value 체크하려는 값
+ * @returns {boolean}
+ */
+function isEmpty(value) {
+  if (typeof value === "undefined" || value === null || value === "" || value === "null") {
+    return Boolean(true);
+  } else {
+    return Boolean(false);
+  }
 }

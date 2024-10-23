@@ -32,6 +32,7 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^1.7.7",
+    "config": "^3.3.12",
     "electron-builder": "^25.1.8",
     "electron-squirrel-startup": "^1.0.1",
     "electron-updater": "^6.3.9",
