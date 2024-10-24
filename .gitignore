@@ -99,4 +99,5 @@ out/
 cert/
 cert/cert.pfx
 cert/cert_password.json
-/src/dev-app-update.yml
+dev-app-update.yml
+output.json

@@ -10,9 +10,9 @@ const { GITHUB_USER } = require("./cert/gh_tokens.json");
 // console.log('certPfxPassword:', certPfxPassword);
 
 console.log('buildVersion =', buildVersion);
-console.log('icon file path =',path.resolve(__dirname, './assets/iyac_app_logo.ico'));
-console.log('GH_TOKEN =', GH_TOKEN);
-console.log('GH_TOKEN =', GH_TOKEN);
+// console.log('icon file path =',path.resolve(__dirname, './assets/iyac_app_logo.ico'));
+// console.log('GH_TOKEN =', GH_TOKEN);
+// console.log('GITHUB_TOKEN =', GITHUB_TOKEN_TOKEN);
 
 // 환경 변수에 GH_TOKEN 설정
 process.env.GH_TOKEN = GH_TOKEN;
@@ -23,9 +23,28 @@ process.env.GITHUB_TOKEN = GITHUB_TOKEN;
   2024.10.22 서정현
  */
 
+console.log(`AppleId: ${process.env.APPLE_ID}`);
+console.log(`appleIdPassword: ${process.env.APPLE_PASSWORD}`);
+console.log(`appleTeamId: ${process.env.APPLE_TEAM_ID}`);
+
 module.exports = {
   packagerConfig: {
     asar: true,
+    osxSign: {
+      identity: 'DN2US5AGDU', // EV 코드 서명 인증서 사용시 이 부분은 설정하지 않음
+      'hardened-runtime': true,
+      entitlements: './plist/entitlements.plist',
+      'gatekeeper-assess': false,
+      'entitlements-inherit': './plist/entitlements-inherit.plist',
+      'signature-flags': 'library',
+      keychain: 'login.keychain-db' // PFX 인증서를 Keychain에 추가하여 사용
+    },
+    osxNotarize: {
+      appBundleId: 'kr.co.hdmedi.iyac_diabetes',
+      appleId: process.env.APPLE_ID,
+      appleIdPassword: process.env.APPLE_PASSWORD,
+      teamId: process.env.APPLE_TEAM_ID // Apple Developer 계정의 팀 ID
+    },
   },
   rebuildConfig: {},
   makers: [
@@ -33,13 +52,13 @@ module.exports = {
       name: "@electron-forge/maker-squirrel",
       config: {
         name: 'iyac_diabetes',
-        exe: '아이약_당뇨.exe',
-        setupExe: '아이약_당뇨_' + buildVersion + '_setup.exe',
+        exe: 'iyac_diabetes.exe',
+        setupExe: 'iyac_diabetes_' + buildVersion + '_setup.exe',
         //setupIcon: path.resolve(__dirname, './assets/iyac_app_logo.ico'),
         //iconUrl: path.resolve(__dirname, './assets/iyac_app_logo.ico'),
         // loadingGif: './assets/loading.gif',
         noMsi: true,
-        setupMsi: '아이약_당뇨.msi',
+        // setupMsi: '아이약_당뇨.msi',
         // EV 인증서 경로와 비밀번호
         certificateFile: path.resolve(__dirname, './cert/cert.pfx'),
         certificatePassword: certPfxPassword,
@@ -48,8 +67,12 @@ module.exports = {
       },
     },
     {
-      name: "@electron-forge/maker-zip",
-      platforms: ["darwin"],
+      name: '@electron-forge/maker-dmg',
+      config: {
+        // background: './assets/background.png',
+        // icon: './assets/iyac.icns',
+        overwrite: true,
+      },
     },
     {
       name: "@electron-forge/maker-deb",

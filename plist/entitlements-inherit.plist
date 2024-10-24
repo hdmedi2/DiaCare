@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- 하위 프로세스가 샌드박스에서 실행될 수 있도록 설정 -->
+    <key>com.apple.security.app-sandbox</key>
+    <true/>
+
+    <!-- 네트워크 클라이언트 권한 (인터넷 연결을 허용) -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+
+    <!-- JIT(Just-In-Time) 컴파일러 사용 허용 -->
+    <key>com.apple.security.cs.allow-jit</key>
+    <true/>
+
+    <!-- 서명되지 않은 실행 메모리 사용 허용 -->
+    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+    <true/>
+
+    <!-- 외부 디스크 또는 장치에 쓰기 허용 (필요한 경우) -->
+    <!-- <key>com.apple.security.files.external-write</key>
+    <true/> -->
+
+    <!-- 마이크 및 카메라에 대한 접근 권한 (필요한 경우) -->
+    <!-- <key>com.apple.security.device.microphone</key>
+    <true/>
+    <key>com.apple.security.device.camera</key>
+    <true/> -->
+
+    <!-- 하위 프로세스가 상속된 entitlements를 사용할 수 있도록 설정 -->
+    <key>com.apple.security.inherit</key>
+    <true/>
+</dict>
+</plist>
