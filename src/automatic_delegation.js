@@ -3,6 +3,8 @@ const path = require("path");
 const fs = require("fs");
 const { electronToWebEventRun } = require("./logUtil");
 const {MEDICARE_URL} = require("../config/default.json");
+const log = require("electron-log");
+Object.assign(console, log.functions);
 
 async function runAutomation_delegation(data_1) {
   const channels = [
@@ -436,7 +438,7 @@ async function downloadFile(downloadsDirectory, url, filename) {
 
 function isEmptyCertificationInfo(data) {
   if (isEmpty(data.certificateLocation)) return true;
-  if (isEmpty(data.certificatePath)) return true;
+  if (data.certificateLocation !== '하드디스크' && isEmpty(data.certificatePath)) return true;
   if (isEmpty(data.certificateName)) return true;
   if (isEmpty(data.certificatePassword)) return true;
 

@@ -36,10 +36,12 @@
     "axios": "^1.7.7",
     "config": "^3.3.12",
     "electron-builder": "^25.1.8",
+    "electron-log": "^5.2.0",
     "electron-squirrel-startup": "^1.0.1",
     "electron-updater": "^6.3.9",
     "json2csv": "^6.0.0-alpha.2",
     "playwright": "^1.48.0",
+    "update-electron-app": "^3.0.0",
     "xmlhttprequest": "^1.8.0"
   }
 }

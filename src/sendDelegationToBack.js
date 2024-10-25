@@ -1,5 +1,7 @@
 const axios = require("axios");
 const {PHARM_URL} = require("../config/default.json");
+const log = require("electron-log");
+Object.assign(console, log.functions);
 
 const sendDelegationToBack = async (
   pharmacyId,

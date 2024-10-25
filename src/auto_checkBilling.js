@@ -3,6 +3,8 @@ const fs = require("fs");
 const { parse } = require("json2csv");
 const {XMLHttpRequest} = require("xmlhttprequest");
 const {MEDICARE_URL} = require("../config/default.json");
+const log = require("electron-log");
+Object.assign(console, log.functions);
 
 async function checkBilling(data) {
   const channels = [

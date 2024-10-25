@@ -22,6 +22,10 @@ const SESSION_FILE_PATH = path.join(app.getPath("userData"), "session.json");
 const SETTINGS_FILE_PATH = path.join(app.getPath("userData"), "settings.json");
 const {create} = require("axios");
 const {PHARM_URL} = require("../config/default.json");
+const log = require("electron-log");
+Object.assign(console, log.functions);
+
+const { updateElectronApp, UpdateSourceType } = require('update-electron-app');
 
 
 if (require("electron-squirrel-startup")) {
@@ -250,6 +254,19 @@ app.whenReady().then(() => {
   ]);
 
   Menu.setApplicationMenu(menu);
+
+  try {
+    updateElectronApp({
+      updateSource: {
+        type: UpdateSourceType.StaticStorage,
+        baseUrl: `https://diacare-hd-dist.s3.ap-northeast-2.amazonaws.com/release/${process.platform}/${process.arch}`
+      }
+    });
+
+  } catch (error) {
+    // log.error(error);
+    console.error(error);
+  }
 
 });
 

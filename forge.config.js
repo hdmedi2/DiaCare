@@ -8,6 +8,8 @@ const { GH_TOKEN } = require("./cert/gh_tokens.json");
 const { GITHUB_TOKEN } = require("./cert/gh_tokens.json");
 const { GITHUB_USER } = require("./cert/gh_tokens.json");
 // console.log('certPfxPassword:', certPfxPassword);
+const log = require("electron-log");
+Object.assign(console, log.functions);
 
 console.log('buildVersion =', buildVersion);
 console.log('icon file path =',path.resolve(__dirname, './assets/iyac_app_logo.ico'));
@@ -33,8 +35,8 @@ module.exports = {
       name: "@electron-forge/maker-squirrel",
       config: {
         name: 'iyac_diabetes',
-        exe: '아이약_당뇨.exe',
-        setupExe: '아이약_당뇨_' + buildVersion + '_setup.exe',
+        exe: 'iyac_diabetes.exe',
+        setupExe: 'iyac_diabetes_' + buildVersion + '_setup.exe',
         //setupIcon: path.resolve(__dirname, './assets/iyac_app_logo.ico'),
         //iconUrl: path.resolve(__dirname, './assets/iyac_app_logo.ico'),
         // loadingGif: './assets/loading.gif',

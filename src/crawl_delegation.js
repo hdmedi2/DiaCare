@@ -2,6 +2,8 @@ const { chromium } = require("playwright");
 const fs = require("fs");
 const path = require("path");
 const { parse } = require("json2csv");
+const log = require("electron-log");
+Object.assign(console, log.functions);
 
 async function crawlDelegation(data) {
   const channels = [
