@@ -1,6 +1,7 @@
 const { chromium } = require("playwright");
 const fs = require("fs");
 const { parse } = require("json2csv");
+const {sendDelegationJsonToServer} = require("./sendDelegationToBack");
 const {MEDICARE_URL} = require("../config/default.json");
 
 async function checkDelegation(data) {
