@@ -2,8 +2,7 @@
 const path = require("path");
 const fs = require("fs");
 const { sendLogToServer, pharmacyListByBizNo, electronToWebEventRun } = require("./logUtil");
-const config = require('config');
-const MEDICARE_URL = config.get('MEDICARE_URL');
+const {MEDICARE_URL} = require("../config/default.json");
 
 async function runAutomation_billing(data) {
   const channels = [

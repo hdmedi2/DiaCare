@@ -39,7 +39,7 @@ module.exports = {
         //iconUrl: path.resolve(__dirname, './assets/iyac_app_logo.ico'),
         // loadingGif: './assets/loading.gif',
         noMsi: true,
-        setupMsi: '아이약_당뇨.msi',
+        setupMsi: 'iyac_diabetes.msi',
         // EV 인증서 경로와 비밀번호
         certificateFile: path.resolve(__dirname, './cert/cert.pfx'),
         certificatePassword: certPfxPassword,
@@ -73,6 +73,7 @@ module.exports = {
       },
     },
   ],
+
   // postMake hook
   hooks: {
     postMake: async (forgeConfig, options) => {
@@ -117,7 +118,8 @@ module.exports = {
   //     console.log(`Download link: https://github.com/sjh-hdmedi/DiaCareDist/releases/download/${tag}/${fileName}`);
   //   });
   // },
-},
+  },
+
   plugins: [
     {
       name: "@electron-forge/plugin-auto-unpack-natives",
@@ -134,5 +136,6 @@ module.exports = {
       [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
       [FuseV1Options.OnlyLoadAppFromAsar]: true,
     }),
-  ],
+  ]
+
 };

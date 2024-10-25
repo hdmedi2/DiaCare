@@ -2,8 +2,7 @@
 const fs = require("fs");
 const { parse } = require("json2csv");
 const {XMLHttpRequest} = require("xmlhttprequest");
-const config = require('config');
-const MEDICARE_URL = config.get('MEDICARE_URL');
+const {MEDICARE_URL} = require("../config/default.json");
 
 async function checkBilling(data) {
   const channels = [

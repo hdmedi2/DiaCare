@@ -1,8 +1,6 @@
 const axios = require('axios');
 const {BrowserWindow} = require("electron");
-const config = require('config');
-const PHARM_URL = config.get('PHARM_URL');
-const MEDICARE_FIND_PHARMCY_BY_BIZNO_URL = config.get('MEDICARE_FIND_PHARMCY_BY_BIZNO_URL');
+const {PHARM_URL, MEDICARE_FIND_PHARMCY_BY_BIZNO_URL} = require("../config/default.json");
 
 const sendLogToServer = async (docId, status, message, csrfToken, csrfHeader) => {
   try {

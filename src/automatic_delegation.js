@@ -2,8 +2,7 @@ const { chromium } = require("playwright");
 const path = require("path");
 const fs = require("fs");
 const { electronToWebEventRun } = require("./logUtil");
-const config = require('config');
-const MEDICARE_URL = config.get('MEDICARE_URL');
+const {MEDICARE_URL} = require("../config/default.json");
 
 async function runAutomation_delegation(data_1) {
   const channels = [

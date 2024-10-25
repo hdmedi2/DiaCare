@@ -1,8 +1,8 @@
 {
   "name": "iyac_diabetes",
-  "productName": "아이약_당뇨",
+  "productName": "iyac_diabetes",
   "version": "1.0.16",
-  "description": "아이약 당뇨",
+  "description": "iyac_diabetes",
   "main": "src/index.js",
   "scripts": {
     "start": "electron-forge start",

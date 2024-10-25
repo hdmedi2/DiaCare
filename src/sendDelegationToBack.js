@@ -1,6 +1,5 @@
 const axios = require("axios");
-const config = require('config');
-const PHARM_URL = config.get('PHARM_URL');
+const {PHARM_URL} = require("../config/default.json");
 
 const sendDelegationToBack = async (
   pharmacyId,
