@@ -34,8 +34,6 @@ const sendLogToServer = async (docId, status, message, csrfToken, csrfHeader) =>
   }
 };
 
-module.exports = { sendLogToServer };
-
 const pharmacyListByBizNo = async (cookieData, bizNo) => {
   try {
     let param = {
@@ -79,8 +77,6 @@ const pharmacyListByBizNo = async (cookieData, bizNo) => {
 
 };
 
-module.exports = { pharmacyListByBizNo };
-
 /**
  * 일렉트론에서 웹페이지로 JS 이벤트를 실행시키고 싶을때 쓰는 로직
  * @param processLogic JS 로직
@@ -102,4 +98,5 @@ const electronToWebEventRun = async (processLogic) => {
 
   });
 }
-module.exports = { electronToWebEventRun };
+
+module.exports = { sendLogToServer, pharmacyListByBizNo, electronToWebEventRun };
