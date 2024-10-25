@@ -22,7 +22,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const button_delegation_history = document.querySelector("#autoDelegationHistory"); //id="autoDelegationHistory"
   button_delegation_history.addEventListener('click', () => {
     console.log("Delegation History clicked");
-    ipcRenderer.send('start-check-delegation');
+    ipcRenderer.send('start-check-delegation', data_0);
   });
   const button_billing_history = document.querySelector("#autoBillingHistory"); //id="autoBillingHistory"
   button_billing_history.addEventListener('click', () => {
