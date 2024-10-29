@@ -48,21 +48,20 @@ const sendDelegationToBack = async (
   }
 };
 
-module.exports = { sendDelegationToBack };
-
 const sendDelegationJsonToServer = async (json, data) => {
   try {
     const { manageLocalData } = require('./index');
     const sessionData = await manageLocalData('session');
     const cookieHeader = sessionData.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
 
-    const response = await axios.post(PHARM_URL,
+    const response = await axios.post(PHARM_URL + 'pharm/diabetes/json-delegation-save',
         {
-          dto: json
+          json
         }, {
           headers: {
             'Cookie': cookieHeader,
-            'Content-Type': 'application/json',
+            // 'Content-Type': 'application/json',
+            'Content-Type': 'text/plain',
             [data.csrfHeader]: data.csrfToken
           }
         });
@@ -78,4 +77,4 @@ const sendDelegationJsonToServer = async (json, data) => {
   }
 };
 
-module.exports = { sendDelegationJsonToServer };
+module.exports = { sendDelegationToBack, sendDelegationJsonToServer };

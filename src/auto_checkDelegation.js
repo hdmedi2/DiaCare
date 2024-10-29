@@ -102,7 +102,10 @@ async function checkDelegation(data) {
     if (responseBody.dl_tbbibo59) {
       console.log("Number of rows:", responseBody.dl_tbbibo59.length);
 
-      const filePos = "C:\\output.json";
+      //let json = JSON.stringify(responseBody.dl_tbbibo59);
+      await sendDelegationJsonToServer(responseBody.dl_tbbibo59, data);
+
+      /*const filePos = "C:\\output.json";
       const filePosRead = "file://output.json"
 
       fs.writeFileSync(
@@ -123,7 +126,7 @@ async function checkDelegation(data) {
             console.log(allText);
           }
         }
-      };
+      };*/
 
       // CSV로 저장
       //const fields = Object.keys(responseBody.dl_tbbibo59[0]); // CSV 헤더로 사용될 필드명
