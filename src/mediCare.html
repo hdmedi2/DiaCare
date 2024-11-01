@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>위임 및 청구 내역 가져오기</title>
+  <title>청구 내역 가져오기</title>
 </head>
 <style>
   /*
@@ -615,9 +615,9 @@ Constrain images and videos to the parent width and preserve their intrinsic asp
 <body>
   <div class="place-items-center text-center">
     <div class="mt-10 flex flex-col items-center justify-center gap-y-2">
-      <button id="check-delegation" type="button"
+      <!--<button id="check-delegation" type="button"
         class="inline-flex justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
-        style="width: 150px; height: 50px;">위임 내역 가져오기</button>
+        style="width: 150px; height: 50px;">위임 내역 가져오기</button>-->
       <button id="check-bill" type="button"
         class="inline-flex justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
         style="width: 150px; height: 50px;">청구 내역 가져오기</button>
@@ -627,19 +627,41 @@ Constrain images and videos to the parent width and preserve their intrinsic asp
   <script>
     //console. log(`This platform is ${process.platform}`);
     // 위임 내역 가져오기
-    document.getElementById('check-delegation').addEventListener('click', () => {
-      window.electron.send('start-check-delegation');
-    //  if (process.platform === "darwin") {
-        window.close();
-    //  }
-    });
+    const checkDelegationEl = document.getElementById('check-delegation');
+    if (!isEmpty(checkDelegationEl)) {
+      checkDelegationEl.addEventListener('click', () => {
+        window.electron.send('start-check-delegation');
+      //  if (process.platform === "darwin") {
+          window.close();
+      //  }
+      });
+
+    }
+
     // 청구 내역 가져오기
-    document.getElementById('check-bill').addEventListener('click', () => {
-      window.electron.send('start-check-bill');
-      // if (process.platform === "darwin") {
-        window.close();
-      //}
-    });
+    const checkBillEl = document.getElementById('check-bill');
+    if (!isEmpty(checkBillEl)) {
+      checkBillEl.addEventListener('click', () => {
+        window.electron.send('start-check-bill');
+        // if (process.platform === "darwin") {
+          window.close();
+        //}
+      });
+
+    }
+
+    /**
+     * 빈값 체크
+     * @param value 체크하려는 값
+     * @returns {boolean}
+     */
+    function isEmpty(value) {
+      if (typeof value === "undefined" || value === null || value === "" || value === "null") {
+        return Boolean(true);
+      } else {
+        return Boolean(false);
+      }
+    }
   </script>
 </body>
 </html>

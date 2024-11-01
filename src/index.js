@@ -20,8 +20,37 @@ const { sendDelegationToBack } = require("./sendDelegationToBack");
 
 const SESSION_FILE_PATH = path.join(app.getPath("userData"), "session.json");
 const SETTINGS_FILE_PATH = path.join(app.getPath("userData"), "settings.json");
+const {create} = require("axios");
+const {PHARM_URL, SAVE_LOG_DIR} = require("../config/default.json");
+const log = require("electron-log");
+const today = new Date();
+const year = today.getFullYear(); // 2023
+const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
+const day = today.getDate().toString().padStart(2, '0'); // 18
+
+const dateString = year + '-' + month + '-' + day; // 2023-06-18
+
+// 폴더 없으면 생성
+if (!fs.existsSync(SAVE_LOG_DIR)) {
+  fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
+}
+
+Object.assign(console, log.functions);
+log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
+
+const { updateElectronApp, UpdateSourceType } = require('update-electron-app');
+
 
 if (require("electron-squirrel-startup")) {
+  app.quit();
+}
+
+// 중복실행 방지 체크
+// 다른 인스턴스가 실행 중인지 확인
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  // 이미 애플리케이션이 실행 중이면 새 인스턴스 종료
   app.quit();
 }
 
@@ -36,7 +65,19 @@ const createWindow = async () => {
 
   mainWindow.maximize();
   await loadLocalData("session");
-  mainWindow.loadURL("https://pharm.hdmedi.kr/");
+  mainWindow.loadURL(PHARM_URL);
+
+  // 업데이트 이벤트
+  /*autoUpdater.on('update-available', () => {
+    console.log('Run update-available');
+    mainWindow.webContents.send('update_available');
+  });
+
+  autoUpdater.on('update-downloaded', () => {
+    console.log('Run update-downloaded');
+    mainWindow.webContents.send('update_downloaded');
+  });*/
+
 };
 
 const manageLocalData = async (type, data = null) => {
@@ -151,8 +192,23 @@ const createSettingWindow = (options = {}) => {
   });
 };
 
+
+// 프로그램이 기동되면 새로운 창을 만들고, 메뉴를 붙이고,
 app.whenReady().then(() => {
   createWindow();
+
+  //autoUpdater.autoDownload = true;
+  /*process.env.NODE_ENV = "development";
+  console.log("process.env.NODE_ENV = ", process.env.NODE_ENV);*/
+
+  // 개발 환경에서 강제로 업데이트를 체크
+  // if (process.env.NODE_ENV === 'development') {
+  //  autoUpdater.updateConfigPath = path.join(__dirname, './dev-app-update.yml');
+  // }
+  // 자동 업데이트 체크
+  /*autoUpdater.checkForUpdatesAndNotify().then(() => {
+    console.log("최신 버전이 있는지 확인합니다");
+  } );*/
 
   const menu = Menu.buildFromTemplate([
     { label: "File", submenu: [{ role: "quit" }] },
@@ -198,7 +254,7 @@ app.whenReady().then(() => {
       label: "요양마당",
       submenu: [
         {
-          label: "위임/청구 내역 가져오기",
+          label: "청구 내역 가져오기",
           click: () =>
             createSettingWindow({
               width: 350,
@@ -211,7 +267,29 @@ app.whenReady().then(() => {
   ]);
 
   Menu.setApplicationMenu(menu);
+
+  try {
+    updateElectronApp({
+      updateSource: {
+        type: UpdateSourceType.StaticStorage,
+        baseUrl: `https://diacare-hd-dist.s3.ap-northeast-2.amazonaws.com/release/${process.platform}/${process.arch}`
+      }
+    });
+
+  } catch (error) {
+    // log.error(error);
+    console.error(error);
+  }
+
 });
+
+
+// 사용자가 모든 창을 닫을 때 앱 종료_
+app.on('window-all-closed', () => {
+  app.quit();
+});
+
+
 
 app.on("web-contents-created", (event, webContents) => {
   webContents.on("crashed", clearCache);
@@ -231,21 +309,23 @@ app.on("window-all-closed", async () => {
   }
 });
 
-ipcMain.on("start-check-delegation", async (event) => {
+ipcMain.on("start-check-delegation", async (event, data_0) => {
   try {
     const settings = await manageLocalData("settings");
 
     if (settings) {
-
-
-
-        await checkDelegation(settings);
+      const automationData = {
+        ...settings,
+        ...data_0,
+      };
+      //console.log("Automation Data:", automationData); // 확인용 출력
+      await checkDelegation(automationData);
 
     } else {
       console.error("Failed to load settings.");
     }
   } catch (error) {
-    console.error("Error Readung:", error);
+    console.error("Error Reading:", error);
   }
 });
 
@@ -264,7 +344,7 @@ ipcMain.on("start-crawl-delegation", async (event, data_0) => {
       console.error("Failed to load settings.");
     }
   } catch (error) {
-    console.error("Error Readung:", error);
+    console.error("Error Reading:", error);
   }
 });
 
@@ -278,7 +358,7 @@ ipcMain.on("start-check-bill", async (event) => {
       console.error("Failed to load settings.");
     }
   } catch (error) {
-    console.error("Error Readung:", error);
+    console.error("Error Reading:", error);
   }
 });
 
@@ -291,7 +371,7 @@ ipcMain.on("upload-delegation-list", async (event, data) => {
         ...settings,
         ...data,
       };
-      console.log("Automation Data:", automationData); // 확인용 출력
+      //console.log("Automation Data:", automationData); // 확인용 출력
       await runAutomation_billing(automationData);
     } else {
       console.error("Failed to load settings.");
@@ -317,7 +397,7 @@ ipcMain.on("start-playwright", async (event, data) => {
         ...settings,
         ...data,
       };
-      console.log("Automation Data:", automationData); // 확인용 출력
+      //console.log("Automation Data:", automationData); // 확인용 출력
       await runAutomation_billing(automationData);
     } else {
       console.error("Failed to load settings.");
@@ -360,3 +440,28 @@ ipcMain.on("load-settings", async (event) => {
   const settings = await loadLocalData("settings");
   event.reply("load-settings", settings || {});
 });
+
+/**
+ * 일렉트론에서 웹페이지로 JS 이벤트를 실행시키고 싶을때 쓰는 로직
+ * @param processLogic JS 로직
+ */
+/*
+function electronToWebEventRun(processLogic) {
+  BrowserWindow.getAllWindows().forEach((window) => {
+    let url = window.webContents.getURL();
+    if (url.includes(PHARM_URL)) {
+      window.webContents.executeJavaScript(processLogic)
+          .then((clicked) => {
+            if (clicked) {
+              console.log('요소를 클릭했습니다.');
+            } else {
+              console.log('해당 ID를 가진 요소가 존재하지 않습니다.');
+            }
+          }).catch((error) => {
+        console.error('JavaScript 실행 중 오류가 발생했습니다:', error);
+      });
+
+    }
+
+  });
+}*/

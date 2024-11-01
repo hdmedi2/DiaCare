@@ -1,4 +1,23 @@
 const axios = require('axios');
+const {BrowserWindow} = require("electron");
+const {PHARM_URL, MEDICARE_FIND_PHARMCY_BY_BIZNO_URL, SAVE_LOG_DIR} = require("../config/default.json");
+const log = require("electron-log");
+const fs = require("fs");
+const path = require("path");
+const today = new Date();
+const year = today.getFullYear(); // 2023
+const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
+const day = today.getDate().toString().padStart(2, '0'); // 18
+
+const dateString = year + '-' + month + '-' + day; // 2023-06-18
+
+// 폴더 없으면 생성
+if (!fs.existsSync(SAVE_LOG_DIR)) {
+  fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
+}
+
+Object.assign(console, log.functions);
+log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
 
 const sendLogToServer = async (docId, status, message, csrfToken, csrfHeader) => {
   try {
@@ -8,7 +27,7 @@ const sendLogToServer = async (docId, status, message, csrfToken, csrfHeader) =>
     const data = await manageLocalData('session');
     const cookieHeader = data.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
 
-    const response = await axios.post('https://pharm.hdmedi.kr/pharm/diabetes/calc-detail/claims',
+    const response = await axios.post(PHARM_URL+'pharm/diabetes/calc-detail/claims',
     {
       pharmacyPatientDiabetesTreatId: docId,
       status: status,
@@ -32,8 +51,6 @@ const sendLogToServer = async (docId, status, message, csrfToken, csrfHeader) =>
   }
 };
 
-module.exports = { sendLogToServer };
-
 const pharmacyListByBizNo = async (cookieData, bizNo) => {
   try {
     let param = {
@@ -43,8 +60,8 @@ const pharmacyListByBizNo = async (cookieData, bizNo) => {
     };
 
     const cookieHeader = cookieData.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
-    const url = 'https://medicare.nhis.or.kr/portal/bk/z/300/selectBcbnfSlEntrUnityMgmtList.do';
-    const response = await axios.post(url,
+    //const url = 'https://medicare.nhis.or.kr/portal/bk/z/300/selectBcbnfSlEntrUnityMgmtList.do';
+    const response = await axios.post(MEDICARE_FIND_PHARMCY_BY_BIZNO_URL,
         {
           param
         }, {
@@ -59,7 +76,7 @@ const pharmacyListByBizNo = async (cookieData, bizNo) => {
           }
         });
 
-    console.log('Response:', response);
+    console.log('Response:', response.status);
 
     return response.data.data.length;
 
@@ -77,4 +94,26 @@ const pharmacyListByBizNo = async (cookieData, bizNo) => {
 
 };
 
-module.exports = { pharmacyListByBizNo };
+/**
+ * 일렉트론에서 웹페이지로 JS 이벤트를 실행시키고 싶을때 쓰는 로직
+ * @param processLogic JS 로직
+ */
+const electronToWebEventRun = async (processLogic) => {
+  BrowserWindow.getAllWindows().forEach((window) => {
+    let url = window.webContents.getURL();
+    console.log(url);
+    if (url.includes(PHARM_URL)) {
+      window.webContents.executeJavaScript(processLogic)
+          .then(() => {
+            console.log("WebContents executed with code:");
+          })
+          .catch((error) => {
+            console.error('JavaScript 실행 중 오류가 발생했습니다:', error);
+          });
+
+    }
+
+  });
+}
+
+module.exports = { sendLogToServer, pharmacyListByBizNo, electronToWebEventRun };

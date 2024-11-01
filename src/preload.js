@@ -11,13 +11,24 @@ window.addEventListener("DOMContentLoaded", () => {
   // csrfToken, csrfHeader,
   const csrfToken = document.querySelector("meta[name='_csrf']").content;
   const csrfHeader = document.querySelector("meta[name='_csrf_header']").content;
-  const pharmacyBizNo = document.querySelector("#pharmacyBizNo").value;
+  /*const pharmacyBizNo = document.querySelector("#pharmacyBizNo").value;*/
 
   const data_0 = {
                         csrfHeader : csrfHeader,
                         csrfToken : csrfToken,
-                        pharmacyBizNo: pharmacyBizNo,
+                        pharmacyBizNo: "",
                       };
+
+  const button_delegation_history = document.querySelector("#autoDelegationHistory"); //id="autoDelegationHistory"
+  button_delegation_history.addEventListener('click', () => {
+    console.log("Delegation History clicked");
+    ipcRenderer.send('start-check-delegation', data_0);
+  });
+  const button_billing_history = document.querySelector("#autoBillingHistory"); //id="autoBillingHistory"
+  button_billing_history.addEventListener('click', () => {
+    console.log("Billing History clicked");
+    ipcRenderer.send('start-check-bill');
+  });
 
   // 계산기 > 데이터 수정하기 calc-update ,  계산목록 > 환자 한명 선택하면 calc-detail
   if (
@@ -54,9 +65,9 @@ window.addEventListener("DOMContentLoaded", () => {
       );
       const selectedText =
         selectElement.options[selectElement.selectedIndex].textContent;
-      const hospitalNumber = document.querySelector("#hospitalCareOrgNo").value;
+      const hospitalCareOrgNo = document.querySelector("#hospitalCareOrgNo").value;
       const doctorNumber = document.querySelector("#doctorLicenseNo").value;
-      // const departmentName = document.querySelector("#").value;
+      // const qualificationNo = document.querySelector("#qualificationNo").value;
       const bloodNumber = document.querySelector(
         "#bloodGlucoseTestNumber"
       ).value;
@@ -147,11 +158,11 @@ window.addEventListener("DOMContentLoaded", () => {
         // 당뇨 유형 | 투여 여부 | 기타
         select: selectedText,
         // 요양기관 번호
-        hospital: hospitalNumber,
+        hospitalCareOrgNo: hospitalCareOrgNo,
         // 의사면허 번호
         doctor: doctorNumber,
         // 전문의 번호
-        // department: departmentName,
+        // qualificationNo: qualificationNo,
         // 혈당검사 횟수
         blood: bloodNumber,
         // 인슐린검사 횟수

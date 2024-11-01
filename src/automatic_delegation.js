@@ -1,6 +1,23 @@
 const { chromium } = require("playwright");
 const path = require("path");
 const fs = require("fs");
+const { electronToWebEventRun } = require("./logUtil");
+const {MEDICARE_URL, SAVE_LOG_DIR} = require("../config/default.json");
+const log = require("electron-log");
+const today = new Date();
+const year = today.getFullYear(); // 2023
+const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
+const day = today.getDate().toString().padStart(2, '0'); // 18
+
+const dateString = year + '-' + month + '-' + day; // 2023-06-18
+
+// 폴더 없으면 생성
+if (!fs.existsSync(SAVE_LOG_DIR)) {
+  fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
+}
+
+Object.assign(console, log.functions);
+log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
 
 async function runAutomation_delegation(data_1) {
   const channels = [
@@ -86,8 +103,22 @@ async function runAutomation_delegation(data_1) {
     return;
   }
 
+  try {
+    // 공인인증서 vaildation
+    if ( isEmptyCertificationInfo(data_1) ) {
+      let processLogic = `makeSwal('공인인증서 정보가 없습니다.\\n상단 메뉴 중 [공인인증서] > [인증서 설정]\\n으로 정보를 입력해 주세요.')`;
+      await electronToWebEventRun(processLogic);
+      return;
+    }
+
+  } catch (error) {
+    console.error("electronToWebEventRun error");
+    return
+  }
+
+
   const page = await browser.newPage();
-  await page.goto("https://medicare.nhis.or.kr/portal/index.do");
+  await page.goto(MEDICARE_URL);
   //const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   // 공인인증서 로그인
@@ -416,4 +447,25 @@ async function downloadFile(downloadsDirectory, url, filename) {
       });
     })
     .catch((err) => console.error("Fetch failed:", err));
+}
+
+function isEmptyCertificationInfo(data) {
+  if (isEmpty(data.certificateLocation)) return true;
+  if (data.certificateLocation !== '하드디스크' && isEmpty(data.certificatePath)) return true;
+  if (isEmpty(data.certificateName)) return true;
+  if (isEmpty(data.certificatePassword)) return true;
+
+}
+
+/**
+ * 빈값 체크
+ * @param value 체크하려는 값
+ * @returns {boolean}
+ */
+function isEmpty(value) {
+  if (typeof value === "undefined" || value === null || value === "" || value === "null") {
+    return Boolean(true);
+  } else {
+    return Boolean(false);
+  }
 }

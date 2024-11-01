@@ -1,8 +1,23 @@
 ﻿const { chromium } = require("playwright");
 const path = require("path");
 const fs = require("fs");
-const { sendLogToServer } = require("./logUtil");
-const { pharmacyListByBizNo } = require("./logUtil");
+const { sendLogToServer, pharmacyListByBizNo, electronToWebEventRun } = require("./logUtil");
+const {MEDICARE_URL, SAVE_LOG_DIR} = require("../config/default.json");
+const log = require("electron-log");
+const today = new Date();
+const year = today.getFullYear(); // 2023
+const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
+const day = today.getDate().toString().padStart(2, '0'); // 18
+
+const dateString = year + '-' + month + '-' + day; // 2023-06-18
+
+// 폴더 없으면 생성
+if (!fs.existsSync(SAVE_LOG_DIR)) {
+  fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
+}
+
+Object.assign(console, log.functions);
+log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
 
 async function runAutomation_billing(data) {
   const channels = [
@@ -80,8 +95,21 @@ async function runAutomation_billing(data) {
       return;
     }
 
+    try {
+      // 공인인증서 vaildation
+      if ( isEmptyCertificationInfo(data) ) {
+        let processLogic = `makeSwal('공인인증서 정보가 없습니다.\\n상단 메뉴 중 [공인인증서] > [인증서 설정]\\n으로 정보를 입력해 주세요.')`;
+        await electronToWebEventRun(processLogic);
+        return;
+      }
+
+    } catch (error) {
+      console.error("electronToWebEventRun error");
+      return
+    }
+
     const page = await browser.newPage();
-    await page.goto("https://medicare.nhis.or.kr/portal/index.do");
+    await page.goto(MEDICARE_URL);
     //const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
     // 공인인증서 로그인
@@ -126,14 +154,17 @@ async function runAutomation_billing(data) {
     );
 
     // 수신자 정보
+    console.log("start sujinja info");
     await frame.locator("#sel_payClsfcCd").selectOption("당뇨병소모성재료");
     await frame.locator("#inp_sujinjaJuminNo1").fill(data.ssn.split("-")[0]);
     await frame.locator("#inp_sujinjaJuminNo2").fill(data.ssn.split("-")[1]);
     await frame.locator("#inp_sujinjaNm").fill(data.name);
     await frame.locator("#inp_sujinjaNm").press("Enter");
+    console.log("end sujinja info");
 
     // 팝업 창(일반적인 요양비 청구가 맞습니까?) 확인 버튼 -> 약국 선택
     // 동적으로 생성되는 태그 값 찾기
+    console.log("start general care expenses alert");
     await page.waitForTimeout(3000);
 
     const dynamicFrameId = await searchIframePopup(page, "confirm_", "_iframe");
@@ -146,10 +177,13 @@ async function runAutomation_billing(data) {
     } else {
       console.error("Dynamic iframe not found.");
     }
+    console.log("end general care expenses alert");
 
     // 페이지의 모든 쿠키 가져오기
+    console.log("start pharmacyListByBizNo");
     const cookieData = await page.context().cookies();
     let pharmacyDataNum = await pharmacyListByBizNo(cookieData, data.pharmacyBizNo);
+    console.log("end pharmacyListByBizNo");
 
     if (pharmacyDataNum > 1) {
       // 업체목록이 2건 이상이면 선택
@@ -169,12 +203,16 @@ async function runAutomation_billing(data) {
     }
 
     // 처방전발행일
+    console.log("start prescription date");
     await frame.locator("#cal_mprsc_issue_dt_input").click();
     await frame
       .locator("#cal_mprsc_issue_dt_input")
       .fill(data.issue.replace(/-/g, ""));
     await frame.locator("#cal_mprsc_issue_dt_input").press("Enter");
+    console.log("end prescription date");
+
     // 당뇨 구분, 인슐린 투여 (나이(19세 미만))
+    console.log("start diabetes type, taking insulin, under age 19");
     console.log("Selected Option Value:", data.select);
     const parts = data.select.split("|").map((part) => part.trim());
     const firstPart = parts[0].trim(); // 당뇨 유형
@@ -266,10 +304,13 @@ async function runAutomation_billing(data) {
         await frame.locator("#sel_bcbnf_recv_cond_type2_itemTable_2").click();
       }
     }
+    console.log("end diabetes type, taking insulin, under age 19");
 
     // 요양기관, 의사 번호, 전문의 번호
-    await frame.locator("#wq_uuid_673").click();
-    await frame.locator("#wq_uuid_673").press("Enter");
+    console.log("start hospitalCareOrgNo, doctorLicenseNo, qualificationNo");
+    await frame.locator("#btn_pi_dr").click();
+    // await frame.locator("#wq_uuid_673").click();
+    // await frame.locator("#wq_uuid_673").press("Enter");
     try {
       await page.waitForTimeout(2000);
       await frame
@@ -279,7 +320,7 @@ async function runAutomation_billing(data) {
       await frame
         .frameLocator('iframe[title="bipbkz210p01"]')
         .locator("#inp_ykiho")
-        .fill(data.hospital);
+        .fill(data.hospitalCareOrgNo);
       await frame
         .frameLocator('iframe[title="bipbkz210p01"]')
         .getByRole("link", { name: "검색" })
@@ -347,8 +388,10 @@ async function runAutomation_billing(data) {
     } catch (error) {
       console.error("An error occurred:", error.message);
     }
+    console.log("end hospitalCareOrgNo, doctorLicenseNo, qualificationNo");
 
     // 상병 코드
+    console.log("start diseaseCodeName");
     try {
       await frame.locator("#inp_bcbnf_recv_sick_sym").click();
       await frame.locator("#inp_bcbnf_recv_sick_sym").fill(data.code);
@@ -380,26 +423,32 @@ async function runAutomation_billing(data) {
     } catch (error) {
       console.error("An error occurred:", error.message);
     }
+    console.log("end diseaseCodeName");
 
     // 혈당검사횟수, 인슐린투여횟수
+    console.log("start bloodGlucoseTestNumber, insulinInjectionNumber");
     await frame.locator("#inp_data_cnt13").click();
     await frame.locator("#inp_data_cnt13").fill("");
     await frame.locator("#inp_data_cnt13").fill(data.blood);
     await frame.locator("#inp_data_cnt14").click();
     await frame.locator("#inp_data_cnt14").fill("");
     await frame.locator("#inp_data_cnt14").fill(data.insulin);
+    console.log("end bloodGlucoseTestNumber, insulinInjectionNumber");
 
     // 구매일, 사용개시일, 지급일수
+    console.log("start purchaseDate, eatDays");
     await frame.locator("#cal_buy_dd_input").click();
     await frame.locator("#cal_buy_dd_input").fill(data.purchase);
 
-    await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
+    //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
+    await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
 
     await page.waitForTimeout(6000);
 
     const dupIframeId = await searchIframePopup(page, "confirm_", "_iframe");
 
     if(dupIframeId){
+      console.log("start dupIframeId");
       /*
           직전 동일 준요양기관의 청구내역이 있습니다. 동일한 내역으로 청구하시겠습니까? Yes / No
        */
@@ -437,7 +486,8 @@ async function runAutomation_billing(data) {
     await frame.locator("#inp_pay_freq").click();
     await frame.locator("#inp_pay_freq").fill(data.eat);
 
-    await frame.locator("#wq_uuid_797").click();
+    //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
+    await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
 
     await page.waitForTimeout(3000);
 
@@ -449,10 +499,13 @@ async function runAutomation_billing(data) {
       await innerFrame.locator('a#btn_Confirm').click();
     }
 
+    console.log("end purchaseDate, eatDays");
+
     // 제품사용내역등록(식별번호등록)
-    await frame.locator("#wq_uuid_803").waitFor({ state: "visible" });
-    await frame.locator("#wq_uuid_803").click();
-    await frame.locator("#wq_uuid_803").press("Enter");
+    console.log("start taking diabetes supplies info");
+    await frame.locator("#btn_sub").waitFor({ state: "visible" });
+    await frame.locator("#btn_sub").click();
+    //await frame.locator("#btn_sub").press("Enter");
     // 제품명, 수량, 금액
     for (let i = 0; i < 10; i++) {
       let k = 2 * i + 1;
@@ -569,8 +622,10 @@ async function runAutomation_billing(data) {
     } else {
       console.error("Dynamic iframe not found.");
     }
+    console.log("end taking diabetes supplies info");
 
     // 제출 서류 첨부
+    console.log("start attach pdf document");
     await frame.getByRole("link", { name: "제출 서류 첨부" }).click();
     // 파일 첨부
     const fileChooserPromise = page.waitForEvent("filechooser");
@@ -632,6 +687,7 @@ async function runAutomation_billing(data) {
 
     const button3 = parentDiv.locator("button").nth(2);
     await button3.click();
+    console.log("end attach pdf document");
 
     /*await frame
       .frameLocator('iframe[title="popup_fileUpload"]')
@@ -706,4 +762,25 @@ async function downloadFile(downloadsDirectory, url, filename) {
       });
     })
     .catch((err) => console.error("Fetch failed:", err));
+}
+
+function isEmptyCertificationInfo(data) {
+  if (isEmpty(data.certificateLocation)) return true;
+  if (data.certificateLocation !== '하드디스크' && isEmpty(data.certificatePath)) return true;
+  if (isEmpty(data.certificateName)) return true;
+  if (isEmpty(data.certificatePassword)) return true;
+
+}
+
+/**
+ * 빈값 체크
+ * @param value 체크하려는 값
+ * @returns {boolean}
+ */
+function isEmpty(value) {
+  if (typeof value === "undefined" || value === null || value === "" || value === "null") {
+    return Boolean(true);
+  } else {
+    return Boolean(false);
+  }
 }
