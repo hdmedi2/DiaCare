@@ -4,7 +4,23 @@ const { parse } = require("json2csv");
 const {XMLHttpRequest} = require("xmlhttprequest");
 const {MEDICARE_URL} = require("../config/default.json");
 const log = require("electron-log");
+const path = require("path");
+
+const {SAVE_LOG_DIR} = require("../config/default.json");
+const today = new Date();
+const year = today.getFullYear(); // 2023
+const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
+const day = today.getDate().toString().padStart(2, '0'); // 18
+
+const dateString = year + '-' + month + '-' + day; // 2023-06-18
+
+// 폴더 없으면 생성
+if (!fs.existsSync(SAVE_LOG_DIR)) {
+  fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
+}
+
 Object.assign(console, log.functions);
+log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
 
 async function checkBilling(data) {
   const channels = [
@@ -93,8 +109,16 @@ async function checkBilling(data) {
     if (responseBody.dl_tbbibo05) {
       console.log("Number of rows:", responseBody.dl_tbbibo05.length);
 
-      const filePos = "C:\\bill"+Date.now()+".json";
+      const saveDir = "C:\\DiaCare\\billing";
+      const filePos = path.join(saveDir, "bill-"+dateString+".json");
+      console.log("file save dir : ", filePos);
+
       const filePosRead = "file://"+Date.now()+"output.json"
+
+      // 폴더 없으면 생성
+      if (!fs.existsSync(saveDir)) {
+        fs.mkdirSync(saveDir, { recursive: true });
+      }
 
       fs.writeFileSync(
           //path.join(__dirname, "output.json"),
@@ -132,6 +156,6 @@ async function checkBilling(data) {
   } catch (error) {
     console.error("Failed to get response body:", error);
   }
-  //await browser.close();
+  await browser.close();
 }
 module.exports = { checkBilling };

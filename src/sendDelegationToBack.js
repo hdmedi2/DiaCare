@@ -1,7 +1,22 @@
 const axios = require("axios");
-const {PHARM_URL} = require("../config/default.json");
+const {PHARM_URL, SAVE_LOG_DIR} = require("../config/default.json");
 const log = require("electron-log");
+const fs = require("fs");
+const path = require("path");
+const today = new Date();
+const year = today.getFullYear(); // 2023
+const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
+const day = today.getDate().toString().padStart(2, '0'); // 18
+
+const dateString = year + '-' + month + '-' + day; // 2023-06-18
+
+// 폴더 없으면 생성
+if (!fs.existsSync(SAVE_LOG_DIR)) {
+  fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
+}
+
 Object.assign(console, log.functions);
+log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
 
 const sendDelegationToBack = async (
   pharmacyId,

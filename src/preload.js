@@ -65,9 +65,9 @@ window.addEventListener("DOMContentLoaded", () => {
       );
       const selectedText =
         selectElement.options[selectElement.selectedIndex].textContent;
-      const hospitalNumber = document.querySelector("#hospitalCareOrgNo").value;
+      const hospitalCareOrgNo = document.querySelector("#hospitalCareOrgNo").value;
       const doctorNumber = document.querySelector("#doctorLicenseNo").value;
-      // const departmentName = document.querySelector("#").value;
+      // const qualificationNo = document.querySelector("#qualificationNo").value;
       const bloodNumber = document.querySelector(
         "#bloodGlucoseTestNumber"
       ).value;
@@ -158,11 +158,11 @@ window.addEventListener("DOMContentLoaded", () => {
         // 당뇨 유형 | 투여 여부 | 기타
         select: selectedText,
         // 요양기관 번호
-        hospital: hospitalNumber,
+        hospitalCareOrgNo: hospitalCareOrgNo,
         // 의사면허 번호
         doctor: doctorNumber,
         // 전문의 번호
-        // department: departmentName,
+        // qualificationNo: qualificationNo,
         // 혈당검사 횟수
         blood: bloodNumber,
         // 인슐린검사 횟수

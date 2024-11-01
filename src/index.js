@@ -21,9 +21,22 @@ const { sendDelegationToBack } = require("./sendDelegationToBack");
 const SESSION_FILE_PATH = path.join(app.getPath("userData"), "session.json");
 const SETTINGS_FILE_PATH = path.join(app.getPath("userData"), "settings.json");
 const {create} = require("axios");
-const {PHARM_URL} = require("../config/default.json");
+const {PHARM_URL, SAVE_LOG_DIR} = require("../config/default.json");
 const log = require("electron-log");
+const today = new Date();
+const year = today.getFullYear(); // 2023
+const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
+const day = today.getDate().toString().padStart(2, '0'); // 18
+
+const dateString = year + '-' + month + '-' + day; // 2023-06-18
+
+// 폴더 없으면 생성
+if (!fs.existsSync(SAVE_LOG_DIR)) {
+  fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
+}
+
 Object.assign(console, log.functions);
+log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
 
 const { updateElectronApp, UpdateSourceType } = require('update-electron-app');
 
@@ -237,11 +250,11 @@ app.whenReady().then(() => {
       label: "공인인증서",
       submenu: [{ label: "인증서 설정", click: createSettingWindow }],
     },
-    /*{
+    {
       label: "요양마당",
       submenu: [
         {
-          label: "위임/청구 내역 가져오기",
+          label: "청구 내역 가져오기",
           click: () =>
             createSettingWindow({
               width: 350,
@@ -250,7 +263,7 @@ app.whenReady().then(() => {
             }), // 커스텀 설정 창
         },
       ],
-    },*/
+    },
   ]);
 
   Menu.setApplicationMenu(menu);
@@ -305,7 +318,7 @@ ipcMain.on("start-check-delegation", async (event, data_0) => {
         ...settings,
         ...data_0,
       };
-      console.log("Automation Data:", automationData); // 확인용 출력
+      //console.log("Automation Data:", automationData); // 확인용 출력
       await checkDelegation(automationData);
 
     } else {
@@ -358,7 +371,7 @@ ipcMain.on("upload-delegation-list", async (event, data) => {
         ...settings,
         ...data,
       };
-      console.log("Automation Data:", automationData); // 확인용 출력
+      //console.log("Automation Data:", automationData); // 확인용 출력
       await runAutomation_billing(automationData);
     } else {
       console.error("Failed to load settings.");
@@ -384,7 +397,7 @@ ipcMain.on("start-playwright", async (event, data) => {
         ...settings,
         ...data,
       };
-      console.log("Automation Data:", automationData); // 확인용 출력
+      //console.log("Automation Data:", automationData); // 확인용 출력
       await runAutomation_billing(automationData);
     } else {
       console.error("Failed to load settings.");

@@ -3,22 +3,39 @@ const { FuseV1Options, FuseVersion } = require("@electron/fuses");
 const { certPfxPassword } = require("./cert/cert_password.json");
 const { buildVersion } = require("./build/version.json");
 const path = require('path');
-const { GITHUB_DIST_URL } = require("./cert/gh_tokens.json");
+/*const { GITHUB_DIST_URL } = require("./cert/gh_tokens.json");
 const { GH_TOKEN } = require("./cert/gh_tokens.json");
 const { GITHUB_TOKEN } = require("./cert/gh_tokens.json");
-const { GITHUB_USER } = require("./cert/gh_tokens.json");
+const { GITHUB_USER } = require("./cert/gh_tokens.json");*/
 // console.log('certPfxPassword:', certPfxPassword);
+
 const log = require("electron-log");
+const {SAVE_LOG_DIR} = require("./config/default.json");
+const fs = require("fs");
+const today = new Date();
+const year = today.getFullYear(); // 2023
+const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
+const day = today.getDate().toString().padStart(2, '0'); // 18
+
+const dateString = year + '-' + month + '-' + day; // 2023-06-18
+
+// 폴더 없으면 생성
+if (!fs.existsSync(SAVE_LOG_DIR)) {
+  fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
+}
+
 Object.assign(console, log.functions);
+log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
 
 console.log('buildVersion =', buildVersion);
 console.log('icon file path =',path.resolve(__dirname, './assets/iyac_app_logo.ico'));
-console.log('GH_TOKEN =', GH_TOKEN);
-console.log('GH_TOKEN =', GH_TOKEN);
+/*console.log('GH_TOKEN =', GH_TOKEN);
+console.log('GH_TOKEN =', GH_TOKEN);*/
 
 // 환경 변수에 GH_TOKEN 설정
-process.env.GH_TOKEN = GH_TOKEN;
-process.env.GITHUB_TOKEN = GITHUB_TOKEN;
+/*process.env.GH_TOKEN = GH_TOKEN;
+process.env.GITHUB_TOKEN = GITHUB_TOKEN;*/
+
 /*
   cert 폴더에 cert_password.json 파일 생성하고, 내용은 { "certPfxPassword": "인증서 비밀번호" } 로 저장할 것.
   cert.pfx 파일과 비밀번호 파일은 git ignore 대상이며, 별도 보관하여 보안 수준을 높이도록 한다.
@@ -62,7 +79,7 @@ module.exports = {
       config: {},
     },
   ],
-  publishers: [
+  /*publishers: [
     {
       name: "@electron-forge/publisher-github",
       config: {
@@ -74,10 +91,10 @@ module.exports = {
         draft: false,
       },
     },
-  ],
+  ],*/
 
   // postMake hook
-  hooks: {
+  /*hooks: {
     postMake: async (forgeConfig, options) => {
       const { Octokit } = await import("@octokit/rest"); // 동적 import
       // console.log(`Octokit = ${Octokit}`);
@@ -120,7 +137,7 @@ module.exports = {
   //     console.log(`Download link: https://github.com/sjh-hdmedi/DiaCareDist/releases/download/${tag}/${fileName}`);
   //   });
   // },
-  },
+  },*/
 
   plugins: [
     {
