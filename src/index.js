@@ -6,8 +6,6 @@ const {
   Menu,
   safeStorage,
 } = require("electron");
-const path = require("path");
-const fs = require("fs");
 const { runAutomation_billing } = require("./automatic_billing");
 const { runAutomation_delegation } = require("./automatic_delegation");
 const { checkBilling } = require("./auto_checkBilling");
@@ -17,12 +15,14 @@ const { autoUpdater } = require("electron-updater");
 
 const { crawlDelegation } = require("./crawl_delegation");
 const { sendDelegationToBack } = require("./sendDelegationToBack");
+const path = require('node:path');
+const log = require('electron-log');
+const fs = require("fs");
 
 const SESSION_FILE_PATH = path.join(app.getPath("userData"), "session.json");
 const SETTINGS_FILE_PATH = path.join(app.getPath("userData"), "settings.json");
-const {create} = require("axios");
-const {PHARM_URL, SAVE_LOG_DIR} = require("../config/default.json");
-const log = require("electron-log");
+// const {create} = require("axios");
+const {PHARM_URL, SAVE_LOG_DIR, REPO, OWNER, PROVIDER} = require("../config/default.json");
 const today = new Date();
 const year = today.getFullYear(); // 2023
 const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
@@ -38,47 +38,202 @@ if (!fs.existsSync(SAVE_LOG_DIR)) {
 Object.assign(console, log.functions);
 log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
 
-const { updateElectronApp, UpdateSourceType } = require('update-electron-app');
+let mainWindow; 
 
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
+log.transports.file.maxsize = 500 * 1024 * 1024; // 500MB
+log.info('==========================================');
+console.log(`provider: ${PROVIDER}`);
+console.log(`owner: ${OWNER}`);
+console.log(`repo: ${REPO}`);
 
-if (require("electron-squirrel-startup")) {
-  app.quit();
-}
+log.info(`provider: ${PROVIDER}`);
+log.info(`owner: ${OWNER}`);
+log.info(`repo: ${REPO}`);
 
-// 중복실행 방지 체크
-// 다른 인스턴스가 실행 중인지 확인
-const gotTheLock = app.requestSingleInstanceLock();
+autoUpdater.setFeedURL({
+  provider: PROVIDER,
+  owner: OWNER,
+  repo: REPO,
+  private: false, 
+  token: process.env.GH_TOKEN
+});
 
-if (!gotTheLock) {
-  // 이미 애플리케이션이 실행 중이면 새 인스턴스 종료
-  app.quit();
-}
-
-const createWindow = async () => {
-  const mainWindow = new BrowserWindow({
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js"),
-      contextIsolation: true,
-      enableRemoteModule: false,
+/*
+ * 앱이 준비상태가 되면 메뉴를 설정하고, 메인 창을 연다.
+ * 
+ */ 
+app.on('ready', () => {
+  const menu = Menu.buildFromTemplate([
+    { label: "File", submenu: [{ role: "quit" }] },
+    {
+      label: "Edit",
+      submenu: [
+        { role: "undo" },
+        { role: "redo" },
+        { type: "separator" },
+        { role: "cut" },
+        { role: "copy" },
+        { role: "paste" },
+        { role: "selectAll" },
+      ],
     },
+    {
+      label: "View",
+      submenu: [
+        { role: "reload" },
+        { role: "toggledevtools" },
+        { role: "resetzoom" },
+        { role: "zoomin" },
+        { role: "zoomout" },
+        { role: "togglefullscreen" },
+      ],
+    },
+    { label: "Window", submenu: [{ role: "minimize" }, { role: "close" }] },
+    {
+      label: "Help",
+      submenu: [
+        {
+          label: "Learn More",
+          click: () =>
+            require("electron").shell.openExternal("https://electronjs.org"),
+        },
+      ],
+    },
+    {
+      label: "공인인증서",
+      submenu: [{ label: "인증서 설정", click: createSettingWindow }],
+    },
+    {
+      label: "요양마당",
+      submenu: [
+        {
+          label: "청구 내역 가져오기",
+          click: () =>
+              createSettingWindow({
+                width: 350,
+                height: 250,
+                file: "mediCare.html",
+              }), // 커스텀 설정 창
+        },
+      ],
+    },
+  ]);
+  Menu.setApplicationMenu(menu);
+
+  autoUpdater.checkForUpdatesAndNotify();
+  // mainWindow 생성
+  createWindow();
+});
+
+app.on('activate', () => {
+  if (BrowserWindow.getAllWindows().length === 0) {
+    createWindow();
+  }
+});
+
+app.on("web-contents-created", (event, webContents) => {
+  webContents.on("crashed", clearCache);
+  webContents.on("did-fail-load", clearCache);
+});
+
+
+autoUpdater.on('update-available', () => {
+  log.info("업데이트가 가능합니다. 새로운 버전을 설치합니다.");
+  console.log('업데이트가 가능합니다. 새로운 버전을 설치합니다.');
+  log.info("========= 종료 후 설치 ");
+});
+
+autoUpdater.on('download-progress', (progress) => {
+  console.log(`다운로드 진행률: ${progress.percent}%`);
+  log.info(`다운로드 진행률: ${progress.percent}%`);
+});
+
+autoUpdater.on('update-not-available', () => {
+  log.info("현재 최신 버전입니다.");
+  console.log('현재 최신 버전입니다.');
+});
+
+autoUpdater.on('error', (err) => {
+  log.info("업데이트 중 오류 발생", err);
+  console.error('업데이트 중 오류 발생:', err);
+});
+
+autoUpdater.on('update-downloaded', () => {
+  console.log('업데이트가 다운로드되었습니다. 애플리케이션을 재시작하여 설치를 완료합니다.');
+  log.info('업데이트가 다운로드되었습니다. 애플리케이션을 재시작하여 설치를 완료합니다.');
+  autoUpdater.quitAndInstall();
+});
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+//
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const createWindow = () => {
+  try {
+    mainWindow = new BrowserWindow({
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.js'),
+        contextIsolation: true,
+        enableRemoteModule: false,
+      },
+    });
+
+    mainWindow.maximize();
+    loadLocalData("session");
+    mainWindow.loadURL(PHARM_URL);
+
+    mainWindow.on('closed', () => {
+      mainWindow = null;
+    })
+    // 로그파일 저장 경로 설정
+    // log.transports.file.resolvePath = () => '/logs/main.log'; 
+    // mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  }
+  catch(err)
+  {
+    console.log(err.message);
+    log.error(err.message);
+    app.quit();
+  }
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
   });
-
-  mainWindow.maximize();
-  await loadLocalData("session");
-  mainWindow.loadURL(PHARM_URL);
-
-  // 업데이트 이벤트
-  /*autoUpdater.on('update-available', () => {
-    console.log('Run update-available');
-    mainWindow.webContents.send('update_available');
-  });
-
-  autoUpdater.on('update-downloaded', () => {
-    console.log('Run update-downloaded');
-    mainWindow.webContents.send('update_downloaded');
-  });*/
-
 };
+
+// 현재 인스턴스가 실행권을 가져오지 못하면 종료
+if (!app.requestSingleInstanceLock()) {
+  // 기존 인스턴스를 모두 종료
+  console.log("현재 인스턴스가 실행권을 가져오지 못하면 종료");
+  app.quit();
+} else {
+  // 기존 인스턴스에 이벤트 핸들러 등록
+  app.on('second-instance', (event, argv, workingDirectory) => {
+    // 기존 인스턴스를 닫고 새 인스턴스를 실행
+    if (mainWindow) {
+      mainWindow.close(); // 기존 창 닫기
+    }
+    createWindow(); // 새 창 열기
+  });
+
+  // 모든 창이 닫혔을 때 앱 종료 처리
+  app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') {
+      app.quit();
+    }
+  });
+
+  // macOS에서 앱 활성화 시 창 생성
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
+}
 
 const manageLocalData = async (type, data = null) => {
   const filePath = type === "session" ? SESSION_FILE_PATH : SETTINGS_FILE_PATH;
@@ -192,122 +347,7 @@ const createSettingWindow = (options = {}) => {
   });
 };
 
-
-// 프로그램이 기동되면 새로운 창을 만들고, 메뉴를 붙이고,
-app.whenReady().then(() => {
-  createWindow();
-
-  //autoUpdater.autoDownload = true;
-  /*process.env.NODE_ENV = "development";
-  console.log("process.env.NODE_ENV = ", process.env.NODE_ENV);*/
-
-  // 개발 환경에서 강제로 업데이트를 체크
-  // if (process.env.NODE_ENV === 'development') {
-  //  autoUpdater.updateConfigPath = path.join(__dirname, './dev-app-update.yml');
-  // }
-  // 자동 업데이트 체크
-  /*autoUpdater.checkForUpdatesAndNotify().then(() => {
-    console.log("최신 버전이 있는지 확인합니다");
-  } );*/
-
-  const menu = Menu.buildFromTemplate([
-    { label: "File", submenu: [{ role: "quit" }] },
-    {
-      label: "Edit",
-      submenu: [
-        { role: "undo" },
-        { role: "redo" },
-        { type: "separator" },
-        { role: "cut" },
-        { role: "copy" },
-        { role: "paste" },
-        { role: "selectAll" },
-      ],
-    },
-    {
-      label: "View",
-      submenu: [
-        { role: "reload" },
-        { role: "toggledevtools" },
-        { role: "resetzoom" },
-        { role: "zoomin" },
-        { role: "zoomout" },
-        { role: "togglefullscreen" },
-      ],
-    },
-    { label: "Window", submenu: [{ role: "minimize" }, { role: "close" }] },
-    {
-      label: "Help",
-      submenu: [
-        {
-          label: "Learn More",
-          click: () =>
-            require("electron").shell.openExternal("https://electronjs.org"),
-        },
-      ],
-    },
-    {
-      label: "공인인증서",
-      submenu: [{ label: "인증서 설정", click: createSettingWindow }],
-    },
-    {
-      label: "요양마당",
-      submenu: [
-        {
-          label: "청구 내역 가져오기",
-          click: () =>
-            createSettingWindow({
-              width: 350,
-              height: 250,
-              file: "mediCare.html",
-            }), // 커스텀 설정 창
-        },
-      ],
-    },
-  ]);
-
-  Menu.setApplicationMenu(menu);
-
-  try {
-    updateElectronApp({
-      updateSource: {
-        type: UpdateSourceType.StaticStorage,
-        baseUrl: `https://diacare-hd-dist.s3.ap-northeast-2.amazonaws.com/release/${process.platform}/${process.arch}`
-      }
-    });
-
-  } catch (error) {
-    // log.error(error);
-    console.error(error);
-  }
-
-});
-
-
-// 사용자가 모든 창을 닫을 때 앱 종료_
-app.on('window-all-closed', () => {
-  app.quit();
-});
-
-
-
-app.on("web-contents-created", (event, webContents) => {
-  webContents.on("crashed", clearCache);
-  webContents.on("did-fail-load", clearCache);
-});
-
-app.on("activate", () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    createWindow();
-  }
-});
-
-app.on("window-all-closed", async () => {
-  await saveSessionData();
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
-});
+// ipcMain 정의 
 
 ipcMain.on("start-check-delegation", async (event, data_0) => {
   try {
