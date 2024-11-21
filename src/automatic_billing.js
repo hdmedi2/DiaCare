@@ -650,16 +650,24 @@ async function runAutomation_billing(data) {
     const fileChooser = await fileChooserPromise;
     // 출력문서 파일 선택
 
-    const fileArr = [
-      path.join(downloadsDirectory, data.prescriptionFileName),
-      path.join(downloadsDirectory, data.diabetesDocFileName),
-      path.join(downloadsDirectory, data.paymentReceiptFileName),
-    ];
+    const fileArr = [];
+    if (!isEmpty(data.prescriptionFileName)) {
+      fileArr.push(path.join(downloadsDirectory, data.prescriptionFileName));
+    }
+    if (!isEmpty(data.diabetesDocFileName)) {
+      fileArr.push(path.join(downloadsDirectory, data.diabetesDocFileName));
+    }
+    if (!isEmpty(data.paymentReceiptFileName)) {
+      fileArr.push(path.join(downloadsDirectory, data.paymentReceiptFileName));
+    }
+
+    fileArr.forEach(file => {
+      console.log(file + " File exists: " + fs.existsSync(file));
+    });
 
     await fileChooser.setFiles(fileArr);
 
     // 파일 전송
-
     const button2 = parentDiv.locator("button").nth(1);
     await button2.click();
 
