@@ -5,6 +5,7 @@ const {
   session,
   Menu,
   safeStorage,
+    screen
 } = require("electron");
 const path = require("path");
 const fs = require("fs");
@@ -38,12 +39,10 @@ if (!fs.existsSync(SAVE_LOG_DIR)) {
 Object.assign(console, log.functions);
 log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
 
-const { updateElectronApp, UpdateSourceType } = require('update-electron-app');
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
+log.transports.file.maxsize = 500 * 1024 * 1024; // 500MB
 
-
-if (require("electron-squirrel-startup")) {
-  app.quit();
-}
 
 // 중복실행 방지 체크
 // 다른 인스턴스가 실행 중인지 확인
@@ -54,9 +53,19 @@ if (!gotTheLock) {
   app.quit();
 }
 
+
+
+
+
 const createWindow = async () => {
+  const primaryDisplay = screen.getPrimaryDisplay();
+  const { width, height } = primaryDisplay.workAreaSize;
+  console.log(`Screen resolution: ${width}x${height}`);
+
   const mainWindow = new BrowserWindow({
     webPreferences: {
+      width: width,
+      height: height,
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       enableRemoteModule: false,
@@ -66,18 +75,6 @@ const createWindow = async () => {
   mainWindow.maximize();
   await loadLocalData("session");
   mainWindow.loadURL(PHARM_URL);
-
-  // 업데이트 이벤트
-  /*autoUpdater.on('update-available', () => {
-    console.log('Run update-available');
-    mainWindow.webContents.send('update_available');
-  });
-
-  autoUpdater.on('update-downloaded', () => {
-    console.log('Run update-downloaded');
-    mainWindow.webContents.send('update_downloaded');
-  });*/
-
 };
 
 const manageLocalData = async (type, data = null) => {
@@ -182,8 +179,8 @@ const createSettingWindow = (options = {}) => {
 
   // HTML 파일 로드
   const htmlFilePath = options.file
-    ? path.join(__dirname, "mediCare.html")
-    : path.join(__dirname, "setting.html");
+    ? path.join(__dirname, "../html/mediCare.html")
+    : path.join(__dirname, "../html/setting.html");
   settingWindow.loadFile(htmlFilePath);
 
   settingWindow.webContents.on("did-finish-load", async () => {
@@ -267,25 +264,13 @@ app.whenReady().then(() => {
   ]);
 
   Menu.setApplicationMenu(menu);
-
-  try {
-    updateElectronApp({
-      updateSource: {
-        type: UpdateSourceType.StaticStorage,
-        baseUrl: `https://diacare-hd-dist.s3.ap-northeast-2.amazonaws.com/release/${process.platform}/${process.arch}`
-      }
-    });
-
-  } catch (error) {
-    // log.error(error);
-    console.error(error);
-  }
-
 });
 
 
 // 사용자가 모든 창을 닫을 때 앱 종료_
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async () => {
+  await saveSessionData();
+  console.log("정상 종료되었습니다....");
   app.quit();
 });
 
@@ -299,13 +284,6 @@ app.on("web-contents-created", (event, webContents) => {
 app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
-  }
-});
-
-app.on("window-all-closed", async () => {
-  await saveSessionData();
-  if (process.platform !== "darwin") {
-    app.quit();
   }
 });
 
@@ -465,3 +443,36 @@ function electronToWebEventRun(processLogic) {
 
   });
 }*/
+
+log.info(`=============${dateString}=============================`);
+
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
+
+autoUpdater.on('update-available', () => {
+  log.info("업데이트가 가능합니다. 새로운 버전을 설치합니다.");
+  console.log('업데이트가 가능합니다. 새로운 버전을 설치합니다.');
+  log.info("========= 종료 후 설치 ");
+});
+
+autoUpdater.on('download-progress', (progress) => {
+  console.log(`다운로드 진행률: ${progress.percent}%`);
+  log.info(`다운로드 진행률: ${progress.percent}%`);
+
+});
+
+autoUpdater.on('update-not-available', () => {
+  log.info("현재 최신 버전입니다.");
+  console.log('현재 최신 버전입니다.');
+});
+
+autoUpdater.on('error', (err) => {
+  log.info("업데이트 중 오류 발생", err);
+  console.error('업데이트 중 오류 발생:', err);
+});
+
+autoUpdater.on('update-downloaded', () => {
+  console.log('업데이트가 다운로드되었습니다. 애플리케이션을 재시작하여 설치를 완료합니다.');
+  log.info('업데이트가 다운로드되었습니다. 애플리케이션을 재시작하여 설치를 완료합니다.');
+  autoUpdater.quitAndInstall();
+});
