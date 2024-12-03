@@ -1,6 +1,6 @@
 {
   "name": "iyac_diabetes",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "아이약 당뇨케어",
   "main": "src/index.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "clean-dist": "node scripts/clean-dist-folder.js",
     "clean-out": "node scripts/clean-out-folder.js",
     "obfuscate": "npm run clean-out && javascript-obfuscator src --output out",
-    "verson-up": "node scripts/verson-bump.js",
+    "version-up": "node scripts/version-bump.js",
     "build": "node scripts/clean-out-folder.js && npm run obfuscator && electron-builder .",
     "publish": "npm run obfuscate && npm run clean-dist && electron-builder --publish always"
   },
@@ -64,7 +64,7 @@
   "keywords": [
     "아이약당뇨케어"
   ],
-  "author": "hdmedi,westwiz",
+  "author": "HDMedi",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/hdmedi2/DiaCare/issues"
