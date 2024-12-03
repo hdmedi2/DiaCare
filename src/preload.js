@@ -229,7 +229,7 @@ window.addEventListener("DOMContentLoaded", () => {
       // 5년 후
       endDate.setFullYear(endDate.getFullYear() + 5);
       // 1일 전으로 설정
-      endDate.setDate(endDate.getDate() - 2);
+      endDate.setDate(endDate.getDate() - 1);
 
       startDate = formatDate(startDate);
       endDate = formatDate(endDate);
