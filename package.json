@@ -6,6 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "cross-env NODE_ENV=development electron .",
+    "clean-dist": "node scripts/clean-dist-folder.js",
+    "clean-out": "node scripts/clean-out-folder.js",
     "obfuscate": "npm run clean-out && javascript-obfuscator src --output out",
     "verson-up": "node scripts/verson-bump.js",
     "build": "node scripts/clean-out-folder.js && npm run obfuscator && electron-builder .",
