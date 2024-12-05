@@ -1,47 +1,88 @@
 {
   "name": "iyac_diabetes",
-  "productName": "iyac_diabetes",
-  "version": "1.0.16",
-  "description": "iyac_diabetes",
+  "version": "1.0.20",
+  "description": "아이약 당뇨케어",
   "main": "src/index.js",
   "scripts": {
-    "start": "electron-forge start",
-    "package": "electron-forge package",
-    "obfuscate": "javascript-obfuscator src --output src-obfuscated",
-    "make": "node version-bump.js && npm run obfuscate &&  electron-forge make",
-    "publish": "electron-forge publish",
-    "lint": "echo \"No linting configured\""
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cross-env NODE_ENV=development electron .",
+    "clean-dist": "node scripts/clean-dist-folder.js",
+    "clean-out": "node scripts/clean-out-folder.js",
+    "obfuscate": "npm run clean-out && javascript-obfuscator src --output out",
+    "version-up": "node scripts/version-bump.js",
+    "build": "node scripts/clean-out-folder.js && npm run obfuscator && electron-builder .",
+    "publish": "npm run obfuscate && npm run clean-dist && electron-builder --publish always"
   },
-  "devDependencies": {
-    "@electron-forge/cli": "^7.5.0",
-    "@electron-forge/maker-deb": "^7.5.0",
-    "@electron-forge/maker-rpm": "^7.5.0",
-    "@electron-forge/maker-squirrel": "^7.5.0",
-    "@electron-forge/maker-zip": "^7.5.0",
-    "@electron-forge/plugin-auto-unpack-natives": "^7.5.0",
-    "@electron-forge/plugin-fuses": "^7.5.0",
-    "@electron-forge/publisher-github": "^7.5.0",
-    "@electron/fuses": "^1.8.0",
-    "@octokit/rest": "^21.0.2",
-    "electron": "^33.0.1",
-    "javascript-obfuscator": "^4.1.1"
+  "build": {
+    "asar": true,
+    "appId": "com.hdmedi.iyacDiaCare",
+    "files": [
+      "config/**/*",
+      "html/**/*",
+      "assets/**/*",
+      "!scripts/**/*",
+      "out/**/*",
+      "!dist/**/*",
+      "!src/**/*"
+    ],
+    "extraResources": [
+      "app.mainfest"
+    ],
+    "afterPack": "scripts/attach-manifest.js",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "hdmedi2",
+        "repo": "DiaCareDist",
+        "releaseType": "release"
+      }
+    ],
+    "extraMetadata": {
+      "main": "out/index.js"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "./assets/iyac_app_logo.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowElevation": true
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "./assets/iyac_app_logo.icns"
+    }
   },
-  "keywords": [],
-  "author": {
-    "name": "hdmedi",
-    "email": "hdmedi@hdmedi.co.kr"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hdmedi2/DiaCare.git"
   },
-  "license": "MIT",
+  "keywords": [
+    "아이약당뇨케어"
+  ],
+  "author": "HDMedi",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hdmedi2/DiaCare/issues"
+  },
+  "homepage": "https://github.com/hdmedi2/DiaCare#readme",
   "dependencies": {
-    "axios": "^1.7.7",
-    "config": "^3.3.12",
-    "electron-builder": "^25.1.8",
-    "electron-log": "^5.2.0",
-    "electron-squirrel-startup": "^1.0.1",
+    "axios": "^1.7.8",
+    "cross-env": "^7.0.3",
+    "electron-log": "^5.2.3",
     "electron-updater": "^6.3.9",
     "json2csv": "^6.0.0-alpha.2",
-    "playwright": "^1.48.0",
-    "update-electron-app": "^3.0.0",
+    "playwright": "1.38",
     "xmlhttprequest": "^1.8.0"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1",
+    "electron-builder": "^24.13.3",
+    "javascript-obfuscator": "^4.1.1",
+    "rcedit": "^4.0.1"
   }
 }

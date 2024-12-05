@@ -68,7 +68,7 @@ async function checkBilling(data) {
   } catch (error) {
     console.error("An error occurred:", error);
   }
-  await page.getByText(data.certificateName).click();
+  await page.getByText(data.certificateName,{exact:true}).click();
   await page.getByRole("textbox", { name: "인증서 암호" }).click();
   await page
     .getByRole("textbox", { name: "인증서 암호" })
