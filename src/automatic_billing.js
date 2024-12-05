@@ -443,6 +443,18 @@ async function runAutomation_billing(data) {
     //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
     await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
 
+    //이전 품목의 금여종료일이 2020.11.23입니다. 사용개시일을 2024.11.24로 자동세팅됩니다.
+    const useStartDateAutoSetAlert = await searchIframePopup(page, "alert_", "_iframe");
+    let isUseStartDateAutoSetAlert = !isEmpty(useStartDateAutoSetAlert);
+
+    await page.waitForTimeout(3000);
+
+    if (isUseStartDateAutoSetAlert) {
+      const innerFrame = frame.frameLocator(`iframe[id="${useStartDateAutoSetAlert}"]`);
+      await innerFrame.locator('a#btn_Confirm').waitFor();
+      await innerFrame.locator('a#btn_Confirm').click();
+    }
+
     await page.waitForTimeout(6000);
 
     const dupIframeId = await searchIframePopup(page, "confirm_", "_iframe");
@@ -478,13 +490,17 @@ async function runAutomation_billing(data) {
         */
       }
 
-    }else{
-      await frame.locator("#cal_buy_dt_input").click();
-      await frame.locator("#cal_buy_dt_input").fill(data.purchase);
+    } else {
+      if (!isUseStartDateAutoSetAlert) {
+        await frame.locator("#cal_buy_dt_input").click();
+        await frame.locator("#cal_buy_dt_input").fill(data.purchase);
+
+      }
+
     }
 
-    await frame.locator("#inp_pay_freq").click();
     await frame.locator("#inp_pay_freq").fill(data.eat);
+    await frame.locator("#inp_pay_freq").click();
 
     //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
     await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
