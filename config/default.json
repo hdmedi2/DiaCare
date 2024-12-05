@@ -2,5 +2,6 @@
   "PHARM_URL": "https://pharm.hdmedi.kr/",
   "MEDICARE_URL" : "https://medicare.nhis.or.kr/portal/index.do",
   "MEDICARE_FIND_PHARMCY_BY_BIZNO_URL" : "https://medicare.nhis.or.kr/portal/bk/z/300/selectBcbnfSlEntrUnityMgmtList.do",
+  "SAVE_DIR" : "C:\\DiaCare",
   "SAVE_LOG_DIR" : "C:\\DiaCare\\logs"
 }

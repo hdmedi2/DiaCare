@@ -30,8 +30,16 @@ const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
 const day = today.getDate().toString().padStart(2, '0'); // 18
 
 const dateString = year + '-' + month + '-' + day; // 2023-06-18
-
+const { version } = require('../package.json');
 // 폴더 없으면 생성
+if (!fs.existsSync(SAVE_DIR)) {
+  fs.mkdirSync(SAVE_DIR, { recursive: true });
+}
+
+if (!fs.existsSync(`SAVE_DIR/${dateString}`)) {
+  fs.mkdirSync(`SAVE_DIR/${dateString}`, { recursive: true });
+}
+
 if (!fs.existsSync(SAVE_LOG_DIR)) {
   fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
 }
@@ -50,12 +58,9 @@ const gotTheLock = app.requestSingleInstanceLock();
 
 if (!gotTheLock) {
   // 이미 애플리케이션이 실행 중이면 새 인스턴스 종료
+  alert("먼저 실행되고 있는 프로그램을 종료하신 후에 재실행 해 주세요.");
   app.quit();
 }
-
-
-
-
 
 const createWindow = async () => {
   const primaryDisplay = screen.getPrimaryDisplay();
@@ -234,12 +239,10 @@ app.whenReady().then(() => {
     },
     { label: "Window", submenu: [{ role: "minimize" }, { role: "close" }] },
     {
-      label: "Help",
+      label: "Version",
       submenu: [
         {
-          label: "Learn More",
-          click: () =>
-            require("electron").shell.openExternal("https://electronjs.org"),
+          label: `ver ${version}`
         },
       ],
     },

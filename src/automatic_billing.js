@@ -52,43 +52,43 @@ async function runAutomation_billing(data) {
       // 구매영수증 다운로드
       console.log("Start payment_receipt_file Download");
       await downloadFile(
-        downloadsDirectory,
-        data.paymentReceiptSignedUrl,
-        data.paymentReceiptFileName
+          downloadsDirectory,
+          data.paymentReceiptSignedUrl,
+          data.paymentReceiptFileName
       );
 
       // 연속혈당측정용 전극 고유식별번호 다운로드
       if (data.isCgmSensor) {
         console.log("Start cgm_seq_no_file Download");
         await downloadFile(
-          downloadsDirectory,
-          data.cgmSeqNoSignedUrl,
-          data.cgmSeqNoFileName
+            downloadsDirectory,
+            data.cgmSeqNoSignedUrl,
+            data.cgmSeqNoFileName
         );
       }
 
       // 위임장 다운로드
       console.log("Start payment_claim_delegation_file Download");
       await downloadFile(
-        downloadsDirectory,
-        data.paymentClaimDelegationSignedUrl,
-        data.paymentClaimDelegationFileName
+          downloadsDirectory,
+          data.paymentClaimDelegationSignedUrl,
+          data.paymentClaimDelegationFileName
       );
 
       // 처방전 다운로드
       console.log("Start prescription_file Download");
       await downloadFile(
-        downloadsDirectory,
-        data.prescriptionSignedUrl,
-        data.prescriptionFileName
+          downloadsDirectory,
+          data.prescriptionSignedUrl,
+          data.prescriptionFileName
       );
 
       // 출력문서 다운로드
       console.log("Start diabetes_doc_file Download");
       await downloadFile(
-        downloadsDirectory,
-        data.diabetesDocSignedUrl,
-        data.diabetesDocFileName
+          downloadsDirectory,
+          data.diabetesDocSignedUrl,
+          data.diabetesDocFileName
       );
     } catch (error) {
       console.error("CloudfrontUrl download error");
@@ -131,8 +131,8 @@ async function runAutomation_billing(data) {
     await page.getByText(data.certificateName,{exact:true}).click();
     await page.getByRole("textbox", { name: "인증서 암호" }).click();
     await page
-      .getByRole("textbox", { name: "인증서 암호" })
-      .fill(data.certificatePassword);
+        .getByRole("textbox", { name: "인증서 암호" })
+        .fill(data.certificatePassword);
     await page.getByRole("button", { name: "확인" }).click();
     //await page.getByRole('link', { name: data.corporateId }).click();
 
@@ -146,11 +146,11 @@ async function runAutomation_billing(data) {
     // 요양비 청구
     await page.getByRole("link", { name: "요양비", exact: true }).click();
     await page
-      .getByRole("link", { name: "요양비청구등록", exact: true })
-      .click();
+        .getByRole("link", { name: "요양비청구등록", exact: true })
+        .click();
     await page.waitForTimeout(2000);
     const frame = page.frameLocator(
-      'iframe[name="windowContainer_subWindow1_iframe"]'
+        'iframe[name="windowContainer_subWindow1_iframe"]'
     );
 
     // 수신자 정보
@@ -206,8 +206,8 @@ async function runAutomation_billing(data) {
     console.log("start prescription date");
     await frame.locator("#cal_mprsc_issue_dt_input").click();
     await frame
-      .locator("#cal_mprsc_issue_dt_input")
-      .fill(data.issue.replace(/-/g, ""));
+        .locator("#cal_mprsc_issue_dt_input")
+        .fill(data.issue.replace(/-/g, ""));
     await frame.locator("#cal_mprsc_issue_dt_input").press("Enter");
     console.log("end prescription date");
 
@@ -235,8 +235,8 @@ async function runAutomation_billing(data) {
         });
         for (const id_save_alert of ids_save_alert) {
           if (
-            id_save_alert.startsWith("alert_") &&
-            id_save_alert.endsWith("_iframe")
+              id_save_alert.startsWith("alert_") &&
+              id_save_alert.endsWith("_iframe")
           ) {
             dynamicFrame_save_alert = frame_save_alert;
             dynamicFrameId_save_alert = id_save_alert;
@@ -248,11 +248,11 @@ async function runAutomation_billing(data) {
       }
       if (dynamicFrame_save_alert && dynamicFrameId_save_alert) {
         const innerFrame_save_alert = dynamicFrame_save_alert.frameLocator(
-          `iframe[id="${dynamicFrameId_save_alert}"]`
+            `iframe[id="${dynamicFrameId_save_alert}"]`
         );
         await innerFrame_save_alert
-          .getByRole("link", { name: "확인" })
-          .waitFor();
+            .getByRole("link", { name: "확인" })
+            .waitFor();
         await innerFrame_save_alert.getByRole("link", { name: "확인" }).click();
       } else {
         console.error("Dynamic iframe not found.");
@@ -260,7 +260,7 @@ async function runAutomation_billing(data) {
     }
 
     await page.waitForSelector(
-      'iframe[name="windowContainer_subWindow1_iframe"]'
+        'iframe[name="windowContainer_subWindow1_iframe"]'
     );
     await frame.locator("#wframeDetail").click();
     const button = frame.locator("#sel_bcbnf_recv_cond_type1_label");
@@ -271,13 +271,13 @@ async function runAutomation_billing(data) {
       console.log("diabetes 01");
       await frame.locator("#sel_bcbnf_recv_cond_type1_itemTable_1").click();
       if (
-        secondPart === "연속혈당측정용 전극" ||
-        secondPart === "연속혈당측정용 전극(기본)" ||
-        secondPart === "연속혈당측정용 전극(센서, 복합형)"
+          secondPart === "연속혈당측정용 전극" ||
+          secondPart === "연속혈당측정용 전극(기본)" ||
+          secondPart === "연속혈당측정용 전극(센서, 복합형)"
       ) {
         await frame
-          .locator('label:has-text("연속혈당측정용 전극(센서)")')
-          .check();
+            .locator('label:has-text("연속혈당측정용 전극(센서)")')
+            .check();
       }
     }
     // 2형 당뇨
@@ -314,73 +314,73 @@ async function runAutomation_billing(data) {
     try {
       await page.waitForTimeout(2000);
       await frame
-        .frameLocator('iframe[title="bipbkz210p01"]')
-        .locator("#inp_ykiho")
-        .click();
+          .frameLocator('iframe[title="bipbkz210p01"]')
+          .locator("#inp_ykiho")
+          .click();
       await frame
-        .frameLocator('iframe[title="bipbkz210p01"]')
-        .locator("#inp_ykiho")
-        .fill(data.hospitalCareOrgNo);
+          .frameLocator('iframe[title="bipbkz210p01"]')
+          .locator("#inp_ykiho")
+          .fill(data.hospitalCareOrgNo);
       await frame
-        .frameLocator('iframe[title="bipbkz210p01"]')
-        .getByRole("link", { name: "검색" })
-        .click();
+          .frameLocator('iframe[title="bipbkz210p01"]')
+          .getByRole("link", { name: "검색" })
+          .click();
       await page.waitForTimeout(2000);
       await frame
-        .frameLocator('iframe[title="bipbkz210p01"]')
-        .locator("#inp_drLicNo")
-        .click();
+          .frameLocator('iframe[title="bipbkz210p01"]')
+          .locator("#inp_drLicNo")
+          .click();
       // 전문의 번호 입력
       // await frame.frameLocator('iframe[title="bipbkz210p01"]').locator('#inp_spdrQlfNo').fill(data.doctor);
       await frame
-        .frameLocator('iframe[title="bipbkz210p01"]')
-        .locator("#inp_drLicNo")
-        .fill(data.doctor);
+          .frameLocator('iframe[title="bipbkz210p01"]')
+          .locator("#inp_drLicNo")
+          .fill(data.doctor);
       await frame
-        .frameLocator('iframe[title="bipbkz210p01"]')
-        .getByRole("link", { name: "조회" })
-        .click();
+          .frameLocator('iframe[title="bipbkz210p01"]')
+          .getByRole("link", { name: "조회" })
+          .click();
       await page.waitForTimeout(3000);
       // 현재는 "내과" text를 클릭하게 하였지만 변경 예정
       // 과가 2개 나오는 의사 분은 과 선택 Flow가 있지만, 과가 1개인 사람은 바로 넘어가는 Flow라 아래 코드 개발 -> 전문의 번호까지 입력 가능하면 필요 없는 코드
       const linkElement_1 = await frame
-        .frameLocator('iframe[title="bipbkz210p01"]')
-        .locator('text="내과"')
-        .elementHandles();
+          .frameLocator('iframe[title="bipbkz210p01"]')
+          .locator('text="내과"')
+          .elementHandles();
       if (linkElement_1.length > 0) {
         await linkElement_1[0].click();
         await frame
-          .frameLocator('iframe[title="bipbkz210p01"]')
-          .getByRole("link", { name: "선택" })
-          .click();
-        console.log('Element with "내과" was clicked.');
-      } else {
-        const linkElement_2 = await frame
-          .frameLocator('iframe[title="bipbkz210p01"]')
-          .locator('text="소아청소년과"')
-          .elementHandles();
-        if (linkElement_2.length > 0) {
-          await linkElement_2[0].click();
-          await frame
             .frameLocator('iframe[title="bipbkz210p01"]')
             .getByRole("link", { name: "선택" })
             .click();
-          console.log('Element with "소아청소년과" was clicked.');
-        } else {
-          const linkElement_3 = await frame
+        console.log('Element with "내과" was clicked.');
+      } else {
+        const linkElement_2 = await frame
             .frameLocator('iframe[title="bipbkz210p01"]')
-            .locator("text=소아내분비과")
+            .locator('text="소아청소년과"')
             .elementHandles();
-          if (linkElement_3.length > 0) {
-            await linkElement_3[0].click();
-            await frame
+        if (linkElement_2.length > 0) {
+          await linkElement_2[0].click();
+          await frame
               .frameLocator('iframe[title="bipbkz210p01"]')
               .getByRole("link", { name: "선택" })
               .click();
+          console.log('Element with "소아청소년과" was clicked.');
+        } else {
+          const linkElement_3 = await frame
+              .frameLocator('iframe[title="bipbkz210p01"]')
+              .locator("text=소아내분비과")
+              .elementHandles();
+          if (linkElement_3.length > 0) {
+            await linkElement_3[0].click();
+            await frame
+                .frameLocator('iframe[title="bipbkz210p01"]')
+                .getByRole("link", { name: "선택" })
+                .click();
             console.log('Element with "소아내분비과" was clicked.');
           } else {
             console.log(
-              'No element found with "내과", "청소년과", or containing "소아내분비과".'
+                'No element found with "내과", "청소년과", or containing "소아내분비과".'
             );
           }
         }
@@ -399,9 +399,9 @@ async function runAutomation_billing(data) {
       await page.waitForTimeout(2000);
       try {
         const frameExists = await frame
-          .frameLocator('iframe[title="bipbkz220p01"]')
-          .locator("text=" + data.code)
-          .elementHandles();
+            .frameLocator('iframe[title="bipbkz220p01"]')
+            .locator("text=" + data.code)
+            .elementHandles();
 
         // 상병코드 조회결과가 1개 이상일때
         if (frameExists.length > 1) {
@@ -443,6 +443,18 @@ async function runAutomation_billing(data) {
     //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
     await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
 
+    //이전 품목의 금여종료일이 2020.11.23입니다. 사용개시일을 2024.11.24로 자동세팅됩니다.
+    const useStartDateAutoSetAlert = await searchIframePopup(page, "alert_", "_iframe");
+    let isUseStartDateAutoSetAlert = !isEmpty(useStartDateAutoSetAlert);
+
+    await page.waitForTimeout(3000);
+
+    if (isUseStartDateAutoSetAlert) {
+      const innerFrame = frame.frameLocator(`iframe[id="${useStartDateAutoSetAlert}"]`);
+      await innerFrame.locator('a#btn_Confirm').waitFor();
+      await innerFrame.locator('a#btn_Confirm').click();
+    }
+
     await page.waitForTimeout(6000);
 
     const dupIframeId = await searchIframePopup(page, "confirm_", "_iframe");
@@ -478,13 +490,17 @@ async function runAutomation_billing(data) {
         */
       }
 
-    }else{
-      await frame.locator("#cal_buy_dt_input").click();
-      await frame.locator("#cal_buy_dt_input").fill(data.purchase);
+    } else {
+      if (!isUseStartDateAutoSetAlert) {
+        await frame.locator("#cal_buy_dt_input").click();
+        await frame.locator("#cal_buy_dt_input").fill(data.purchase);
+
+      }
+
     }
 
-    await frame.locator("#inp_pay_freq").click();
     await frame.locator("#inp_pay_freq").fill(data.eat);
+    await frame.locator("#inp_pay_freq").click();
 
     //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
     await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
@@ -513,39 +529,39 @@ async function runAutomation_billing(data) {
         console.log("-------------------");
         console.log(data.product[k], data.p_price[i], data.p_quantity[i]);
         await frame
-          .frameLocator('iframe[title="pop_bipbkc154p01"]')
-          .getByRole("link", { name: "행추가" })
-          .click();
+            .frameLocator('iframe[title="pop_bipbkc154p01"]')
+            .getByRole("link", { name: "행추가" })
+            .click();
         await frame
-          .frameLocator('iframe[title="pop_bipbkc154p01"]')
-          .locator(`#grd_tbbibo07_cell_${i}_3`)
-          .click();
+            .frameLocator('iframe[title="pop_bipbkc154p01"]')
+            .locator(`#grd_tbbibo07_cell_${i}_3`)
+            .click();
         await frame
-          .frameLocator('iframe[title="pop_bipbkc154p01"]')
-          .locator("#G_grd_tbbibo07__BCBNF_PRDCT_ORG_ID")
-          .fill(data.product[k]);
+            .frameLocator('iframe[title="pop_bipbkc154p01"]')
+            .locator("#G_grd_tbbibo07__BCBNF_PRDCT_ORG_ID")
+            .fill(data.product[k]);
         await frame
-          .frameLocator('iframe[title="pop_bipbkc154p01"]')
-          .locator(`#grd_tbbibo07_cell_${i}_10`)
-          .click();
+            .frameLocator('iframe[title="pop_bipbkc154p01"]')
+            .locator(`#grd_tbbibo07_cell_${i}_10`)
+            .click();
         await frame
-          .frameLocator('iframe[title="pop_bipbkc154p01"]')
-          .locator("#G_grd_tbbibo07__CASH_PRDCT_USE_QTY")
-          .fill(data.p_quantity[i]);
+            .frameLocator('iframe[title="pop_bipbkc154p01"]')
+            .locator("#G_grd_tbbibo07__CASH_PRDCT_USE_QTY")
+            .fill(data.p_quantity[i]);
         await frame
-          .frameLocator('iframe[title="pop_bipbkc154p01"]')
-          .locator(`#grd_tbbibo07_cell_${i}_13`)
-          .click();
+            .frameLocator('iframe[title="pop_bipbkc154p01"]')
+            .locator(`#grd_tbbibo07_cell_${i}_13`)
+            .click();
         await frame
-          .frameLocator('iframe[title="pop_bipbkc154p01"]')
-          .locator("#G_grd_tbbibo07__CASH_PRDCT_PRDCT_AMT")
-          .fill(data.p_price[i]);
+            .frameLocator('iframe[title="pop_bipbkc154p01"]')
+            .locator("#G_grd_tbbibo07__CASH_PRDCT_PRDCT_AMT")
+            .fill(data.p_price[i]);
       }
     }
     await frame
-      .frameLocator('iframe[title="pop_bipbkc154p01"]')
-      .getByRole("link", { name: "적용" })
-      .click();
+        .frameLocator('iframe[title="pop_bipbkc154p01"]')
+        .getByRole("link", { name: "적용" })
+        .click();
 
     await frame.getByRole("link", { name: "저장" }).click();
     console.log("Click the Save button");
@@ -573,7 +589,7 @@ async function runAutomation_billing(data) {
     }
     if (dynamicFrame_save && dynamicFrameId_save) {
       const innerFrame_save = dynamicFrame_save.frameLocator(
-        `iframe[id="${dynamicFrameId_save}"]`
+          `iframe[id="${dynamicFrameId_save}"]`
       );
       await innerFrame_save.getByRole("link", { name: "예" }).waitFor();
       await innerFrame_save.getByRole("link", { name: "예" }).click();
@@ -595,8 +611,8 @@ async function runAutomation_billing(data) {
       });
       for (const id_save_alert of ids_save_alert) {
         if (
-          id_save_alert.startsWith("alert_") &&
-          id_save_alert.endsWith("_iframe")
+            id_save_alert.startsWith("alert_") &&
+            id_save_alert.endsWith("_iframe")
         ) {
           dynamicFrame_save_alert = frame_save_alert;
           dynamicFrameId_save_alert = id_save_alert;
@@ -608,11 +624,11 @@ async function runAutomation_billing(data) {
     }
     if (dynamicFrame_save_alert && dynamicFrameId_save_alert) {
       const innerFrame_save_alert = dynamicFrame_save_alert.frameLocator(
-        `iframe[id="${dynamicFrameId_save_alert}"]`
+          `iframe[id="${dynamicFrameId_save_alert}"]`
       );
       const exampleText = await innerFrame_save_alert
-        .locator("p#tbx_Message")
-        .textContent();
+          .locator("p#tbx_Message")
+          .textContent();
 
       // 콘솔에 exampleText 로깅합니다.
       console.log("exampleText: ", exampleText);
@@ -631,9 +647,9 @@ async function runAutomation_billing(data) {
     const fileChooserPromise = page.waitForEvent("filechooser");
 
     const parentDiv = frame
-      .frameLocator('iframe[title="popup_fileUpload"]')
-      .frameLocator("#btrsFrame")
-      .locator("#btnsNormal");
+        .frameLocator('iframe[title="popup_fileUpload"]')
+        .frameLocator("#btrsFrame")
+        .locator("#btnsNormal");
 
     //console.log("btnsNormal " + (await parentDiv.textContent()));
 
@@ -650,16 +666,24 @@ async function runAutomation_billing(data) {
     const fileChooser = await fileChooserPromise;
     // 출력문서 파일 선택
 
-    const fileArr = [
-      path.join(downloadsDirectory, data.prescriptionFileName),
-      path.join(downloadsDirectory, data.diabetesDocFileName),
-      path.join(downloadsDirectory, data.paymentReceiptFileName),
-    ];
+    const fileArr = [];
+    if (!isEmpty(data.prescriptionFileName)) {
+      fileArr.push(path.join(downloadsDirectory, data.prescriptionFileName));
+    }
+    if (!isEmpty(data.diabetesDocFileName)) {
+      fileArr.push(path.join(downloadsDirectory, data.diabetesDocFileName));
+    }
+    if (!isEmpty(data.paymentReceiptFileName)) {
+      fileArr.push(path.join(downloadsDirectory, data.paymentReceiptFileName));
+    }
+
+    fileArr.forEach(file => {
+      console.log(file + " File exists: " + fs.existsSync(file));
+    });
 
     await fileChooser.setFiles(fileArr);
 
     // 파일 전송
-
     const button2 = parentDiv.locator("button").nth(1);
     await button2.click();
 
@@ -671,9 +695,9 @@ async function runAutomation_billing(data) {
 
     while (true) {
       const elements = frame
-        .frameLocator('iframe[title="popup_fileUpload"]')
-        .frameLocator("#btrsFrame")
-        .locator("text=저장완료");
+          .frameLocator('iframe[title="popup_fileUpload"]')
+          .frameLocator("#btrsFrame")
+          .locator("text=저장완료");
 
       if ((await elements.count()) >= fileArr.length) {
         break;
@@ -701,20 +725,20 @@ async function runAutomation_billing(data) {
     // 최종 제출 하시겠습니까? 예 아니요 버튼 (confirm_ _iframe)
     // await browser.close();   await sendLogToServer(data.docId, 'success', 'Automation task completed', data.csrfToken, data.csrfHeader);
     await sendLogToServer(
-      data.docId,
-      "success",
-      "Automation task completed",
-      data.csrfToken,
-      data.csrfHeader
+        data.docId,
+        "success",
+        "Automation task completed",
+        data.csrfToken,
+        data.csrfHeader
     );
   } catch (e) {
     console.error("Automation failed: ", e.message);
     await sendLogToServer(
-      data.docId,
-      "fail",
-      `Automation task failed: ${e.message}`,
-      data.csrfToken,
-      data.csrfHeader
+        data.docId,
+        "fail",
+        `Automation task failed: ${e.message}`,
+        data.csrfToken,
+        data.csrfHeader
     );
   }
 }
@@ -750,18 +774,18 @@ async function searchIframePopup( page, startWord, endWord ) {
 async function downloadFile(downloadsDirectory, url, filename) {
   console.log("downloadFile start");
   fetch(url)
-    .then((response) => response.arrayBuffer())
-    .then((data) => {
-      const filePath = path.join(downloadsDirectory, filename);
-      fs.writeFile(filePath, Buffer.from(data), (err) => {
-        if (err) {
-          console.error("Download failed:", err);
-        } else {
-          console.log("Download completed!");
-        }
-      });
-    })
-    .catch((err) => console.error("Fetch failed:", err));
+      .then((response) => response.arrayBuffer())
+      .then((data) => {
+        const filePath = path.join(downloadsDirectory, filename);
+        fs.writeFile(filePath, Buffer.from(data), (err) => {
+          if (err) {
+            console.error("Download failed:", err);
+          } else {
+            console.log("Download completed!");
+          }
+        });
+      })
+      .catch((err) => console.error("Fetch failed:", err));
 }
 
 function isEmptyCertificationInfo(data) {

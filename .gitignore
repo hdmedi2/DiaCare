@@ -91,12 +91,13 @@ typings/
 # Vite
 .vite/
 
-# Electron-Forge
+# Electron-builder
 out/
-/src-obfuscated/
-
+dist/
+package-lock.json
 #cert 폴더 아래 모두 무시
 cert/
 cert/cert.pfx
 cert/cert_password.json
 /src/dev-app-update.yml
+.idea/
