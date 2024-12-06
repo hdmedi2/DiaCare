@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const { parse } = require("json2csv");
 
-const {SAVE_LOG_DIR} = require("../config/default.json");
+const {SAVE_LOG_DIR, SAVE_MAIN_DIR } = require("../config/default.json");
 const log = require("electron-log");
 const today = new Date();
 const year = today.getFullYear(); // 2023
@@ -15,6 +15,11 @@ const dateString = year + '-' + month + '-' + day; // 2023-06-18
 // 폴더 없으면 생성
 if (!fs.existsSync(SAVE_LOG_DIR)) {
   fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
+}
+
+// 데이터 다운로드 폴더 없으면 생성
+if (!fs.existsSync(SAVE_MAIN_DIR+"\\"+dateString)) {
+  fs.mkdirSync(SAVE_MAIN_DIR+"\\"+dateString, { recursive: true });
 }
 
 Object.assign(console, log.functions);
@@ -66,7 +71,7 @@ async function crawlDelegation(data) {
   } catch (error) {
     console.error("An error occurred:", error);
   }
-  await page.getByText(data.certificateName).click();
+  await page.getByText(data.certificateName,{exact:true}).click();
   await page.getByRole("textbox", { name: "인증서 암호" }).click();
   await page
     .getByRole("textbox", { name: "인증서 암호" })

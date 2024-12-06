@@ -93,7 +93,7 @@ typings/
 
 # Electron-Forge
 out/
-/src-obfuscated/
+dist/
 
 #cert 폴더 아래 모두 무시
 cert/

@@ -2,13 +2,12 @@ const { chromium } = require("playwright");
 const path = require("path");
 const fs = require("fs");
 const { electronToWebEventRun } = require("./logUtil");
-const {MEDICARE_URL, SAVE_LOG_DIR} = require("../config/default.json");
+const {MEDICARE_URL, SAVE_LOG_DIR, SAVE_MAIN_DIR} = require("../config/default.json");
 const log = require("electron-log");
 const today = new Date();
 const year = today.getFullYear(); // 2023
 const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
 const day = today.getDate().toString().padStart(2, '0'); // 18
-
 const dateString = year + '-' + month + '-' + day; // 2023-06-18
 
 // 폴더 없으면 생성
@@ -16,6 +15,10 @@ if (!fs.existsSync(SAVE_LOG_DIR)) {
   fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
 }
 
+// 데이터 다운로드 폴더 없으면 생성
+if (!fs.existsSync(SAVE_MAIN_DIR+"\\"+dateString)) {
+  fs.mkdirSync(SAVE_MAIN_DIR+"\\"+dateString, { recursive: true });
+}
 Object.assign(console, log.functions);
 log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
 
@@ -46,7 +49,11 @@ async function runAutomation_delegation(data_1) {
   }
 
   const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
-  const downloadsDirectory = path.join(userHomeDirectory, "Downloads");
+  const downloadsDirectory = SAVE_MAIN_DIR + "\\" + dateString + "\\" + data_1.name; // path.join(userHomeDirectory, "Downloads");
+  // 환자명으로 디렉토리 생성
+  if (!fs.existsSync(downloadsDirectory)) {
+    fs.mkdirSync(downloadsDirectory, { recursive: true });
+  }
 
   try {
     // 구매영수증 다운로드

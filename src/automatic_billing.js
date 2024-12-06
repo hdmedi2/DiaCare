@@ -2,7 +2,7 @@
 const path = require("path");
 const fs = require("fs");
 const { sendLogToServer, pharmacyListByBizNo, electronToWebEventRun } = require("./logUtil");
-const {MEDICARE_URL, SAVE_LOG_DIR} = require("../config/default.json");
+const {MEDICARE_URL, SAVE_LOG_DIR, SAVE_MAIN_DIR} = require("../config/default.json");
 const log = require("electron-log");
 const today = new Date();
 const year = today.getFullYear(); // 2023
@@ -16,6 +16,10 @@ if (!fs.existsSync(SAVE_LOG_DIR)) {
   fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
 }
 
+// 데이터 다운로드 폴더 없으면 생성
+if (!fs.existsSync(SAVE_MAIN_DIR+"\\"+dateString)) {
+  fs.mkdirSync(SAVE_MAIN_DIR+"\\"+dateString, { recursive: true });
+}
 Object.assign(console, log.functions);
 log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
 
@@ -46,8 +50,12 @@ async function runAutomation_billing(data) {
     }
 
     const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
-    const downloadsDirectory = path.join(userHomeDirectory, "Downloads");
-
+    // directory: C:\DiaCare\yyyy-mm-dd\환자명
+    const downloadsDirectory = SAVE_MAIN_DIR+"\\"+dateString+"\\"+data.name;  //path.join(userHomeDirectory, "Downloads");
+    // 날짜/환자명 폴더 없으면 생성
+    if (!fs.existsSync(downloadsDirectory)) {
+      fs.mkdirSync(downloadsDirectory, { recursive: true });
+    }
     try {
       // 구매영수증 다운로드
       console.log("Start payment_receipt_file Download");
@@ -128,7 +136,7 @@ async function runAutomation_billing(data) {
     } catch (error) {
       console.error("An error occurred:", error);
     }
-    await page.getByText(data.certificateName).click();
+    await page.getByText(data.certificateName,{exact:true}).click();
     await page.getByRole("textbox", { name: "인증서 암호" }).click();
     await page
       .getByRole("textbox", { name: "인증서 암호" })
@@ -443,6 +451,18 @@ async function runAutomation_billing(data) {
     //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
     await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
 
+    //이전 품목의 금여종료일이 2020.11.23입니다. 사용개시일을 2024.11.24로 자동세팅됩니다.
+    const useStartDateAutoSetAlert = await searchIframePopup(page, "alert_", "_iframe");
+    let isUseStartDateAutoSetAlert = !isEmpty(useStartDateAutoSetAlert);
+
+    await page.waitForTimeout(3000);
+
+    if (isUseStartDateAutoSetAlert) {
+      const innerFrame = frame.frameLocator(`iframe[id="${useStartDateAutoSetAlert}"]`);
+      await innerFrame.locator('a#btn_Confirm').waitFor();
+      await innerFrame.locator('a#btn_Confirm').click();
+    }
+
     await page.waitForTimeout(6000);
 
     const dupIframeId = await searchIframePopup(page, "confirm_", "_iframe");
@@ -478,13 +498,17 @@ async function runAutomation_billing(data) {
         */
       }
 
-    }else{
-      await frame.locator("#cal_buy_dt_input").click();
-      await frame.locator("#cal_buy_dt_input").fill(data.purchase);
+    } else {
+      if (!isUseStartDateAutoSetAlert) {
+        await frame.locator("#cal_buy_dt_input").click();
+        await frame.locator("#cal_buy_dt_input").fill(data.purchase);
+
+      }
+
     }
 
-    await frame.locator("#inp_pay_freq").click();
     await frame.locator("#inp_pay_freq").fill(data.eat);
+    await frame.locator("#inp_pay_freq").click();
 
     //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
     await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
@@ -650,16 +674,24 @@ async function runAutomation_billing(data) {
     const fileChooser = await fileChooserPromise;
     // 출력문서 파일 선택
 
-    const fileArr = [
-      path.join(downloadsDirectory, data.prescriptionFileName),
-      path.join(downloadsDirectory, data.diabetesDocFileName),
-      path.join(downloadsDirectory, data.paymentReceiptFileName),
-    ];
+    const fileArr = [];
+    if (!isEmpty(data.prescriptionFileName)) {
+      fileArr.push(path.join(downloadsDirectory, data.prescriptionFileName));
+    }
+    if (!isEmpty(data.diabetesDocFileName)) {
+      fileArr.push(path.join(downloadsDirectory, data.diabetesDocFileName));
+    }
+    if (!isEmpty(data.paymentReceiptFileName)) {
+      fileArr.push(path.join(downloadsDirectory, data.paymentReceiptFileName));
+    }
+
+    fileArr.forEach(file => {
+      console.log(file + " File exists: " + fs.existsSync(file));
+    });
 
     await fileChooser.setFiles(fileArr);
 
     // 파일 전송
-
     const button2 = parentDiv.locator("button").nth(1);
     await button2.click();
 
