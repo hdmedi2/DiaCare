@@ -22,7 +22,7 @@ const { sendDelegationToBack } = require("./sendDelegationToBack");
 const SESSION_FILE_PATH = path.join(app.getPath("userData"), "session.json");
 const SETTINGS_FILE_PATH = path.join(app.getPath("userData"), "settings.json");
 // const {create} = require("axios");
-const {PHARM_URL, SAVE_LOG_DIR} = require("../config/default.json");
+const {PHARM_URL, SAVE_LOG_DIR, SAVE_MAIN_DIR } = require("../config/default.json");
 const log = require("electron-log");
 const today = new Date();
 const year = today.getFullYear(); // 2023
@@ -30,9 +30,15 @@ const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
 const day = today.getDate().toString().padStart(2, '0'); // 18
 const dateString = year + '-' + month + '-' + day; // 2023-06-18
 const { version } = require('../package.json');
-// 폴더 없으면 생성s
+
+// 로그 폴더 없으면 생성
 if (!fs.existsSync(SAVE_LOG_DIR)) {
   fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
+}
+
+// 데이터 다운로드 폴더 없으면 생성
+if (!fs.existsSync(SAVE_MAIN_DIR+"/"+dateString)) {
+  fs.mkdirSync(SAVE_MAIN_DIR+"/"+dateString, { recursive: true });
 }
 
 Object.assign(console, log.functions);
@@ -51,10 +57,6 @@ if (!gotTheLock) {
   // 이미 애플리케이션이 실행 중이면 새 인스턴스 종료
   app.quit();
 }
-
-
-
-
 
 const createWindow = async () => {
   const primaryDisplay = screen.getPrimaryDisplay();

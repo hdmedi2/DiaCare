@@ -92,8 +92,8 @@ typings/
 .vite/
 
 # Electron-Forge
-out/**/*
-dist/**/*
+out/
+dist/
 
 #cert 폴더 아래 모두 무시
 cert/
