@@ -2,7 +2,37 @@ const { chromium } = require("playwright");
 const fs = require("fs");
 const { parse } = require("json2csv");
 const {sendDelegationJsonToServer} = require("./sendDelegationToBack");
-const {MEDICARE_URL} = require("../config/default.json");
+const {MEDICARE_URL, SAVE_MAIN_DIR, SAVE_LOG_DIR } = require("../config/default.json");
+const os = require("os");
+const path = require("path");
+const log = require("electron-log");
+
+let logPath = "";
+// let userHomeDirectory = "";
+const osName = os.platform();
+
+if (osName === "win32") {
+  const systemDrive = process.env.SYSTEMDRIVE; // 일반적으로 'C:' 반환
+  logPath = path.join(systemDrive, SAVE_MAIN_DIR, SAVE_LOG_DIR);
+  // userHomeDirectory = path.join(systemDrive, SAVE_MAIN_DIR, dateString);
+}
+else {
+  // Windows 이와의 운영체제인 경우는 홈 디렉토리 아래에 로그 기록
+  // ~/DiaCare/logs
+  const homeDir = os.homedir();
+  logPath = path.join(homeDir, SAVE_MAIN_DIR, SAVE_LOG_DIR);
+  // userHomeDirectory = path.join(homeDir, SAVE_MAIN_DIR, dateString);
+}
+
+// 로그 폴더 없으면 생성
+if (!fs.existsSync(logPath)) {
+  fs.mkdirSync(logPath, { recursive: true });
+}
+
+Object.assign(console, log.functions);
+log.transports.file.resolvePathFn = () => path.join(logPath, 'main-' + dateString +'.log');
+
+
 
 async function checkDelegation(data) {
   const channels = [

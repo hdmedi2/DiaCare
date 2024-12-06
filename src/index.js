@@ -7,6 +7,7 @@ const {
   safeStorage,
     screen
 } = require("electron");
+const os = require('os');
 const path = require("path");
 const fs = require("fs");
 const { runAutomation_billing } = require("./automatic_billing");
@@ -31,18 +32,27 @@ const day = today.getDate().toString().padStart(2, '0'); // 18
 const dateString = year + '-' + month + '-' + day; // 2023-06-18
 const { version } = require('../package.json');
 
-// 로그 폴더 없으면 생성
-if (!fs.existsSync(SAVE_LOG_DIR)) {
-  fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
+let logPath;
+const osName = os.platform();
+
+if (osName === "win32") {
+  const systemDrive = process.env.SYSTEMDRIVE; // 일반적으로 'C:' 반환
+  logPath = path.join(systemDrive, SAVE_MAIN_DIR, SAVE_LOG_DIR);
+}
+else {
+  // Windows 이와의 운영체제인 경우는 홈 디렉토리 아래에 로그 기록
+  // ~/DiaCare/logs
+  const homeDir = os.homedir();
+  logPath = path.join(homeDir, SAVE_MAIN_DIR, SAVE_LOG_DIR);
 }
 
-// 데이터 다운로드 폴더 없으면 생성
-if (!fs.existsSync(SAVE_MAIN_DIR+"\\"+dateString)) {
-  fs.mkdirSync(SAVE_MAIN_DIR+"\\"+dateString, { recursive: true });
+// 로그 폴더 없으면 생성
+if (!fs.existsSync(logPath)) {
+  fs.mkdirSync(logPath, { recursive: true });
 }
 
 Object.assign(console, log.functions);
-log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
+log.transports.file.resolvePathFn = () => path.join(logPath, 'main-' + dateString +'.log');
 
 autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
