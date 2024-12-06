@@ -1,4 +1,5 @@
 ﻿const { chromium } = require("playwright");
+const os = require("os");
 const path = require("path");
 const fs = require("fs");
 const { sendLogToServer, pharmacyListByBizNo, electronToWebEventRun } = require("./logUtil");
@@ -8,20 +9,32 @@ const today = new Date();
 const year = today.getFullYear(); // 2023
 const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
 const day = today.getDate().toString().padStart(2, '0'); // 18
-
 const dateString = year + '-' + month + '-' + day; // 2023-06-18
 
-// 폴더 없으면 생성
-if (!fs.existsSync(SAVE_LOG_DIR)) {
-  fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
+let logPath = "";
+let userHomeDirectory = "";
+const osName = os.platform();
+
+if (osName === "win32") {
+  const systemDrive = process.env.SYSTEMDRIVE; // 일반적으로 'C:' 반환
+  logPath = path.join(systemDrive, SAVE_MAIN_DIR, SAVE_LOG_DIR);
+  userHomeDirectory = path.join(systemDrive, SAVE_MAIN_DIR, dateString);
+}
+else {
+  // Windows 이와의 운영체제인 경우는 홈 디렉토리 아래에 로그 기록
+  // ~/DiaCare/logs
+  const homeDir = os.homedir();
+  logPath = path.join(homeDir, SAVE_MAIN_DIR, SAVE_LOG_DIR);
+  userHomeDirectory = path.join(homeDir, SAVE_MAIN_DIR, dateString);
 }
 
-// 데이터 다운로드 폴더 없으면 생성
-if (!fs.existsSync(SAVE_MAIN_DIR+"\\"+dateString)) {
-  fs.mkdirSync(SAVE_MAIN_DIR+"\\"+dateString, { recursive: true });
+// 로그 폴더 없으면 생성
+if (!fs.existsSync(logPath)) {
+  fs.mkdirSync(logPath, { recursive: true });
 }
+
 Object.assign(console, log.functions);
-log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
+log.transports.file.resolvePathFn = () => path.join(logPath, 'main-' + dateString +'.log');
 
 async function runAutomation_billing(data) {
   const channels = [
@@ -49,15 +62,15 @@ async function runAutomation_billing(data) {
       return;
     }
 
-    const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
     // directory: C:\DiaCare\yyyy-mm-dd\환자명
-    const downloadsDirectory = SAVE_MAIN_DIR+"\\"+dateString+"\\"+data.name;  //path.join(userHomeDirectory, "Downloads");
+    const downloadsDirectory = path.join(userHomeDirectory,data.name);  //path.join(userHomeDirectory, "Downloads");
     // 날짜/환자명 폴더 없으면 생성
     if (!fs.existsSync(downloadsDirectory)) {
       fs.mkdirSync(downloadsDirectory, { recursive: true });
     }
+
     try {
-      // 구매영수증 다운로드
+      // 1.구매영수증 다운로드
       console.log("Start payment_receipt_file Download");
       await downloadFile(
         downloadsDirectory,
@@ -65,7 +78,7 @@ async function runAutomation_billing(data) {
         data.paymentReceiptFileName
       );
 
-      // 연속혈당측정용 전극 고유식별번호 다운로드
+      // 2.연속혈당측정용 전극 고유식별번호 다운로드
       if (data.isCgmSensor) {
         console.log("Start cgm_seq_no_file Download");
         await downloadFile(
@@ -75,7 +88,7 @@ async function runAutomation_billing(data) {
         );
       }
 
-      // 위임장 다운로드
+      // 3.위임장 다운로드
       console.log("Start payment_claim_delegation_file Download");
       await downloadFile(
         downloadsDirectory,
@@ -83,7 +96,7 @@ async function runAutomation_billing(data) {
         data.paymentClaimDelegationFileName
       );
 
-      // 처방전 다운로드
+      // 4.처방전 다운로드
       console.log("Start prescription_file Download");
       await downloadFile(
         downloadsDirectory,
@@ -91,7 +104,7 @@ async function runAutomation_billing(data) {
         data.prescriptionFileName
       );
 
-      // 출력문서 다운로드
+      // 5.출력문서 다운로드
       console.log("Start diabetes_doc_file Download");
       await downloadFile(
         downloadsDirectory,

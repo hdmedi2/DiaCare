@@ -4,23 +4,37 @@ const fs = require("fs");
 const { electronToWebEventRun } = require("./logUtil");
 const {MEDICARE_URL, SAVE_LOG_DIR, SAVE_MAIN_DIR} = require("../config/default.json");
 const log = require("electron-log");
+const os = require("os");
 const today = new Date();
 const year = today.getFullYear(); // 2023
 const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
 const day = today.getDate().toString().padStart(2, '0'); // 18
 const dateString = year + '-' + month + '-' + day; // 2023-06-18
 
-// 폴더 없으면 생성
-if (!fs.existsSync(SAVE_LOG_DIR)) {
-  fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
+let logPath = "";
+let userHomeDirectory = "";
+const osName = os.platform();
+
+if (osName === "win32") {
+  const systemDrive = process.env.SYSTEMDRIVE; // 일반적으로 'C:' 반환
+  logPath = path.join(systemDrive, SAVE_MAIN_DIR, SAVE_LOG_DIR);
+  userHomeDirectory = path.join(systemDrive, SAVE_MAIN_DIR, dateString);
+}
+else {
+  // Windows 이와의 운영체제인 경우는 홈 디렉토리 아래에 로그 기록
+  // ~/DiaCare/logs
+  const homeDir = os.homedir();
+  logPath = path.join(homeDir, SAVE_MAIN_DIR, SAVE_LOG_DIR);
+  userHomeDirectory = path.join(homeDir, SAVE_MAIN_DIR, dateString);
 }
 
-// 데이터 다운로드 폴더 없으면 생성
-if (!fs.existsSync(SAVE_MAIN_DIR+"\\"+dateString)) {
-  fs.mkdirSync(SAVE_MAIN_DIR+"\\"+dateString, { recursive: true });
+// 로그 폴더 없으면 생성
+if (!fs.existsSync(logPath)) {
+  fs.mkdirSync(logPath, { recursive: true });
 }
+
 Object.assign(console, log.functions);
-log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
+log.transports.file.resolvePathFn = () => path.join(logPath, 'main-' + dateString +'.log');
 
 async function runAutomation_delegation(data_1) {
   const channels = [
@@ -48,8 +62,8 @@ async function runAutomation_delegation(data_1) {
     return;
   }
 
-  const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
-  const downloadsDirectory = SAVE_MAIN_DIR + "\\" + dateString + "\\" + data_1.name; // path.join(userHomeDirectory, "Downloads");
+  // const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
+  const downloadsDirectory = path(userHomeDirectory,data_1.name); // path.join(userHomeDirectory, "Downloads");
   // 환자명으로 디렉토리 생성
   if (!fs.existsSync(downloadsDirectory)) {
     fs.mkdirSync(downloadsDirectory, { recursive: true });
