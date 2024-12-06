@@ -28,9 +28,8 @@ const today = new Date();
 const year = today.getFullYear(); // 2023
 const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
 const day = today.getDate().toString().padStart(2, '0'); // 18
-
 const dateString = year + '-' + month + '-' + day; // 2023-06-18
-
+const { version } = require('../package.json');
 // 폴더 없으면 생성
 if (!fs.existsSync(SAVE_LOG_DIR)) {
   fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
@@ -75,6 +74,19 @@ const createWindow = async () => {
   mainWindow.maximize();
   await loadLocalData("session");
   mainWindow.loadURL(PHARM_URL);
+};
+
+const deleteSession = async () => {
+  const filePath = SESSION_FILE_PATH;
+  if (fs.existsSync(filePath)) {
+    fs.unlink(filePath, (error) => {
+      if (error) {
+        console.error(`Error deleting file: ${error}`);
+      } else {
+        console.log(`Session: ${filePath} has been deleted`);
+      }
+    });
+  }
 };
 
 const manageLocalData = async (type, data = null) => {
@@ -208,7 +220,19 @@ app.whenReady().then(() => {
   } );*/
 
   const menu = Menu.buildFromTemplate([
-    { label: "File", submenu: [{ role: "quit" }] },
+    {
+      label: "File",
+      submenu: [
+          {  label: "로그아웃",
+            click: async () => {
+              await deleteSession();
+              console.log("로그아웃 되었습니다....")
+            }, // 로그아웃
+          },
+          { label: "종료", role: "quit" }
+
+        ]
+    },
     {
       label: "Edit",
       submenu: [
@@ -234,12 +258,10 @@ app.whenReady().then(() => {
     },
     { label: "Window", submenu: [{ role: "minimize" }, { role: "close" }] },
     {
-      label: "Help",
+      label: "버전",
       submenu: [
         {
-          label: "Learn More",
-          click: () =>
-            require("electron").shell.openExternal("https://electronjs.org"),
+          label: `Ver.${version}`,
         },
       ],
     },
