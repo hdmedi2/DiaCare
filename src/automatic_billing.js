@@ -2,7 +2,7 @@
 const path = require("path");
 const fs = require("fs");
 const { sendLogToServer, pharmacyListByBizNo, electronToWebEventRun } = require("./logUtil");
-const {MEDICARE_URL, SAVE_LOG_DIR} = require("../config/default.json");
+const {MEDICARE_URL, SAVE_LOG_DIR, SAVE_MAIN_DIR} = require("../config/default.json");
 const log = require("electron-log");
 const today = new Date();
 const year = today.getFullYear(); // 2023
@@ -16,6 +16,10 @@ if (!fs.existsSync(SAVE_LOG_DIR)) {
   fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
 }
 
+// 데이터 다운로드 폴더 없으면 생성
+if (!fs.existsSync(SAVE_MAIN_DIR+"\\"+dateString)) {
+  fs.mkdirSync(SAVE_MAIN_DIR+"\\"+dateString, { recursive: true });
+}
 Object.assign(console, log.functions);
 log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
 
@@ -46,7 +50,8 @@ async function runAutomation_billing(data) {
     }
 
     const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
-    const downloadsDirectory = path.join(userHomeDirectory, "Downloads");
+    // directory: C:\DiaCare\yyyy-mm-dd\환자명
+    const downloadsDirectory = SAVE_MAIN_DIR+"\\"+dateString+"\\"+data.name;  //path.join(userHomeDirectory, "Downloads");
 
     try {
       // 구매영수증 다운로드

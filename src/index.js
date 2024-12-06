@@ -37,8 +37,8 @@ if (!fs.existsSync(SAVE_LOG_DIR)) {
 }
 
 // 데이터 다운로드 폴더 없으면 생성
-if (!fs.existsSync(SAVE_MAIN_DIR+"/"+dateString)) {
-  fs.mkdirSync(SAVE_MAIN_DIR+"/"+dateString, { recursive: true });
+if (!fs.existsSync(SAVE_MAIN_DIR+"\\"+dateString)) {
+  fs.mkdirSync(SAVE_MAIN_DIR+"\\"+dateString, { recursive: true });
 }
 
 Object.assign(console, log.functions);
@@ -229,6 +229,7 @@ app.whenReady().then(() => {
             click: async () => {
               await deleteSession();
               console.log("로그아웃 되었습니다....")
+              app.quit();
             }, // 로그아웃
           },
           { label: "종료", role: "quit" }
