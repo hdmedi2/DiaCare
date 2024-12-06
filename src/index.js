@@ -21,7 +21,7 @@ const { sendDelegationToBack } = require("./sendDelegationToBack");
 
 const SESSION_FILE_PATH = path.join(app.getPath("userData"), "session.json");
 const SETTINGS_FILE_PATH = path.join(app.getPath("userData"), "settings.json");
-const {create} = require("axios");
+// const {create} = require("axios");
 const {PHARM_URL, SAVE_LOG_DIR} = require("../config/default.json");
 const log = require("electron-log");
 const today = new Date();
@@ -30,7 +30,7 @@ const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
 const day = today.getDate().toString().padStart(2, '0'); // 18
 const dateString = year + '-' + month + '-' + day; // 2023-06-18
 const { version } = require('../package.json');
-// 폴더 없으면 생성
+// 폴더 없으면 생성s
 if (!fs.existsSync(SAVE_LOG_DIR)) {
   fs.mkdirSync(SAVE_LOG_DIR, { recursive: true });
 }
@@ -348,7 +348,7 @@ ipcMain.on("start-crawl-delegation", async (event, data_0) => {
   }
 });
 
-ipcMain.on("start-check-bill", async (event) => {
+ipcMain.on("start-check-bill", async () => {
   try {
     const settings = await manageLocalData("settings");
 
