@@ -50,6 +50,10 @@ async function runAutomation_delegation(data_1) {
 
   const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
   const downloadsDirectory = SAVE_MAIN_DIR + "\\" + dateString + "\\" + data_1.name; // path.join(userHomeDirectory, "Downloads");
+  // 환자명으로 디렉토리 생성
+  if (!fs.existsSync(downloadsDirectory)) {
+    fs.mkdirSync(downloadsDirectory, { recursive: true });
+  }
 
   try {
     // 구매영수증 다운로드

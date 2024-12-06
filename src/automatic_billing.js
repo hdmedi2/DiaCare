@@ -52,7 +52,10 @@ async function runAutomation_billing(data) {
     const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
     // directory: C:\DiaCare\yyyy-mm-dd\환자명
     const downloadsDirectory = SAVE_MAIN_DIR+"\\"+dateString+"\\"+data.name;  //path.join(userHomeDirectory, "Downloads");
-
+    // 날짜/환자명 폴더 없으면 생성
+    if (!fs.existsSync(downloadsDirectory)) {
+      fs.mkdirSync(downloadsDirectory, { recursive: true });
+    }
     try {
       // 구매영수증 다운로드
       console.log("Start payment_receipt_file Download");
