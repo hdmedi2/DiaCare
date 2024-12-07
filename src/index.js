@@ -189,7 +189,7 @@ const clearCache = () => {
 const createSettingWindow = (options = {}) => {
   const settingWindow = new BrowserWindow({
     width: options.width || 630,
-    height: options.height || 630,
+    height: options.height || 560,
     parent: BrowserWindow.getFocusedWindow(),
     modal: true,
     webPreferences: {
@@ -202,15 +202,33 @@ const createSettingWindow = (options = {}) => {
 
 
   // HTML 파일 로드
-  const htmlFilePath = options.file
-    ? path.join(__dirname, "../html/mediCare.html")
-    : path.join(__dirname, "../html/setting.html");
-  settingWindow.loadFile(htmlFilePath);
+  let htmlFilePath;
 
-  settingWindow.webContents.on("did-finish-load", async () => {
-    const settings = await loadLocalData("settings");
-    settingWindow.webContents.send("load-settings", settings || {});
-  });
+  if (options.label === "인증서 설정" || options.file === undefined) {
+    htmlFilePath = path.join(__dirname, "../html/setting.html");
+    settingWindow.loadFile(htmlFilePath);
+    settingWindow.webContents.on("did-finish-load", async () => {
+      const settings = await loadLocalData("settings");
+      settingWindow.webContents.send("load-settings", settings || {});
+    });
+  } else if (options.label === "세금계산서" || options.file === "taxCertSetting.html")
+  {
+    htmlFilePath = path.join(__dirname, "../html/taxCertSetting.html");
+    settingWindow.loadFile(htmlFilePath);
+    settingWindow.webContents.on("did-finish-load", async () => {
+      const settings = await loadLocalData("settings");
+      settingWindow.webContents.send("tax-load-settings", settings || {});
+    });
+  }
+  else if (options.label === "청구내역" || options.file === "mediCare.html")
+  {
+    htmlFilePath = path.join(__dirname, "../html/mediCare.html");
+    settingWindow.loadFile(htmlFilePath);
+    settingWindow.webContents.on("did-finish-load", async () => {
+      const settings = await loadLocalData("settings");
+      settingWindow.webContents.send("load-settings", settings || {});
+    });
+  }
 };
 
 
@@ -280,7 +298,16 @@ app.whenReady().then(() => {
     },
     {
       label: "공인인증서",
-      submenu: [{ label: "인증서 설정", click: createSettingWindow }],
+      submenu: [{ label: "인증서 설정", click: createSettingWindow },
+                { label: "--------"},
+                { label: "세금계산서용 인증서 설정", click: ()=>createSettingWindow({
+                                                        width: 630,
+                                                        height: 560,
+                                                        file: "taxCertSetting.html",
+                                                        label: "세금계산서"
+                                                      })
+                }
+               ],
     },
     {
       label: "요양마당",
@@ -292,6 +319,7 @@ app.whenReady().then(() => {
               width: 350,
               height: 250,
               file: "mediCare.html",
+              label: "청구내역"
             }), // 커스텀 설정 창
         },
       ],
@@ -453,6 +481,18 @@ ipcMain.on("load-settings", async (event) => {
   const settings = await loadLocalData("settings");
   event.reply("load-settings", settings || {});
 });
+
+ipcMain.on("tax-load-settings", async (event) => {
+  const settings = await loadLocalData("settings");
+  event.reply("tax-load-settings", settings || {});
+});
+
+ipcMain.on("tax-save-settings", async (event, data) => {
+  await manageLocalData("settings", data);
+});
+
+
+
 
 /**
  * 일렉트론에서 웹페이지로 JS 이벤트를 실행시키고 싶을때 쓰는 로직

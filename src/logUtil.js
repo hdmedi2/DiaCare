@@ -1,4 +1,4 @@
-const {PHARM_URL, MEDICARE_FIND_PHARMCY_BY_BIZNO_URL, SAVE_LOG_DIR} = require("../config/default.json");
+const {PHARM_URL, MEDICARE_FIND_PHARMCY_BY_BIZNO_URL, SAVE_LOG_DIR, SAVE_MAIN_DIR} = require("../config/default.json");
 const axios = require('axios');
 const {BrowserWindow} = require("electron");
 const log = require("electron-log");

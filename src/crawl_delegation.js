@@ -63,10 +63,13 @@ async function crawlDelegation(data) {
     console.error("No supported browser channels found.");
     return;
   }
-
-  const page = await browser.newPage();
-  await page.goto("https://medicare.nhis.or.kr/portal/index.do");
-  //const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+// 요양마당 화면 크기 조절
+  const { width, height } = require('electron').screen.getPrimaryDisplay().workAreaSize;
+  const context = await browser.newContext({
+    viewport: { width, height }, // Playwright가 뷰포트를 설정하지 않도록 설정
+  });
+  const page = await context.newPage();
+  await page.goto(MEDICARE_URL);
 
   // 공인인증서 로그인
   await page.locator("#grp_loginBtn").click();

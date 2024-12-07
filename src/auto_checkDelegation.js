@@ -6,7 +6,7 @@ const {MEDICARE_URL, SAVE_MAIN_DIR, SAVE_LOG_DIR } = require("../config/default.
 const os = require("os");
 const path = require("path");
 const log = require("electron-log");
-
+const window = require("window");
 let logPath = "";
 // let userHomeDirectory = "";
 const osName = os.platform();
@@ -60,9 +60,14 @@ async function checkDelegation(data) {
     return;
   }
 
-  const page = await browser.newPage();
+// 요양마당 화면 크기 조절
+const { width, height } = require('electron').screen.getPrimaryDisplay().workAreaSize;
+  const context = await browser.newContext({
+    viewport: { width, height }, // Playwright가 뷰포트를 설정하지 않도록 설정
+  });
+  const page = await context.newPage();
+  // 시스템 화면 크기를 가져오는 기능
   await page.goto(MEDICARE_URL);
-  //const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   // 공인인증서 로그인
   await page.locator("#grp_loginBtn").click();
@@ -123,7 +128,7 @@ async function checkDelegation(data) {
 
   // 응답 상태와 URL을 콘솔에 출력
   console.log("<<", response.status(), response.url());
-
+  let count = 0;
   try {
     // 응답 본문 데이터를 JSON 형식으로 가져오기
     const responseBody = await response.json();
@@ -131,7 +136,7 @@ async function checkDelegation(data) {
 
     if (responseBody.dl_tbbibo59) {
       console.log("Number of rows:", responseBody.dl_tbbibo59.length);
-
+      count = responseBody.dl_tbbibo59.length;
       //let json = JSON.stringify(responseBody.dl_tbbibo59);
       await sendDelegationJsonToServer(responseBody.dl_tbbibo59, data);
 

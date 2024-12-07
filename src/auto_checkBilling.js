@@ -2,17 +2,15 @@
 const fs = require("fs");
 const { parse } = require("json2csv");
 const {XMLHttpRequest} = require("xmlhttprequest");
-const {MEDICARE_URL} = require("../config/default.json");
+const {MEDICARE_URL,SAVE_LOG_DIR, SAVE_MAIN_DIR} = require("../config/default.json");
 const log = require("electron-log");
 const path = require("path");
-
-const {SAVE_LOG_DIR, SAVE_MAIN_DIR } = require("../config/default.json");
 const os = require("os");
 const today = new Date();
 const year = today.getFullYear(); // 2023
 const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
 const day = today.getDate().toString().padStart(2, '0'); // 18
-
+const screen = require("electron");
 const dateString = year + '-' + month + '-' + day; // 2023-06-18
 
 let logPath = "";
@@ -40,10 +38,6 @@ if (!fs.existsSync(logPath)) {
 Object.assign(console, log.functions);
 log.transports.file.resolvePathFn = () => path.join(logPath, 'main-' + dateString +'.log');
 
-
-Object.assign(console, log.functions);
-log.transports.file.resolvePathFn = () => path.join(SAVE_LOG_DIR, 'main-' + dateString +'.log');
-
 async function checkBilling(data) {
   const channels = [
     "chrome",
@@ -70,8 +64,15 @@ async function checkBilling(data) {
     return;
   }
 
-  const page = await browser.newPage();
+  // 요양마당 화면 크기 조절
+  const { width, height } = require('electron').screen.getPrimaryDisplay().workAreaSize;
+  const context = await browser.newContext({
+    viewport: { width, height}, // Playwright가 뷰포트를 설정하지 않도록 설정
+  });
+  const page = await context.newPage();
+  // 시스템 화면 크기를 가져오는 기능
   await page.goto(MEDICARE_URL);
+
   //const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
   // 공인인증서 로그인
