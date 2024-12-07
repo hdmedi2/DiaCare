@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>시스템 설정 관리하기</title>
+  <title>세금계산서 인증서 설정 관리하기</title>
   <style>
     /*
     ! tailwindcss v3.4.8 | MIT License | https://tailwindcss.com
@@ -629,6 +629,7 @@
     }
     .shadow {
     --tw-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --tw-shadow-colored: 0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);
     box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
     }
     .outline-none {
@@ -679,7 +680,7 @@
       <form id="auth-form">
         <!-- Section 1 -->
         <div class="mb-4">
-          <h4 class="text-md font-semibold text-gray-900 mb-2">인증서 설정</h4>
+          <h4 class="text-md font-semibold text-gray-900 mb-2">세금계산서 신고용 인증서 설정</h4>
           <div class="mb-4">
             <label for="certificate-location" class="mb-2 block text-sm font-medium text-gray-900">인증서 위치</label>
             <select id="certificate-location" class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900">
@@ -712,7 +713,6 @@
 
         <!-- Save Button -->
         <div class="flex justify-end">
-          <button type="button" class="bg-gray-200 hover:bg-gray-200 focus:ring-gray-300 rounded-lg px-3 py-2.5 text-center text-sm font-medium text-white focus:outline-none focus:ring-4">취소</button>
           <button type="submit" class="bg-blue-600 hover:bg-blue-700 focus:ring-blue-300 rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white focus:outline-none focus:ring-4">저장</button>
         </div>
       </form>
@@ -723,34 +723,34 @@
     document.getElementById('auth-form').addEventListener('submit', (event) => {
       event.preventDefault();
 
-      const certificateLocation = document.getElementById('certificate-location').value;
-      const certificatePath = document.getElementById('certificate-path').value;
-      const certificateName = document.getElementById('certificate-name').value;
-      const certificatePassword = document.getElementById('certificate-password').value;
+      const taxCertificateLocation = document.getElementById('certificate-location').value;
+      const taxCertificatePath = document.getElementById('certificate-path').value;
+      const taxCertificateName = document.getElementById('certificate-name').value;
+      const taxCertificatePassword = document.getElementById('certificate-password').value;
       const corporateId = document.getElementById('corporate-id').value;
 
-      window.electron.send('save-settings', {
-        certificateLocation,
-        certificatePath,
-        certificateName,
-        certificatePassword,
+      window.electron.send('tax-save-settings', {
+        taxCertificateLocation,
+        taxCertificatePath,
+        taxCertificateName,
+        taxCertificatePassword,
         corporateId
       });
 
-      alert("요양기관정보마당용 인증서 정보 저장되었습니다.");
+      alert("전자세금계산서용 인증서 정보가 저장되었습니다!");
       window.close();
     });
 
-    window.electron.receive('load-settings', (data) => {
-      if (data.certificateLocation) document.getElementById('certificate-location').value = data.certificateLocation;
-      if (data.certificatePath) document.getElementById('certificate-path').value = data.certificatePath;
-      if (data.certificateName) document.getElementById('certificate-name').value = data.certificateName;
-      if (data.certificatePassword) document.getElementById('certificate-password').value = data.certificatePassword;
+    window.electron.receive('tax-load-settings', (data) => {
+      if (data.taxCertificateLocation) document.getElementById('certificate-location').value = data.taxCertificateLocation;
+      if (data.taxCertificatePath) document.getElementById('certificate-path').value = data.taxCertificatePath;
+      if (data.taxCertificateName) document.getElementById('certificate-name').value = data.taxCertificateName;
+      if (data.taxCertificatePassword) document.getElementById('certificate-password').value = data.taxCertificatePassword;
       if (data.corporateId) document.getElementById('corporate-id').value = data.corporateId;
     });
 
     window.addEventListener('DOMContentLoaded', () => {
-      window.electron.send('load-settings');
+      window.electron.send('tax-load-settings');
     });
 
   </script>

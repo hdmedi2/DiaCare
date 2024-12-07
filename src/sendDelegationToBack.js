@@ -1,5 +1,5 @@
 const axios = require("axios");
-const {PHARM_URL, SAVE_LOG_DIR} = require("../config/default.json");
+const {PHARM_URL, SAVE_LOG_DIR, SAVE_MAIN_DIR} = require("../config/default.json");
 const log = require("electron-log");
 const fs = require("fs");
 const path = require("path");

@@ -63,7 +63,7 @@ async function runAutomation_delegation(data_1) {
   }
 
   // const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
-  const downloadsDirectory = path(userHomeDirectory,data_1.name); // path.join(userHomeDirectory, "Downloads");
+  const downloadsDirectory = path.join(userHomeDirectory,data_1.name); // path.join(userHomeDirectory, "Downloads");
   // 환자명으로 디렉토리 생성
   if (!fs.existsSync(downloadsDirectory)) {
     fs.mkdirSync(downloadsDirectory, { recursive: true });
@@ -138,9 +138,15 @@ async function runAutomation_delegation(data_1) {
   }
 
 
-  const page = await browser.newPage();
+  // 요양마당 화면 크기 조절
+  const { width, height } = require('electron').screen.getPrimaryDisplay().workAreaSize;
+  const context = await browser.newContext({
+    viewport: {width, height} // Playwright가 뷰포트를 설정하지 않도록 설정
+  });
+  const page = await context.newPage();
+  // 시스템 화면 크기를 가져오는 기능
   await page.goto(MEDICARE_URL);
-  //const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
 
   // 공인인증서 로그인
   await page.locator("#grp_loginBtn").click();
