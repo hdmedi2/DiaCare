@@ -51,6 +51,10 @@ if (!fs.existsSync(logPath)) {
   fs.mkdirSync(logPath, { recursive: true });
 }
 
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+log.info("autoUpdater 설정 완료");
+
 log.transports.file.maxsize = 500 * 1024 * 1024; // 500MB
 autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
@@ -285,6 +289,11 @@ const createSettingWindow = (options = {}) => {
 // 프로그램이 기동되면 새로운 창을 만들고, 메뉴를 붙이고,
 app.whenReady().then(() => {
   console.log("Ready...");
+
+  // 자동 업데이트 체크
+  autoUpdater.checkForUpdatesAndNotify()
+      .then(() => console.log("최신 버전을 확인합니다."))
+      .catch(err => console.error("업데이트 확인 중 오류 발생:", err));
 
   createWindow();
 

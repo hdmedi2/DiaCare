@@ -1,6 +1,6 @@
 {
   "name": "iyac_diabetes",
-  "version": "1.0.22",
+  "version": "1.0.22s",
   "description": "아이약 당뇨케어",
   "main": "src/index.js",
   "scripts": {
@@ -22,9 +22,9 @@
       "html/**/*",
       "assets/**/*",
       "!scripts/**/*",
-      "!out/**/*",
+      "out/**/*",
       "!dist/**/*",
-      "src/**/*"
+      "!src/**/*"
     ],
     "extraResources": [
       "app.mainfest"
@@ -33,7 +33,7 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "hdmedi2",
+        "owner": "sjh-hdmedi",
         "repo": "DiaCareDist",
         "releaseType": "release"
       }
