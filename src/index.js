@@ -45,18 +45,49 @@ else {
   const homeDir = os.homedir();
   logPath = path.join(homeDir, SAVE_MAIN_DIR, SAVE_LOG_DIR);
 }
-
+console.log("logPath: ", logPath);
 // 로그 폴더 없으면 생성
 if (!fs.existsSync(logPath)) {
   fs.mkdirSync(logPath, { recursive: true });
 }
 
+log.transports.file.maxsize = 500 * 1024 * 1024; // 500MB
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
+autoUpdater.on('update-available', () => {
+  log.info("업데이트가 가능합니다. 새로운 버전을 설치합니다.");
+  console.log('업데이트가 가능합니다. 새로운 버전을 설치합니다.');
+  log.info("========= 종료 후 설치 ");
+});
+
+autoUpdater.on('download-progress', (progress) => {
+  console.log(`다운로드 진행률: ${progress.percent}%`);
+  log.info(`다운로드 진행률: ${progress.percent}%`);
+});
+
+autoUpdater.on('update-not-available', () => {
+  log.info("현재 최신 버전입니다.");
+  console.log('현재 최신 버전입니다.');
+});
+
+autoUpdater.on('error', (err) => {
+  log.info("업데이트 중 오류 발생", err);
+  console.error('업데이트 중 오류 발생:', err);
+});
+
+autoUpdater.on('update-downloaded', () => {
+  console.log('업데이트가 다운로드되었습니다. 애플리케이션을 재시작하여 설치를 완료합니다.');
+  log.info('업데이트가 다운로드되었습니다. 애플리케이션을 재시작하여 설치를 완료합니다.');
+  autoUpdater.quitAndInstall();
+});
+
+
+log.info(`=============${dateString}=============================`);
+
 Object.assign(console, log.functions);
 log.transports.file.resolvePathFn = () => path.join(logPath, 'main-' + dateString +'.log');
 
-autoUpdater.autoDownload = true;
-autoUpdater.autoInstallOnAppQuit = true;
-log.transports.file.maxsize = 500 * 1024 * 1024; // 500MB
+
 
 
 // 중복실행 방지 체크
@@ -253,6 +284,8 @@ const createSettingWindow = (options = {}) => {
 
 // 프로그램이 기동되면 새로운 창을 만들고, 메뉴를 붙이고,
 app.whenReady().then(() => {
+  console.log("Ready...");
+
   createWindow();
 
   //autoUpdater.autoDownload = true;
@@ -538,35 +571,3 @@ function electronToWebEventRun(processLogic) {
   });
 }*/
 
-log.info(`=============${dateString}=============================`);
-
-autoUpdater.autoDownload = true;
-autoUpdater.autoInstallOnAppQuit = true;
-
-autoUpdater.on('update-available', () => {
-  log.info("업데이트가 가능합니다. 새로운 버전을 설치합니다.");
-  console.log('업데이트가 가능합니다. 새로운 버전을 설치합니다.');
-  log.info("========= 종료 후 설치 ");
-});
-
-autoUpdater.on('download-progress', (progress) => {
-  console.log(`다운로드 진행률: ${progress.percent}%`);
-  log.info(`다운로드 진행률: ${progress.percent}%`);
-
-});
-
-autoUpdater.on('update-not-available', () => {
-  log.info("현재 최신 버전입니다.");
-  console.log('현재 최신 버전입니다.');
-});
-
-autoUpdater.on('error', (err) => {
-  log.info("업데이트 중 오류 발생", err);
-  console.error('업데이트 중 오류 발생:', err);
-});
-
-autoUpdater.on('update-downloaded', () => {
-  console.log('업데이트가 다운로드되었습니다. 애플리케이션을 재시작하여 설치를 완료합니다.');
-  log.info('업데이트가 다운로드되었습니다. 애플리케이션을 재시작하여 설치를 완료합니다.');
-  autoUpdater.quitAndInstall();
-});
