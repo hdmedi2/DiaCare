@@ -186,8 +186,12 @@ const clearCache = () => {
   });
 };
 
+let settingWindow;
 const createSettingWindow = (options = {}) => {
-  const settingWindow = new BrowserWindow({
+  // 기존 창이 있으면 새로 생성하지 않음
+  if (settingWindow) return;
+
+  settingWindow = new BrowserWindow({
     width: options.width || 630,
     height: options.height || 560,
     parent: BrowserWindow.getFocusedWindow(),
@@ -199,7 +203,6 @@ const createSettingWindow = (options = {}) => {
     },
     autoHideMenuBar: true,
   });
-
 
   // HTML 파일 로드
   let htmlFilePath;
@@ -229,6 +232,22 @@ const createSettingWindow = (options = {}) => {
       settingWindow.webContents.send("load-settings", settings || {});
     });
   }
+
+  // 팝업 창 닫힐 때 처리
+  settingWindow.on("closed", () => {
+    log.info('settingWindow closed');
+    settingWindow = null; // 참조 해제
+  });
+
+  // 팝업 창 닫기 이벤트 처리
+  ipcMain.on("close-popup", () => {
+    log.info('close-popup  called');
+    if (settingWindow) {
+      log.info('요양기관정보마당용 인증서 정보 저장되었습니다.');
+      settingWindow.close(); // 팝업 창 닫기
+    }
+  });
+
 };
 
 

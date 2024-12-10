@@ -712,15 +712,19 @@
 
         <!-- Save Button -->
         <div class="flex justify-end">
-          <button type="button" class="bg-gray-200 hover:bg-gray-200 focus:ring-gray-300 rounded-lg px-3 py-2.5 text-center text-sm font-medium text-white focus:outline-none focus:ring-4">취소</button>
-          <button type="submit" class="bg-blue-600 hover:bg-blue-700 focus:ring-blue-300 rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white focus:outline-none focus:ring-4">저장</button>
+          <button type="button" id="submitBtn" class="bg-blue-600 hover:bg-blue-700 focus:ring-blue-300 rounded-lg px-5 py-2.5 text-center text-sm font-medium text-white focus:outline-none focus:ring-4">저장</button>
         </div>
       </form>
     </div>
   </div>
 
   <script>
-    document.getElementById('auth-form').addEventListener('submit', (event) => {
+    window.addEventListener('DOMContentLoaded', () => {
+      window.electron.send('load-settings');
+    });
+
+    const submitBtnEl = document.getElementById('submitBtn');
+    submitBtnEl.addEventListener('click', (event) => {
       event.preventDefault();
 
       const certificateLocation = document.getElementById('certificate-location').value;
@@ -737,9 +741,29 @@
         corporateId
       });
 
-      alert("요양기관정보마당용 인증서 정보 저장되었습니다.");
-      window.close();
+      window.electron.send('close-popup'); // 창 닫기 요청
     });
+
+    /*document.getElementById('auth-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const certificateLocation = document.getElementById('certificate-location').value;
+      const certificatePath = document.getElementById('certificate-path').value;
+      const certificateName = document.getElementById('certificate-name').value;
+      const certificatePassword = document.getElementById('certificate-password').value;
+      const corporateId = document.getElementById('corporate-id').value;
+
+      window.electron.send('save-settings', {
+        certificateLocation,
+        certificatePath,
+        certificateName,
+        certificatePassword,
+        corporateId
+      });
+
+      window.electron.send('close-popup'); // 창 닫기 요청
+
+    });*/
 
     window.electron.receive('load-settings', (data) => {
       if (data.certificateLocation) document.getElementById('certificate-location').value = data.certificateLocation;
@@ -747,10 +771,6 @@
       if (data.certificateName) document.getElementById('certificate-name').value = data.certificateName;
       if (data.certificatePassword) document.getElementById('certificate-password').value = data.certificatePassword;
       if (data.corporateId) document.getElementById('corporate-id').value = data.corporateId;
-    });
-
-    window.addEventListener('DOMContentLoaded', () => {
-      window.electron.send('load-settings');
     });
 
   </script>
