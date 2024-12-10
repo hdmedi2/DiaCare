@@ -39,7 +39,7 @@
       }
     ],
     "extraMetadata": {
-      "main": "src/index.js"
+      "main": "out/index.js"
     },
     "directories": {
       "output": "dist"
