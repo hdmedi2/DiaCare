@@ -11,6 +11,7 @@
     "obfuscate": "npm run clean-out && javascript-obfuscator src --output out",
     "version-up": "node scripts/version-bump.js",
     "build": "node scripts/clean-out-folder.js && npm run obfuscator && electron-builder .",
+    "make": "electron-builder",
     "publish": "npm run obfuscate && npm run clean-dist && electron-builder --publish always"
   },
   "build": {
@@ -21,9 +22,9 @@
       "html/**/*",
       "assets/**/*",
       "!scripts/**/*",
-      "out/**/*",
+      "!out/**/*",
       "!dist/**/*",
-      "!src/**/*"
+      "src/**/*"
     ],
     "extraResources": [
       "app.mainfest"
@@ -38,7 +39,7 @@
       }
     ],
     "extraMetadata": {
-      "main": "out/index.js"
+      "main": "src/index.js"
     },
     "directories": {
       "output": "dist"
@@ -77,7 +78,6 @@
     "electron-updater": "^6.3.9",
     "json2csv": "^6.0.0-alpha.2",
     "playwright": "1.38",
-    "window": "^4.2.7",
     "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {

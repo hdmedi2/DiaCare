@@ -6,7 +6,6 @@ const {MEDICARE_URL, SAVE_MAIN_DIR, SAVE_LOG_DIR } = require("../config/default.
 const os = require("os");
 const path = require("path");
 const log = require("electron-log");
-const window = require("window");
 let logPath = "";
 // let userHomeDirectory = "";
 const osName = os.platform();
