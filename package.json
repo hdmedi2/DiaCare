@@ -1,6 +1,6 @@
 {
   "name": "iyac_diabetes",
-  "version": "1.0.23",
+  "version": "1.0.24",
   "description": "아이약 당뇨케어",
   "main": "src/index.js",
   "scripts": {
@@ -8,9 +8,9 @@
     "start": "cross-env NODE_ENV=development electron .",
     "clean-dist": "node scripts/clean-dist-folder.js",
     "clean-out": "node scripts/clean-out-folder.js",
-    "obfuscate": "npm run clean-out && javascript-obfuscator src --output out",
+    "obfuscate": "npm run clean-out && javascript-obfuscator src --output out --compact false --control-flow-flattening false --string-array false --identifier-names-generator mangled --rename-globals true",
     "version-up": "node scripts/version-bump.js",
-    "build": "node scripts/clean-out-folder.js && npm run obfuscator && electron-builder .",
+    "build": "node scripts/clean-out-folder.js && npm run obfuscate && electron-builder",
     "make": "electron-builder",
     "publish": "npm run obfuscate && npm run clean-dist && electron-builder --publish always"
   },
@@ -29,6 +29,9 @@
     "extraResources": [
       "app.mainfest"
     ],
+    "extraMetadata": {
+      "main": "out/index.js"
+    },
     "afterPack": "scripts/attach-manifest.js",
     "publish": [
       {
@@ -38,9 +41,6 @@
         "releaseType": "release"
       }
     ],
-    "extraMetadata": {
-      "main": "out/index.js"
-    },
     "directories": {
       "output": "dist"
     },

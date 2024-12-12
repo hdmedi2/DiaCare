@@ -248,9 +248,11 @@ async function runAutomation_delegation(data_1) {
   const parts = data_1.select.split("|").map((part) => part.trim());
   const firstPart = parts[0].trim(); // 당뇨 유형
   const secondPart = parts[1].trim(); // 인슐린 투여 여부
+  // 당뇨 2형
   if (firstPart === "2형") {
     await frame.getByLabel("당뇨병 소모성 재료").check();
-  } else if (firstPart === "임신중") {
+  }
+  else if (firstPart === "임신중") {
     await frame.getByLabel("당뇨병 소모성 재료").check();
     console.log("임신중 -- 팝업닫기 시작");
     // 알림창
@@ -289,14 +291,19 @@ async function runAutomation_delegation(data_1) {
     } else {
       console.error("Dynamic iframe not found.");
     }
-  } else if (firstPart === "1형") {
+  }
+  // 당뇨 1형
+  else if (firstPart === "1형") {
     if (
       secondPart === "연속혈당측정용 전극" ||
       secondPart === "연속혈당측정용 전극(기본)" ||
       secondPart === "연속혈당측정용 전극(센서, 복합형)"
     ) {
       await frame.getByLabel("연속혈당측정용 전극(센서)").check();
-    } else if (secondPart === "투여") {
+    }
+    // 2024.12.11 연속혈당 전극 + 당뇨 소모성 재료
+    // else
+    if (secondPart === "투여") {
       await frame.getByLabel("당뇨병 소모성 재료").check();
     }
   }

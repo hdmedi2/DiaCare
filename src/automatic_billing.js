@@ -26,7 +26,10 @@ else {
   const homeDir = os.homedir();
   logPath = path.join(homeDir, SAVE_MAIN_DIR, SAVE_LOG_DIR);
   userHomeDirectory = path.join(homeDir, SAVE_MAIN_DIR, dateString);
+
 }
+log.info(`automatic_billing > logPath: ${logPath}`);
+log.info(`automatic_billing > userHomeDirectory: ${userHomeDirectory}`);
 
 // 로그 폴더 없으면 생성
 if (!fs.existsSync(logPath)) {
@@ -55,10 +58,12 @@ async function runAutomation_billing(data) {
         break;
       } catch (error) {
         console.warn(`Failed to launch ${channel}: ${error.message}`);
+        log.warn(`Failed to launch ${channel}: ${error.message}`);
       }
     }
     if (!browser) {
       console.error("No supported browser channels found.");
+      log.error("No supported browser channels found.");
       return;
     }
 
@@ -69,52 +74,88 @@ async function runAutomation_billing(data) {
       fs.mkdirSync(downloadsDirectory, { recursive: true });
     }
 
-    try {
-      // 1.구매영수증 다운로드
-      console.log("Start payment_receipt_file Download");
-      await downloadFile(
-        downloadsDirectory,
-        data.paymentReceiptSignedUrl,
-        data.paymentReceiptFileName
-      );
+    log.info(`download Directory: ${downloadsDirectory}`);
 
-      // 2.연속혈당측정용 전극 고유식별번호 다운로드
-      if (data.isCgmSensor) {
-        console.log("Start cgm_seq_no_file Download");
-        await downloadFile(
-          downloadsDirectory,
-          data.cgmSeqNoSignedUrl,
-          data.cgmSeqNoFileName
+
+    // 1.구매영수증 다운로드
+    try {
+      console.log("Start payment_receipt_file Download");
+      log.info("Start payment_receipt_file Download");
+      await downloadFile(
+            downloadsDirectory,
+            data.paymentReceiptSignedUrl,
+            data.paymentReceiptFileName
         );
+        log.info("Start payment_receipt_file Downloaded");
+      }
+      catch(e) {
+        console.error(e.message);
+        log.error(e.message);
       }
 
-      // 3.위임장 다운로드
-      console.log("Start payment_claim_delegation_file Download");
-      await downloadFile(
-        downloadsDirectory,
-        data.paymentClaimDelegationSignedUrl,
-        data.paymentClaimDelegationFileName
-      );
+      // 2.연속혈당측정용 전극 고유식별번호 다운로드
+      try {
+        if (data.isCgmSensor) {
+          console.log("Start cgm_seq_no_file Download");
+          await downloadFile(
+              downloadsDirectory,
+              data.cgmSeqNoSignedUrl,
+              data.cgmSeqNoFileName
+          );
+          console.log("Start cgm_seq_no_file Downloaded");
+          log.info("Start cgm_seq_no_file Downloaded");
+        }
+      }
+      catch(e) {
+        log.error("cgm_seq_no_file error", e.message);
+        console.log("cgm_seq_no_file error", e.message);
+      }
 
-      // 4.처방전 다운로드
-      console.log("Start prescription_file Download");
-      await downloadFile(
-        downloadsDirectory,
-        data.prescriptionSignedUrl,
-        data.prescriptionFileName
-      );
+      try {
+        // 3.위임장 다운로드
+        console.log("Start payment_claim_delegation_file Download");
+        await downloadFile(
+            downloadsDirectory,
+            data.paymentClaimDelegationSignedUrl,
+            data.paymentClaimDelegationFileName
+        );
+        console.log("위임장: payment_claim_delegation_file Downloaded");
+        log.info("위임장: payment_claim_delegation_file Downloaded");
+      }
+      catch(e) {
+        console.log(`위임장: ${e.message}`);
+        log.info(`위임장: ${e.message}`);
+      }
 
-      // 5.출력문서 다운로드
-      console.log("Start diabetes_doc_file Download");
-      await downloadFile(
-        downloadsDirectory,
-        data.diabetesDocSignedUrl,
-        data.diabetesDocFileName
-      );
-    } catch (error) {
-      console.error("CloudfrontUrl download error");
-      return;
-    }
+      try {
+        // 4.처방전 다운로드
+        console.log("Start prescription_file Download");
+        await downloadFile(
+            downloadsDirectory,
+            data.prescriptionSignedUrl,
+            data.prescriptionFileName
+        );
+        log.info("처방전 prescription_file Downloaded");
+        console.log("처방전 prescription_file Downloaded");
+
+      }
+      catch(e) {
+        console.log(`처방전 다운로드: ${e.message}`);
+        log.error(`처방전 다운로드: ${e.message}`);
+      }
+
+      try {
+          // 5.출력문서 다운로드
+          console.log("Start diabetes_doc_file Download");
+          await downloadFile(
+            downloadsDirectory,
+            data.diabetesDocSignedUrl,
+            data.diabetesDocFileName
+          );
+      } catch (e) {
+          console.error(`CloudfrontUrl download error: ${e.message}`);
+          return;
+      }
 
     try {
       // 공인인증서 vaildation
