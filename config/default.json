@@ -4,5 +4,6 @@
   "MEDICARE_FIND_PHARMACY_BY_BIZNO_URL" : "https://medicare.nhis.or.kr/portal/bk/z/300/selectBcbnfSlEntrUnityMgmtList.do",
   "SAVE_MAIN_DIR" : "DiaCare",
   "SAVE_LOG_DIR" : "logs",
-  "SAVE_HOMETAX_DIR" : "hometax"
+  "SAVE_HOMETAX_DIR" : "hometax",
+  "SAVE_HOMETAX_URL" : "https://hometax.go.kr/websquare/websquare.html?w2xPath=/ui/pp/index_pp.xml&menuCd=index3"
   }
