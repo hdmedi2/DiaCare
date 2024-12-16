@@ -5,5 +5,5 @@
   "SAVE_MAIN_DIR" : "DiaCare",
   "SAVE_LOG_DIR" : "logs",
   "SAVE_HOMETAX_DIR" : "hometax",
-  "SAVE_HOMETAX_URL" : "https://hometax.go.kr/websquare/websquare.html?w2xPath=/ui/pp/index_pp.xml&menuCd=index3"
+  "HOMETAX_URL" : "https://hometax.go.kr/websquare/websquare.html?w2xPath=/ui/pp/index_pp.xml&menuCd=index3"
   }
