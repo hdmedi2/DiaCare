@@ -450,12 +450,16 @@ ipcMain.on("start-crawl-delegation", async (event, data_0) => {
   }
 });
 
-ipcMain.on("start-check-bill", async () => {
+ipcMain.on("start-check-bill", async (event, data_0) => {
   try {
     const settings = await manageLocalData("settings");
 
     if (settings) {
-      await checkBilling(settings);
+      const automationData = {
+        ...settings,
+        ...data_0,
+      };
+      await checkBilling(automationData);
     } else {
       console.error("Failed to load settings.");
     }

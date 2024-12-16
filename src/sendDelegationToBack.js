@@ -81,6 +81,12 @@ const sendDelegationToBack = async (
   }
 };
 
+/**
+ * 요양마당 위임정보 -> server
+ * @param json 약국 환자 위임정보
+ * @param data server 정보
+ * @returns {Promise<void>}
+ */
 const sendDelegationJsonToServer = async (json, data) => {
   try {
     const { manageLocalData } = require('./index');
@@ -110,4 +116,39 @@ const sendDelegationJsonToServer = async (json, data) => {
   }
 };
 
-module.exports = { sendDelegationToBack, sendDelegationJsonToServer };
+/**
+ * 요양마당 청구정보 -> server
+ * @param json 약국별 청구정보
+ * @param data server 정보
+ * @returns {Promise<void>}
+ */
+const sendMedicareClaimJsonToServer = async (json, data) => {
+  try {
+    const { manageLocalData } = require('./index');
+    const sessionData = await manageLocalData('session');
+    const cookieHeader = sessionData.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
+
+    const response = await axios.post(PHARM_URL + 'pharm/diabetes/json-medicare-claim-save',
+        {
+          json
+        }, {
+          headers: {
+            'Cookie': cookieHeader,
+            // 'Content-Type': 'application/json',
+            'Content-Type': 'text/plain',
+            [data.csrfHeader]: data.csrfToken
+          }
+        });
+    console.log('Response Status:', response.status);
+  } catch (error) {
+    console.error('Error sending log:', error);
+    if(error.response){
+      console.log('Error Response Headers:', error.response.headers);
+      console.error('Server responded with:', error.response.data);
+    } else {
+      console.error('No response from server:', error.message);
+    }
+  }
+};
+
+module.exports = { sendDelegationToBack, sendDelegationJsonToServer, sendMedicareClaimJsonToServer };

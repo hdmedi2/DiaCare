@@ -20,15 +20,26 @@ window.addEventListener("DOMContentLoaded", () => {
                       };
 
   const button_delegation_history = document.querySelector("#autoDelegationHistory"); //id="autoDelegationHistory"
-  button_delegation_history.addEventListener('click', () => {
-    console.log("Delegation History clicked");
-    ipcRenderer.send('start-check-delegation', data_0);
-  });
-  const button_billing_history = document.querySelector("#autoBillingHistory"); //id="autoBillingHistory"
-  button_billing_history.addEventListener('click', () => {
-    console.log("Billing History clicked");
-    ipcRenderer.send('start-check-bill');
-  });
+  if (!isEmpty(button_delegation_history)) {
+    button_delegation_history.addEventListener('click', () => {
+      console.log("Delegation History clicked");
+      ipcRenderer.send('start-check-delegation', data_0);
+    });
+
+  } else {
+    console.info('Delegation History button is not found.');
+  }
+
+  let button_billing_history = document.querySelector("#autoBillingHistory"); //id="autoBillingHistory"
+  if (!isEmpty(button_billing_history)) {
+    button_billing_history.addEventListener('click', () => {
+      console.info("Billing History clicked");
+      ipcRenderer.send('start-check-bill', data_0);
+    });
+
+  } else {
+    console.info('Billing History button is not found.');
+  }
 
   // 계산기 > 데이터 수정하기 calc-update ,  계산목록 > 환자 한명 선택하면 calc-detail
   if (
@@ -382,4 +393,17 @@ function formatDate(date) {
   const day = String(date.getDate()).padStart(2, '0');
 
   return `${year}.${month}.${day}`;
+}
+
+/**
+ * 빈값 체크
+ * @param value 체크하려는 값
+ * @returns {boolean}
+ */
+function isEmpty(value) {
+  if (typeof value === "undefined" || value === null || value === "" || value === "null") {
+    return Boolean(true);
+  } else {
+    return Boolean(false);
+  }
 }

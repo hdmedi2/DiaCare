@@ -2,6 +2,7 @@
 const fs = require("fs");
 const { parse } = require("json2csv");
 const {XMLHttpRequest} = require("xmlhttprequest");
+const {sendMedicareClaimJsonToServer} = require("./sendDelegationToBack");
 const {MEDICARE_URL,SAVE_LOG_DIR, SAVE_MAIN_DIR} = require("../config/default.json");
 const log = require("electron-log");
 const path = require("path");
@@ -123,7 +124,6 @@ async function checkBilling(data) {
 
   // 응답 상태와 URL을 콘솔에 출력
   console.log("<<", response.status(), response.url());
-
   try {
     // 응답 본문 데이터를 JSON 형식으로 가져오기
     const responseBody = await response.json();
@@ -132,7 +132,10 @@ async function checkBilling(data) {
     if (responseBody.dl_tbbibo05) {
       console.log("Number of rows:", responseBody.dl_tbbibo05.length);
 
-      const saveDir = "C:\\DiaCare\\billing";
+      await sendMedicareClaimJsonToServer(responseBody.dl_tbbibo05, data);
+
+      /***** Start 파일로 저장 *****/
+      /*const saveDir = "C:\\DiaCare\\billing";
       const filePos = path.join(saveDir, "bill-"+dateString+".json");
       console.log("file save dir : ", filePos);
 
@@ -163,7 +166,7 @@ async function checkBilling(data) {
             console.log(allText);
           }
         }
-      };
+      };*/
 
       //rawFile.send(null);
 
@@ -173,6 +176,7 @@ async function checkBilling(data) {
 
       //fs.writeFileSync("output_bill.csv", csv);
       //console.log("Data saved to output.csv");
+      /***** End 파일로 저장 *****/
     } else {
       console.log("No data found in the response");
     }
