@@ -2,6 +2,7 @@ const {
   app,
   BrowserWindow,
   ipcMain,
+  ipcRenderer,
   session,
   Menu,
   safeStorage,
@@ -10,13 +11,15 @@ const {
 const os = require('os');
 const path = require("path");
 const fs = require("fs");
+// 요양비 청구
 const { runAutomation_billing } = require("./automatic_billing");
 const { runAutomation_delegation } = require("./automatic_delegation");
 const { checkBilling } = require("./auto_checkBilling");
 const { checkDelegation } = require("./auto_checkDelegation");
 const { sendLogToServer } = require("./logUtil");
 const { autoUpdater } = require("electron-updater");
-
+// 홈택스 전자세금계산서 신고
+const { runAutomation_homeTax } = require("./automatic_homeTax");
 const { crawlDelegation } = require("./crawl_delegation");
 const { sendDelegationToBack } = require("./sendDelegationToBack");
 
@@ -360,29 +363,25 @@ app.whenReady().then(() => {
     {
       label: "공인인증서",
       submenu: [{ label: "인증서 설정", click: createSettingWindow },
-                { label: "--------"},
-                { label: "세금계산서용 인증서 설정", click: ()=>createSettingWindow({
-                                                        width: 630,
-                                                        height: 560,
-                                                        file: "taxCertSetting.html",
-                                                        label: "세금계산서"
-                                                      })
-                }
                ],
     },
     {
-      label: "요양마당",
+      label: "전자세금계산서",
       submenu: [
         {
-          label: "청구 내역 가져오기",
-          click: () =>
-            createSettingWindow({
-              width: 350,
-              height: 250,
-              file: "mediCare.html",
-              label: "청구내역"
-            }), // 커스텀 설정 창
+          label: "HomeTax 신고",
+          click: () => {
+            ipcMain.emit('start-hometax');
+          }
         },
+        {
+          label: "세금계산서용 인증서 설정",
+          click: () => createSettingWindow({
+            width: 630, height: 560,
+            file: "taxCertSetting.html",
+            label: "세금계산서"
+          })
+        }
       ],
     },
   ]);
@@ -431,6 +430,27 @@ ipcMain.on("start-check-delegation", async (event, data_0) => {
   }
 });
 
+// 홈택스 신고
+ipcMain.on("start-hometax", async (event, data_0) => {
+  try {
+    const settings = await manageLocalData("settings");
+
+    if (settings) {
+      const automationData = {
+        ...settings,
+        ...data_0,
+      };
+      //console.log("Automation Data:", automationData); // 확인용 출력
+      await runAutomation_homeTax(automationData);
+
+    } else {
+      console.error("Failed to load settings.");
+    }
+  } catch (error) {
+    console.error("Error Reading:", error);
+  }
+});
+
 ipcMain.on("start-crawl-delegation", async (event, data_0) => {
   try {
     const settings = await manageLocalData("settings");
@@ -450,16 +470,12 @@ ipcMain.on("start-crawl-delegation", async (event, data_0) => {
   }
 });
 
-ipcMain.on("start-check-bill", async (event, data_0) => {
+ipcMain.on("start-check-bill", async () => {
   try {
     const settings = await manageLocalData("settings");
 
     if (settings) {
-      const automationData = {
-        ...settings,
-        ...data_0,
-      };
-      await checkBilling(automationData);
+      await checkBilling(settings);
     } else {
       console.error("Failed to load settings.");
     }
