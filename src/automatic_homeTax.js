@@ -305,4 +305,61 @@ function isEmpty(value) {
 
 }
 
+
+// Chrome Preferences 파일 경로 설정
+function getChromePreferencesPath() {
+    const platform = os.platform();
+    let preferencesPath;
+
+    if (platform === 'win32') {
+        preferencesPath = path.join(
+            process.env.LOCALAPPDATA,
+            'Google',
+            'Chrome',
+            'User Data',
+            'Default',
+            'Preferences'
+        );
+    } else if (platform === 'darwin') {
+        preferencesPath = path.join(
+            os.homedir(),
+            'Library',
+            'Application Support',
+            'Google',
+            'Chrome',
+            'Default',
+            'Preferences'
+        );
+    } else if (platform === 'linux') {
+        preferencesPath = path.join(
+            os.homedir(),
+            '.config',
+            'google-chrome',
+            'Default',
+            'Preferences'
+        );
+    } else {
+        throw new Error('Unsupported platform: ' + platform);
+    }
+
+    return preferencesPath;
+}
+
+// Chrome 다운로드 디렉토리 가져오기
+function getChromeDownloadDirectory() {
+    const preferencesPath = getChromePreferencesPath();
+
+    try {
+        const preferences = JSON.parse(fs.readFileSync(preferencesPath, 'utf-8'));
+        const downloadPath = preferences['download']['default_directory'];
+
+        if (downloadPath) {
+            console.log('Chrome Download Directory:', downloadPath);
+        } else {
+            console.log('Default Chrome Download Directory 설정이 없습니다.');
+        }
+    } catch (err) {
+        console.error('Error reading Chrome Preferences:', err.message);
+    }
+}
 module.exports = { runAutomation_homeTax };
