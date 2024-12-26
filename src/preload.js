@@ -30,8 +30,16 @@ window.addEventListener("DOMContentLoaded", () => {
     console.info('Delegation History button is not found.');
   }
 
+  let button_billing_history = document.querySelector("#autoBillingHistory"); //id="autoBillingHistory"
+  if (!isEmpty(button_billing_history)) {
+    button_billing_history.addEventListener('click', () => {
+      console.info("Billing History clicked");
+      ipcRenderer.send('start-check-bill', data_0);
+    });
 
-
+  } else {
+    console.info('Billing History button is not found.');
+  }
 
   // 계산기 > 계산목록 전자 세금계산서 자동 발행 시작 button 클릭
   if (url.includes("/pharm/diabetes/calc-list-view") || url.includes("/pharm/diabetes/calc-list")) {
