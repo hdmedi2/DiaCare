@@ -30,15 +30,52 @@ window.addEventListener("DOMContentLoaded", () => {
     console.info('Delegation History button is not found.');
   }
 
-  let button_billing_history = document.querySelector("#autoBillingHistory"); //id="autoBillingHistory"
-  if (!isEmpty(button_billing_history)) {
-    button_billing_history.addEventListener('click', () => {
-      console.info("Billing History clicked");
-      ipcRenderer.send('start-check-bill', data_0);
-    });
 
+
+
+  // 계산기 > 계산목록 전자 세금계산서 자동 발행 시작 button 클릭
+  if (url.includes("/pharm/diabetes/calc-list-view") || url.includes("/pharm/diabetes/calc-list")) {
+    const autoTaxInvoiceBillBtnEl = document.querySelector("#autoTaxInvoiceBillBtn"); //id="autoTaxInvoiceBillBtn"
+    autoTaxInvoiceBillBtnEl.innerText = "세금계산서 자동청구 시작";
+
+    let button_billing_history = document.querySelector("#autoBillingHistory"); //id="autoBillingHistory"
+    if (!isEmpty(button_billing_history)) {
+      button_billing_history.addEventListener('click', () => {
+        console.info("Billing History clicked");
+        const csrfToken = document.querySelector("meta[name='_csrf']").content;
+        const csrfHeader = document.querySelector(
+            "meta[name='_csrf_header']"
+        ).content;
+        const autoTaxInvoiceFile = document.querySelector(
+            "#autoTaxInvoiceFile"
+        ).value;
+        const taxInvoiceData = {
+          ...data_0,
+          // 전자세금계산서 엑셀파일
+          homeTaxInvoiceFile: autoTaxInvoiceFile,
+          // API 연결을 위한 token
+          csrfToken: csrfToken,
+          csrfHeader: csrfHeader,
+        };
+        ipcRenderer.send('start-check-bill', taxInvoiceData);
+      });
+
+    } else {
+      console.info('Billing History button is not found.');
+    }
+  }
+
+
+
+  // 전자세금계산서 신고등록
+  let button_hometax_billing = document.querySelector("#autoTaxInvoiceBillBtn"); //id="autoBillingHistory"
+  if (!isEmpty(button_hometax_billing)) {
+      button_hometax_billing.addEventListener('click', () => {
+        console.info("autoTaxInvoiceBillBtn clicked");
+        ipcRenderer.send('start-hometax', data_0);
+      });
   } else {
-    console.info('Billing History button is not found.');
+    console.info('"autoTaxInvoiceBillBtn" button is not found.');
   }
 
   // 계산기 > 데이터 수정하기 calc-update ,  계산목록 > 환자 한명 선택하면 calc-detail
@@ -155,6 +192,25 @@ window.addEventListener("DOMContentLoaded", () => {
         "#diabetesDocSignedUrl"
       ).value;
 
+
+      /* 2024.12.18
+         홈택스 신고자료 파일명 설정
+       */
+      const hometaxFileName = document
+                              .querySelector("#hometaxFileName")
+                              .value.replace(" ", "_");
+
+      /* 2024.12.18
+         홈택스 신고자료 파일명 signed url 설정
+       */
+      const hometaxFileSignedUrl = document
+                                  .querySelector("#hometaxFileSignedUrl")
+                                  .value.replace(" ", "_");
+      /* 2024.12.18
+         홈택스 파일명이 존재하는 경우
+       */
+      const isHometaxFileExist = !isEmpty(hometaxFileName) && isEmpty(hometaxFileSignedUrl);
+
       const data = {
         // 당뇨진료이력 Id
         docId: pharmacyPatientDiabetesTreatId,
@@ -209,6 +265,11 @@ window.addEventListener("DOMContentLoaded", () => {
         // API 연결을 위한 token
         csrfToken: csrfToken,
         csrfHeader: csrfHeader,
+
+        // 홈택스 신고용 엑셀파일
+        hometaxFileSignedUrl: hometaxFileSignedUrl,
+        hometaxFileName: hometaxFileName,
+        isHometaxFileExist: isHometaxFileExist,
       };
 
       ipcRenderer.send("start-playwright", data);
@@ -349,7 +410,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   } else if (
    // 위임등록현황 delegation-list,
-    url.includes("/pharm/diabetes/delegation-list")  /*||
+    url.includes("/pharm/diabetes/delegation-list")  /* ||
     url.includes("/pharm/diabetes/nhis-delegation-list") */
   ) {
     const url = window.location.href;
@@ -379,6 +440,15 @@ window.addEventListener("DOMContentLoaded", () => {
 
       ipcRenderer.send("start-crawl-delegation", data_0);
     });
+
+    // 1. 프론트에서 이벤트 리스너 생성 (preload.js)
+    // 계산기 > 계산목록 전자 세금계산서 자동 발행 시작 button 클릭
+    // if (url.includes("/pharm/diabetes/calc-list-view") || url.includes("/pharm/diabetes/calc-list")) {
+    //  const autoTaxInvoiceBillBtnEl = document.querySelector("#autoTaxInvoiceBillBtn"); //id="autoTaxInvoiceBillBtn"
+    //  autoTaxInvoiceBillBtnEl.innerText = "세금계산서 자동청구 시작";
+
+
+
   }
 });
 

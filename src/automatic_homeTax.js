@@ -116,14 +116,17 @@ async function runAutomation_homeTax(data) {
     } else {
         console.log('테이블을 찾을 수 없습니다.');
     }
-    const nButton = await frame.getByRole("row", {name: data.taxCertificateName, exact:true});
 
-    if (await nButton.count()>0) {
+    // 서정현()002368820140731123000311
+
+    const nButton = await frame.getByRole("row").getByTitle(data.taxCertificateName,{exact:true});
+    const btnCnt = await nButton.count();
+    if (btnCnt > 0) {
         await nButton.click();
     }
     else {
-        log.error(`세금계산서용 인증서의 이름이 정확한지 확인하세요: "${data.certificateName}"`);
-        console.log(`세금계산서용 인증서의 이름이 정확한지 확인하세요: "${data.certificateName}"`);
+        log.error(`세금계산서용 인증서의 이름이 정확한지 확인하세요: "${data.taxCertificateName}"`);
+        console.log(`세금계산서용 인증서의 이름이 정확한지 확인하세요: "${data.taxCertificateName}"`);
     }
 
     // await page.getByText(data.taxCertificateName,{exact:true}).click();
@@ -133,7 +136,7 @@ async function runAutomation_homeTax(data) {
          .click();
     await frame
          .locator("#input_cert_pw") //
-         .fill(data.certificatePassword); // 인증서 암호 채우기
+         .fill(data.taxCertificatePassword); // 인증서 암호 채우기
     // 확인 버튼 눌러서 로그인
     await frame
          .getByRole("button", { name: "확인" }).click();
@@ -146,45 +149,69 @@ async function runAutomation_homeTax(data) {
     await page.waitForTimeout(1000);
     const link2 = await page.getByRole("link", { name: "전자(세금)계산서 일괄발급", exact: true });
 
-    if (await link2.count()>0) {
+    if (await link2.count() > 0) {
         await link2.click();
     }
     else {
-        console.log("일괄 발급 링크 못찾음");
-        log.error("일괄 발급 메뉴 링크 못찾음");
+        console.log("홈택스에서 일괄 발급 링크 못찾음");
+        log.error("홈택스에서 일괄 발급 메뉴 링크 못찾음");
     }
-    // 전자세금계산서 등록 화면에서 대기 필요함
-    await page.waitForLoadState("domcontentloaded", {timeout:2000});
 
+    // 3-6.전자세금계산서 체크박스 선택 분 다운로드
+    try {
+        if (!isEmpty(data.hometaxFileName) && !isEmpty(data.hometaxFileSignedUrl)) {
+            console.log("Start hometax file Download");
+            await downloadFile(
+                userHomeTaxDirectory,
+                data.hometaxFileSignedUrl,
+                data.hometaxFileName
+            );
+            console.log("Start cgm_seq_no_file Downloaded");
+            log.info("Start cgm_seq_no_file Downloaded");
+        }
+    }
+    catch(e) {
+        log.error("cgm_seq_no_file error", e.message);
+        console.log("cgm_seq_no_file error", e.message);
+    }
+
+    await page.waitForLoadState("domcontentloaded", {timeout:8000});
+    await page.waitForTimeout(2000);
     const fileInput = await page.locator("#mf_txppWframe_filename");
     if (await fileInput.count()>0) {
         console.log("파일 선택창 찾음");
         // 파일 경로를 강제로 설정
-        await page.waitForLoadState("domcontentloaded", {timeout:3000});
         try {
-            await fileInput.setInputFiles('/Users/m1u/downloads/세금계산서등록양식(일반) (1).xls'); // 파일 경로 지정
+            await fileInput.setInputFiles('/Users/m1u/downloads/20241201~2024_12_31_홈텍스제출용_세금계산서.xlsx'); // 파일 경로 지정
         } catch (e) {
             console.error(`업로드할 세금계산서 파일 찾는 중 오류 발생: ${e.message}`);
         }
-        // await fileInput.click();
+        await fileInput.click();
 
+        // 엑셀 전환버튼 클릭
+        const convertBtn = await page.locator("#mf_txppWframe_trigger37");
+        await page.waitForTimeout(10000);
+        await convertBtn.click(); // 엑셀 변환버튼 클릭
+        console.log("excel convert button clicked");
     }
     else {
         console.log("파일 선택창 못찾음");
     }
-    // if (true) {
-    //     await page.click('#stg_finance');
-    // }
-    // else {
-    //     await page.click('#stg_hdd');
-    // }
 
-    console.log("ss");
+    // 일괄신고 버튼 클릭
+    const btnBndlEtxivIsnAll = await page.locator("#mf_txppWframe_btnBndlEtxivIsnAll");
+    await page.waitForTimeout(2000);
+    await btnBndlEtxivIsnAll.click();
+
+
+
+
+
     //await page('#mf_wfHeader_group1503').click();
     //await page.locator("#grp_loginBtn").click();
     // await page.locator("#btnCorpLogin").click();
     /*
-    await page.getByRole("radio", { name: data.certificateLocation }).click();
+    await page.getByRole("radio", { name: data.taxCertificateLocation }).click();
     // 하드디스크의 경우 certificateLocation 값이 비어있기 때문에 오류 메시지가 뜸
     try {
         const linkElement = await page.getByRole("link", {
@@ -201,7 +228,7 @@ async function runAutomation_homeTax(data) {
     await page.getByRole("textbox", { name: "인증서 암호" }).click();
     await page
         .getByRole("textbox", { name: "인증서 암호" })
-        .fill(data.certificatePassword);
+        .fill(data.taxCertificatePassword);
     await page.getByRole("button", { name: "확인" }).click();
     //await page.getByRole('link', { name: data.corporateId }).click();
 */
@@ -305,6 +332,32 @@ function isEmpty(value) {
 
 }
 
+async function searchIframePopup( page, startWord, endWord ) {
+    const frames = page.frames();
+    let dynamicFrame;
+    let dynamicFrameId;
+    for (const frame of frames) {
+        const ids = await frame.evaluate(() => {
+            const iframes = Array.from(document.querySelectorAll("iframe"));
+            return iframes.map((iframe) => iframe.id);
+        });
+        for (const id of ids) {
+            if (id.startsWith(startWord) && id.endsWith(endWord)) {
+                dynamicFrame = frame;
+                dynamicFrameId = id;
+                console.log("Dynamic iframe found with ID:", id);
+                break;
+            }
+        }
+        if (dynamicFrame) break;
+    }
+
+    return dynamicFrameId;
+
+}
+
+
+
 
 // Chrome Preferences 파일 경로 설정
 function getChromePreferencesPath() {
@@ -355,11 +408,64 @@ function getChromeDownloadDirectory() {
 
         if (downloadPath) {
             console.log('Chrome Download Directory:', downloadPath);
+            return downloadPath;
         } else {
             console.log('Default Chrome Download Directory 설정이 없습니다.');
+            return '';
         }
+
     } catch (err) {
         console.error('Error reading Chrome Preferences:', err.message);
+        return '';
     }
+}
+
+async function downloadFile(downloadsDirectory, url, filename) {
+    console.log("downloadFile start");
+    fetch(url)
+        .then((response) => response.arrayBuffer())
+        .then((data) => {
+            const filePath = path.join(downloadsDirectory, filename);
+            fs.writeFile(filePath, Buffer.from(data), (err) => {
+                if (err) {
+                    console.error("Download failed:", err);
+                } else {
+                    console.log("Download completed!");
+                }
+            });
+        })
+        .catch((err) => console.error("Fetch failed:", err));
+}
+
+function isEmptyCertificationInfo(data) {
+    if (isEmpty(data.taxCertificateLocation)) return true;
+    if (data.taxCertificateLocation !== '하드디스크' && isEmpty(data.taxCertificatePath)) return true;
+    if (isEmpty(data.taxCertificateName)) return true;
+    if (isEmpty(data.taxCertificateLocation)) return true;
+
+}
+
+async function searchIframePopup( page, startWord, endWord ) {
+    const frames = page.frames();
+    let dynamicFrame;
+    let dynamicFrameId;
+    for (const frame of frames) {
+        const ids = await frame.evaluate(() => {
+            const iframes = Array.from(document.querySelectorAll("iframe"));
+            return iframes.map((iframe) => iframe.id);
+        });
+        for (const id of ids) {
+            if (id.startsWith(startWord) && id.endsWith(endWord)) {
+                dynamicFrame = frame;
+                dynamicFrameId = id;
+                console.log("Dynamic iframe found with ID:", id);
+                break;
+            }
+        }
+        if (dynamicFrame) break;
+    }
+
+    return dynamicFrameId;
+
 }
 module.exports = { runAutomation_homeTax };

@@ -2,11 +2,10 @@ const {
   app,
   BrowserWindow,
   ipcMain,
-  ipcRenderer,
   session,
   Menu,
   safeStorage,
-    screen
+    screen, ipcRenderer
 } = require("electron");
 const os = require('os');
 const path = require("path");
@@ -372,6 +371,7 @@ app.whenReady().then(() => {
           label: "HomeTax 신고",
           click: () => {
             ipcMain.emit('start-hometax');
+            // ipcRenderer.send('start-hometax', data_0);
           }
         },
         {
@@ -440,7 +440,7 @@ ipcMain.on("start-hometax", async (event, data_0) => {
         ...settings,
         ...data_0,
       };
-      //console.log("Automation Data:", automationData); // 확인용 출력
+      console.log("Automation Data:", automationData); // 확인용 출력
       await runAutomation_homeTax(automationData);
 
     } else {
@@ -571,6 +571,62 @@ ipcMain.on("tax-load-settings", async (event) => {
 ipcMain.on("tax-save-settings", async (event, data) => {
   await manageLocalData("settings", data);
 });
+
+ipcMain.on("start-playwright", async (event, data) => {
+  try {
+    const settings = await manageLocalData("settings");
+    if (settings) {
+      // Merge the settings with the data received from the renderer process
+      const automationData = {
+        ...settings,
+        ...data,
+      };
+      //console.log("Automation Data:", automationData); // 확인용 출력
+      await runAutomation_billing(automationData);
+    } else {
+      console.error("Failed to load settings.");
+    }
+  } catch (e) {
+    console.error("Error running automation:", e.message);
+    await sendLogToServer(
+        data.docId,
+        "fail",
+        `Automation task failed: ${e.message}`,
+        data.csrfToken,
+        data.csrfHeader
+    );
+  }
+});
+
+/* 세금계산서 신고 부분 */
+
+ipcMain.on("start-hometax-playwright", async (event, data) => {
+  try {
+    const settings = await manageLocalData("settings");
+    if (settings) {
+      // Merge the settings with the data received from the renderer process
+      const automationData = {
+        ...settings,
+        ...data,
+      };
+      console.log("Automation Data:", automationData); // 확인용 출력
+      await runAutomation_homeTax(automationData);
+    } else {
+      console.error("Failed to load settings.");
+    }
+  } catch (e) {
+    console.error("Error running automation:", e.message);
+    await sendLogToServer(
+        data.docId,
+        "fail",
+        `Automation task failed: ${e.message}`,
+        data.csrfToken,
+        data.csrfHeader
+    );
+  }
+});
+
+
 
 
 
