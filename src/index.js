@@ -368,13 +368,6 @@ app.whenReady().then(() => {
       label: "전자세금계산서",
       submenu: [
         {
-          label: "HomeTax 신고",
-          click: () => {
-            ipcMain.emit('start-hometax');
-            // ipcRenderer.send('start-hometax', data_0);
-          }
-        },
-        {
           label: "세금계산서용 인증서 설정",
           click: () => createSettingWindow({
             width: 630, height: 560,

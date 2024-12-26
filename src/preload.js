@@ -68,7 +68,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
 
   // 전자세금계산서 신고등록
-  let button_hometax_billing = document.querySelector("#autoTaxInvoiceBillBtn"); //id="autoBillingHistory"
+  let button_hometax_billing = document.querySelector("#autoTaxInvoiceBillBtn");
   if (!isEmpty(button_hometax_billing)) {
       button_hometax_billing.addEventListener('click', () => {
         /* 2024.12.18

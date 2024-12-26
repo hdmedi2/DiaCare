@@ -11,7 +11,6 @@ const year = today.getFullYear(); // 2023
 const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
 const day = today.getDate().toString().padStart(2, '0'); // 18
 const dateString = year + '-' + month + '-' + day; // 2023-06-18
-const hometaxDownloadPath = getChromeDownloadDirectory();
 let logPath = "";
 let userFileDirectory = "";
 let userHomeTaxDirectory = "";
@@ -58,13 +57,13 @@ if (!fs.existsSync(userHomeTaxDirectory)) {
 // 2-5. 로그 파일명 설정
 Object.assign(console, log.functions);
 log.transports.file.resolvePathFn = () => path.join(logPath, 'main-' + dateString +'.log');
-
+/*
 // 2-6.엑셀 일괄파일 다운로드
 try {
     console.log("Start hometax_file Download");
     log.info("Start hometax_file Download");
         downloadFile(
-        hometaxDownloadPath,
+            userHomeTaxDirectory,
         data.hometaxFileSignedUrl,
         data.hometaxFileName
     );
@@ -75,7 +74,7 @@ catch(e) {
     console.error(e.message);
     log.error(e.message);
 }
-
+*/
 
 
 /**
@@ -84,6 +83,25 @@ catch(e) {
  * @returns {Promise<void>}
  */
 async function runAutomation_homeTax(data) {
+    // 3-6.전자세금계산서 체크박스 선택 분 다운로드
+    try {
+        if (!isEmpty(data.hometaxFileName) && !isEmpty(data.hometaxFileSignedUrl)) {
+            console.log("Start hometax file Download");
+            await downloadFile(
+                userHomeTaxDirectory,
+                data.hometaxFileSignedUrl,
+                data.hometaxFileName
+            );
+            console.log("Start hometax excel Downloaded");
+            log.info("Start hometax excel Downloaded");
+        }
+    }
+    catch(e) {
+        log.error("no hometax file error", e.message);
+        console.log("no hometax file error", e.message);
+    }
+
+
     const channels = [
         "chrome",
         "chrome-beta",
@@ -176,23 +194,7 @@ async function runAutomation_homeTax(data) {
         log.error("홈택스에서 일괄 발급 메뉴 링크 못찾음");
     }
 
-    // 3-6.전자세금계산서 체크박스 선택 분 다운로드
-    try {
-        if (!isEmpty(data.hometaxFileName) && !isEmpty(data.hometaxFileSignedUrl)) {
-            console.log("Start hometax file Download");
-            await downloadFile(
-                userHomeTaxDirectory,
-                data.hometaxFileSignedUrl,
-                data.hometaxFileName
-            );
-            console.log("Start cgm_seq_no_file Downloaded");
-            log.info("Start cgm_seq_no_file Downloaded");
-        }
-    }
-    catch(e) {
-        log.error("cgm_seq_no_file error", e.message);
-        console.log("cgm_seq_no_file error", e.message);
-    }
+
 
     await page.waitForLoadState("domcontentloaded", {timeout:8000});
     await page.waitForTimeout(2000);
@@ -201,7 +203,7 @@ async function runAutomation_homeTax(data) {
         console.log("파일 선택창 찾음");
         // 파일 경로를 강제로 설정
         try {
-            await fileInput.setInputFiles(path.join(hometaxDownloadPath, data.hometaxFileName)); // 파일 경로 지정
+            await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // 파일 경로 지정
         } catch (e) {
             console.error(`업로드할 세금계산서 파일 찾는 중 오류 발생: ${e.message}`);
         }
@@ -222,7 +224,29 @@ async function runAutomation_homeTax(data) {
     await page.waitForTimeout(2000);
     await btnBndlEtxivIsnAll.click();
 
-    // await browser.close();
+    // dialog 이벤트 핸들러
+    const dialogHandler = async (dialog) => {
+        console.log(`Dialog message: ${dialog.message()}`); // dialog 창 메시지 출력
+        if (dialog.type() === 'confirm') {
+            await dialog.accept(); // '확인' 버튼 누르기
+            console.log('Confirmed!');
+        } else {
+            await dialog.dismiss(); // 다른 종류의 dialog는 닫기
+            console.log('Dialog dismissed!');
+        }
+
+        // 이벤트 리스너 제거
+        page.off('dialog', dialogHandler);
+        console.log('Dialog handler removed!');
+    };
+
+    // dialog 이벤트를 핸들링
+    page.on('dialog', dialogHandler);
+
+
+
+
+    await browser.close();
 }
 
 /**
