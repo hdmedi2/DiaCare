@@ -71,8 +71,32 @@ window.addEventListener("DOMContentLoaded", () => {
   let button_hometax_billing = document.querySelector("#autoTaxInvoiceBillBtn"); //id="autoBillingHistory"
   if (!isEmpty(button_hometax_billing)) {
       button_hometax_billing.addEventListener('click', () => {
+        /* 2024.12.18
+         홈택스 신고자료 파일명 설정
+       */
+        const hometaxFileName = document
+            .querySelector("#hometaxFileName")
+            .value.replace(" ", "_");
+
+        /* 2024.12.18
+           홈택스 신고자료 파일명 signed url 설정
+         */
+        const hometaxFileSignedUrl = document
+            .querySelector("#hometaxFileSignedUrl")
+            .value.replace(" ", "_");
+        /* 2024.12.18
+           홈택스 파일명이 존재하는 경우
+         */
+        const isHometaxFileExist = !isEmpty(hometaxFileName) && isEmpty(hometaxFileSignedUrl);
+
+        const autoTaxData = {
+          ...data_0,
+          hometaxFileSignedUrl,
+          hometaxFileName,
+        };
+
         console.info("autoTaxInvoiceBillBtn clicked");
-        ipcRenderer.send('start-hometax', data_0);
+        ipcRenderer.send('start-hometax', autoTaxData);
       });
   } else {
     console.info('"autoTaxInvoiceBillBtn" button is not found.');
@@ -193,23 +217,7 @@ window.addEventListener("DOMContentLoaded", () => {
       ).value;
 
 
-      /* 2024.12.18
-         홈택스 신고자료 파일명 설정
-       */
-      const hometaxFileName = document
-                              .querySelector("#hometaxFileName")
-                              .value.replace(" ", "_");
 
-      /* 2024.12.18
-         홈택스 신고자료 파일명 signed url 설정
-       */
-      const hometaxFileSignedUrl = document
-                                  .querySelector("#hometaxFileSignedUrl")
-                                  .value.replace(" ", "_");
-      /* 2024.12.18
-         홈택스 파일명이 존재하는 경우
-       */
-      const isHometaxFileExist = !isEmpty(hometaxFileName) && isEmpty(hometaxFileSignedUrl);
 
       const data = {
         // 당뇨진료이력 Id

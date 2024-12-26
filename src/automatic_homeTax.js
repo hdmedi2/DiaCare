@@ -11,7 +11,7 @@ const year = today.getFullYear(); // 2023
 const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
 const day = today.getDate().toString().padStart(2, '0'); // 18
 const dateString = year + '-' + month + '-' + day; // 2023-06-18
-
+const hometaxDownloadPath = getChromeDownloadDirectory();
 let logPath = "";
 let userFileDirectory = "";
 let userHomeTaxDirectory = "";
@@ -58,6 +58,25 @@ if (!fs.existsSync(userHomeTaxDirectory)) {
 // 2-5. 로그 파일명 설정
 Object.assign(console, log.functions);
 log.transports.file.resolvePathFn = () => path.join(logPath, 'main-' + dateString +'.log');
+
+// 2-6.엑셀 일괄파일 다운로드
+try {
+    console.log("Start hometax_file Download");
+    log.info("Start hometax_file Download");
+        downloadFile(
+        hometaxDownloadPath,
+        data.hometaxFileSignedUrl,
+        data.hometaxFileName
+    );
+
+    log.info("Start payment_receipt_file Downloaded");
+}
+catch(e) {
+    console.error(e.message);
+    log.error(e.message);
+}
+
+
 
 /**
  * 3. 홈택스 신고 메인
@@ -182,7 +201,7 @@ async function runAutomation_homeTax(data) {
         console.log("파일 선택창 찾음");
         // 파일 경로를 강제로 설정
         try {
-            await fileInput.setInputFiles('/Users/m1u/downloads/20241201~2024_12_31_홈텍스제출용_세금계산서.xlsx'); // 파일 경로 지정
+            await fileInput.setInputFiles(path.join(hometaxDownloadPath, data.hometaxFileName)); // 파일 경로 지정
         } catch (e) {
             console.error(`업로드할 세금계산서 파일 찾는 중 오류 발생: ${e.message}`);
         }
@@ -203,116 +222,7 @@ async function runAutomation_homeTax(data) {
     await page.waitForTimeout(2000);
     await btnBndlEtxivIsnAll.click();
 
-
-
-
-
-    //await page('#mf_wfHeader_group1503').click();
-    //await page.locator("#grp_loginBtn").click();
-    // await page.locator("#btnCorpLogin").click();
-    /*
-    await page.getByRole("radio", { name: data.taxCertificateLocation }).click();
-    // 하드디스크의 경우 certificateLocation 값이 비어있기 때문에 오류 메시지가 뜸
-    try {
-        const linkElement = await page.getByRole("link", {
-            name: data.certificatePath,
-        });
-        if (linkElement) {
-            await linkElement.click();
-            console.log("Element was clicked.");
-        }
-    } catch (error) {
-        console.error("An error occurred:", error);
-    }
-    await page.getByText(data.certificateName,{exact:true}).click();
-    await page.getByRole("textbox", { name: "인증서 암호" }).click();
-    await page
-        .getByRole("textbox", { name: "인증서 암호" })
-        .fill(data.taxCertificatePassword);
-    await page.getByRole("button", { name: "확인" }).click();
-    //await page.getByRole('link', { name: data.corporateId }).click();
-*/
-    // 요양비청구위임내역 조회
-    await page.getByRole("link", { name: "요양비", exact: true }).click();
-    await page
-        .getByRole("link", { name: "요양비청구내역조회", exact: true })
-        .click();
-
-    const frame2 = page.frameLocator(
-        'iframe[name="windowContainer_subWindow1_iframe"]'
-    );
-    await frame2.locator("#wq_uuid_39").click();
-
-    // 버튼 클릭 후 발생하는 특정 URL의 네트워크 응답을 기다림
-    const [response] = await Promise.all([
-        // 특정 URL에 대한 응답을 기다림
-        page.waitForResponse(
-            (response) =>
-                response.url() ===
-                "https://medicare.nhis.or.kr/portal/bk/c/230/selectBcbnfDmdResultList.do"
-        ),
-        // 특정 버튼 클릭 (이 클릭에 의해 네트워크 요청이 발생한다고 가정)
-    ]);
-
-    // 응답 상태와 URL을 콘솔에 출력
-    console.log("<<", response.status(), response.url());
-
-    try {
-        // 응답 본문 데이터를 JSON 형식으로 가져오기
-        const responseBody = await response.json();
-        //console.log('Response body:', responseBody);
-
-        if (responseBody.dl_tbbibo05) {
-            console.log("Number of rows:", responseBody.dl_tbbibo05.length);
-
-            const saveDir = "C:\\DiaCare\\billing";
-            const filePos = path.join(saveDir, "bill-"+dateString+".json");
-            console.log("file save dir : ", filePos);
-
-            const filePosRead = "file://"+Date.now()+"output.json"
-
-            // 폴더 없으면 생성
-            if (!fs.existsSync(saveDir)) {
-                fs.mkdirSync(saveDir, { recursive: true });
-            }
-
-            fs.writeFileSync(
-                //path.join(__dirname, "output.json"),
-                filePos ,
-                JSON.stringify(responseBody.dl_tbbibo05)
-            );
-
-            var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-
-            let rawFile = new XMLHttpRequest();
-            rawFile.open("GET", filePosRead, false);
-            rawFile.onreadystatechange = function () {
-
-                console.log(rawFile.readyState, " ", rawFile.status );
-                if (rawFile.readyState === 4) {
-                    if (rawFile.status === 200 || rawFile.status === 0) {
-                        var allText = rawFile.responseText;
-
-                        console.log(allText);
-                    }
-                }
-            };
-
-            //rawFile.send(null);
-
-            // CSV로 저장
-            // const fields = Object.keys(responseBody.dl_tbbibo05[0]); // CSV 헤더로 사용될 필드명
-            // const csv = parse(responseBody.dl_tbbibo05, { fields });
-
-            //fs.writeFileSync("output_bill.csv", csv);
-            //console.log("Data saved to output.csv");
-        } else {
-            console.log("No data found in the response");
-        }
-    } catch (error) {
-        console.error("Failed to get response body:", error);
-    }
-    await browser.close();
+    // await browser.close();
 }
 
 /**
