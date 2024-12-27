@@ -258,12 +258,9 @@ function isEmpty(value) {
     if (typeof value === "undefined" || value === null || value === "" || value === "null") {
         return Boolean(true);
     } else {
-        if (value.hasOwnProperty(count) && value.count()>0) {
-            return Boolean(false);
-        }
-        else return Boolean(true);
+        if (value.trim() === "") return Boolean(true);
+        else return Boolean(false);
     }
-
 }
 
 async function searchIframePopup( page, startWord, endWord ) {

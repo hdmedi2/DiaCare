@@ -24,6 +24,8 @@ const { sendDelegationToBack } = require("./sendDelegationToBack");
 
 const SESSION_FILE_PATH = path.join(app.getPath("userData"), "session.json");
 const SETTINGS_FILE_PATH = path.join(app.getPath("userData"), "settings.json");
+const TAX_SETTINGS_FILE_PATH = path.join(app.getPath("userData"), "tax_settings.json");
+
 // const {create} = require("axios");
 const {PHARM_URL, SAVE_LOG_DIR, SAVE_MAIN_DIR } = require("../config/default.json");
 const log = require("electron-log");
@@ -139,7 +141,7 @@ const deleteSession = async () => {
 };
 
 const manageLocalData = async (type, data = null) => {
-  const filePath = type === "session" ? SESSION_FILE_PATH : SETTINGS_FILE_PATH;
+  const filePath = (type === "session") ? SESSION_FILE_PATH : ((type=== "settings") ? SETTINGS_FILE_PATH : TAX_SETTINGS_FILE_PATH);
 
   if (data) {
     try {
@@ -427,10 +429,11 @@ ipcMain.on("start-check-delegation", async (event, data_0) => {
 ipcMain.on("start-hometax", async (event, data_0) => {
   try {
     const settings = await manageLocalData("settings");
-
+    const taxSettings = await manageLocalData("tax-settings");
     if (settings) {
       const automationData = {
         ...settings,
+        ...taxSettings,
         ...data_0,
       };
       console.log("Automation Data:", automationData); // 확인용 출력
@@ -557,21 +560,23 @@ ipcMain.on("load-settings", async (event) => {
 });
 
 ipcMain.on("tax-load-settings", async (event) => {
-  const settings = await loadLocalData("settings");
+  const settings = await loadLocalData("tax-settings");
   event.reply("tax-load-settings", settings || {});
 });
 
 ipcMain.on("tax-save-settings", async (event, data) => {
-  await manageLocalData("settings", data);
+  await manageLocalData("tax-settings", data);
 });
 
 ipcMain.on("start-playwright", async (event, data) => {
   try {
     const settings = await manageLocalData("settings");
+    const taxSettings = await managedLocalData("tax-settings");
     if (settings) {
       // Merge the settings with the data received from the renderer process
       const automationData = {
         ...settings,
+        ...taxSettings,
         ...data,
       };
       //console.log("Automation Data:", automationData); // 확인용 출력
