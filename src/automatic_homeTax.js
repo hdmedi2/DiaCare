@@ -197,21 +197,28 @@ async function runAutomation_homeTax(data) {
 
 
     await page.waitForLoadState("domcontentloaded", {timeout:8000});
-    await page.waitForTimeout(2000);
+
+    await page.waitForSelector('#mf_txppWframe_filename');
     const fileInput = await page.locator("#mf_txppWframe_filename");
     if (await fileInput.count()>0) {
         console.log("파일 선택창 찾음");
         // 파일 경로를 강제로 설정
         try {
-            await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // 파일 경로 지정
+            // await fileInput.click(); // 클릭 금지
+
+            await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName));
+          //  await page.waitForTimeout(6000);
+            // 파일 경로 지정
         } catch (e) {
             console.error(`업로드할 세금계산서 파일 찾는 중 오류 발생: ${e.message}`);
+
         }
-        await fileInput.click();
+
+
+
 
         // 엑셀 전환버튼 클릭
         const convertBtn = await page.locator("#mf_txppWframe_trigger37");
-        await page.waitForTimeout(10000);
         await convertBtn.click(); // 엑셀 변환버튼 클릭
         console.log("excel convert button clicked");
     }
@@ -219,9 +226,12 @@ async function runAutomation_homeTax(data) {
         console.log("파일 선택창 못찾음");
     }
 
+    // mf_txppWframe_UTEETBAA77 오류 레이어팝업 뜨는 div
+    // mf_txppWframe_UTEETBAA77_wframe_trigger20 [확인]
+
     // 일괄신고 버튼 클릭
     const btnBndlEtxivIsnAll = await page.locator("#mf_txppWframe_btnBndlEtxivIsnAll");
-    await page.waitForTimeout(2000);
+   //  await page.waitForTimeout(2000);
     await btnBndlEtxivIsnAll.click();
 
     // dialog 이벤트 핸들러
@@ -242,9 +252,6 @@ async function runAutomation_homeTax(data) {
 
     // dialog 이벤트를 핸들링
     page.on('dialog', dialogHandler);
-
-
-
 
     await browser.close();
 }

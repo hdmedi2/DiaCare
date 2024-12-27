@@ -107,10 +107,12 @@ async function checkBilling(data) {
     const linkElement = await page.getByRole("link", {
       name: data.certificatePath,
     });
+    await page.waitForTimeout(1000);
     if (linkElement) {
       await linkElement.click();
       console.log("Element was clicked.");
     }
+    await page.waitForTimeout(2000);
   } catch (error) {
     console.error("An error occurred:", error);
   }
@@ -123,6 +125,7 @@ async function checkBilling(data) {
   //await page.getByRole('link', { name: data.corporateId }).click();
 
   // 요양비청구위임내역 조회
+  await page.waitForTimeout(2000);
   await page.getByRole("link", { name: "요양비", exact: true }).click();
   await page
     .getByRole("link", { name: "요양비청구내역조회", exact: true })
