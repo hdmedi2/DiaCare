@@ -466,7 +466,7 @@ ipcMain.on("start-crawl-delegation", async (event, data_0) => {
   }
 });
 
-ipcMain.on("start-check-bill", async () => {
+ipcMain.on("start-check-bill", async (event, data_0) => {
   try {
     const settings = await manageLocalData("settings");
 
