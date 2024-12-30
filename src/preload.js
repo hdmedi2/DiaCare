@@ -73,41 +73,47 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-
-
-  // 전자세금계산서 신고등록
-  let button_hometax_billing = document.querySelector("#autoTaxInvoiceBillBtn");
-  if (!isEmpty(button_hometax_billing)) {
-      button_hometax_billing.addEventListener('click', () => {
-        /* 2024.12.18
-         홈택스 신고자료 파일명 설정
-       */
-        const hometaxFileName = document
-            .querySelector("#hometaxFileName")
-            .value.replace(" ", "_");
-
-        /* 2024.12.18
-           홈택스 신고자료 파일명 signed url 설정
+  // 계산기 > 계산목록 조회
+  if (
+      url.includes("/pharm/diabetes/calc-list-view") ||
+      url.includes("/pharm/diabetes/calc-list")
+  ) {
+    // 전자세금계산서 신고등록
+    let button_hometax_billing = document.querySelector("#autoTaxInvoiceBillBtn");
+    if (!isEmpty(button_hometax_billing)) {
+        button_hometax_billing.addEventListener('click', () => {
+          /* 2024.12.18
+           홈택스 신고자료 파일명 설정
          */
-        const hometaxFileSignedUrl = document
-            .querySelector("#hometaxFileSignedUrl")
-            .value.replace(" ", "_");
-        /* 2024.12.18
-           홈택스 파일명이 존재하는 경우
-         */
-        const isHometaxFileExist = !isEmpty(hometaxFileName) && isEmpty(hometaxFileSignedUrl);
+          const hometaxFileName = document
+              .querySelector("#hometaxFileName")
+              .value.replace(" ", "_");
 
-        const autoTaxData = {
-          ...data_0,
-          hometaxFileSignedUrl,
-          hometaxFileName,
-        };
+          /* 2024.12.18
+             홈택스 신고자료 파일명 signed url 설정
+           */
+          const hometaxFileSignedUrl = document
+              .querySelector("#hometaxFileSignedUrl")
+              .value.replace(" ", "_");
+          /* 2024.12.18
+             홈택스 파일명이 존재하는 경우
+           */
+          const isHometaxFileExist = !isEmpty(hometaxFileName) && isEmpty(hometaxFileSignedUrl);
 
-        console.info("autoTaxInvoiceBillBtn clicked");
-        ipcRenderer.send('start-hometax', autoTaxData);
-      });
-  } else {
-    console.info('"autoTaxInvoiceBillBtn" button is not found.');
+          const autoTaxData = {
+            ...data_0,
+            hometaxFileSignedUrl,
+            hometaxFileName,
+            isHometaxFileExist: isHometaxFileExist,
+          };
+
+          console.info("autoTaxInvoiceBillBtn clicked");
+          ipcRenderer.send('start-hometax', autoTaxData);
+        });
+    } else {
+      console.info('"autoTaxInvoiceBillBtn" button is not found.');
+    }
+
   }
 
   // 계산기 > 데이터 수정하기 calc-update ,  계산목록 > 환자 한명 선택하면 calc-detail
@@ -281,11 +287,6 @@ window.addEventListener("DOMContentLoaded", () => {
         // API 연결을 위한 token
         csrfToken: csrfToken,
         csrfHeader: csrfHeader,
-
-        // 홈택스 신고용 엑셀파일
-        hometaxFileSignedUrl: hometaxFileSignedUrl,
-        hometaxFileName: hometaxFileName,
-        isHometaxFileExist: isHometaxFileExist,
       };
 
       ipcRenderer.send("start-playwright", data);
