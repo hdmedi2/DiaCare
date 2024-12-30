@@ -177,7 +177,7 @@ async function runAutomation_homeTax(data) {
         try {
             // await fileInput.click(); // 클릭 금지
 
-            await fileInput.setInputFiles(path.join(userHomeTaxDirectory, "1.xlsx")); // data.hometaxFileName
+            await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
           //  await page.waitForTimeout(6000);
             // 파일 경로 지정
         } catch (e) {
