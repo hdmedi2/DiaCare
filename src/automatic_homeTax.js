@@ -137,47 +137,18 @@ async function runAutomation_homeTax(data) {
     // 3-2. 공인인증서 로그인
     const page = await context.newPage();
     await page.goto(HOMETAX_URL);
-    await page.waitForTimeout(2000);
+
+
+    await page.waitForLoadState("domcontentloaded");
+
+    await page.locator('#mf_wfHeader_group1503').waitFor({state: 'visible'});
+
     await page.click('#mf_wfHeader_group1503');
     //
     await page.click('#mf_txppWframe_anchor22');
 
-    // 3-3 인증서 팝업창 선택
-    const frame = await page.frameLocator('#dscert');
-    await page.waitForTimeout(2000);
-    const strSlide = await frame.locator("#wrap_stg_01");
-
-    // 테이블이 존재하는지 확인
-    if (await strSlide.count() > 0) {
-        console.log('테이블을 찾았습니다.');
-    } else {
-        console.log('테이블을 찾을 수 없습니다.');
-    }
-
-    // 서정현()002368820140731123000311
-
-    const nButton = await frame.getByRole("row").getByTitle(data.taxCertificateName,{exact:true});
-    const btnCnt = await nButton.count();
-    if (btnCnt > 0) {
-        await nButton.click();
-    }
-    else {
-        log.error(`세금계산서용 인증서의 이름이 정확한지 확인하세요: "${data.taxCertificateName}"`);
-        console.log(`세금계산서용 인증서의 이름이 정확한지 확인하세요: "${data.taxCertificateName}"`);
-    }
-
-    // await page.getByText(data.taxCertificateName,{exact:true}).click();
-    // await page.getByRole("textbox", { name: "인증서 암호" }).click();
-    await frame
-         .locator("#input_cert_pw") // 인증서 암호란 클릭
-         .click();
-    await frame
-         .locator("#input_cert_pw") //
-         .fill(data.taxCertificatePassword); // 인증서 암호 채우기
-    // 확인 버튼 눌러서 로그인
-    await frame
-         .getByRole("button", { name: "확인" }).click();
-
+    // 인증서 로그인 시도
+    await certSign(page, data.taxCertificateName, data.certificatePassword);
 
     // 3-5. 전자세금계산서 발행 메뉴 찾아가기
     await page.waitForTimeout(2000)
@@ -193,8 +164,6 @@ async function runAutomation_homeTax(data) {
         console.log("홈택스에서 일괄 발급 링크 못찾음");
         log.error("홈택스에서 일괄 발급 메뉴 링크 못찾음");
     }
-
-
 
     await page.waitForLoadState("domcontentloaded", {timeout:8000});
 
@@ -213,9 +182,6 @@ async function runAutomation_homeTax(data) {
             console.error(`업로드할 세금계산서 파일 찾는 중 오류 발생: ${e.message}`);
 
         }
-
-
-
 
         // 엑셀 전환버튼 클릭
         const convertBtn = await page.locator("#mf_txppWframe_trigger37");
@@ -253,6 +219,30 @@ async function runAutomation_homeTax(data) {
     // dialog 이벤트를 핸들링
     page.on('dialog', dialogHandler);
 
+
+    // 인증서 입력창 나오면 최종 서명
+    // `div#dscertContainer`의 스타일이 변경될 때까지 대기
+    const containerLocator = page.locator('#dscertContainer');
+   // 스타일 속성이 변경될 때까지 대기
+    await containerLocator.waitFor({
+        state: 'visible' // 요소가 표시되기를 기다림
+    });
+
+    // 스타일 변경이 감지되면 특정 동작 실행
+    console.log('최종 제출 전 인증서 서명 시작');
+    log.info('최종 제출 전 인증서 서명 시작');
+
+    const iframeElement2 = await page.$('iframe#dscert');
+    if (iframeElement2) {
+            console.log('iframe loaded');
+            // iframe 내부 작업 예제
+            // await certSign(page,  data.taxCertificateName, data.certificatePassword);
+            await certSign(page,  data.taxCertificateName, "1");
+
+    }
+
+    console.log("전자세금계산서 일괄발급 완료");
+    log.info("전자세금계산서 일괄발급 완료");
     await browser.close();
 }
 
@@ -269,33 +259,6 @@ function isEmpty(value) {
         else return Boolean(false);
     }
 }
-
-async function searchIframePopup( page, startWord, endWord ) {
-    const frames = page.frames();
-    let dynamicFrame;
-    let dynamicFrameId;
-    for (const frame of frames) {
-        const ids = await frame.evaluate(() => {
-            const iframes = Array.from(document.querySelectorAll("iframe"));
-            return iframes.map((iframe) => iframe.id);
-        });
-        for (const id of ids) {
-            if (id.startsWith(startWord) && id.endsWith(endWord)) {
-                dynamicFrame = frame;
-                dynamicFrameId = id;
-                console.log("Dynamic iframe found with ID:", id);
-                break;
-            }
-        }
-        if (dynamicFrame) break;
-    }
-
-    return dynamicFrameId;
-
-}
-
-
-
 
 // Chrome Preferences 파일 경로 설정
 function getChromePreferencesPath() {
@@ -383,27 +346,42 @@ function isEmptyCertificationInfo(data) {
 
 }
 
-async function searchIframePopup( page, startWord, endWord ) {
-    const frames = page.frames();
-    let dynamicFrame;
-    let dynamicFrameId;
-    for (const frame of frames) {
-        const ids = await frame.evaluate(() => {
-            const iframes = Array.from(document.querySelectorAll("iframe"));
-            return iframes.map((iframe) => iframe.id);
-        });
-        for (const id of ids) {
-            if (id.startsWith(startWord) && id.endsWith(endWord)) {
-                dynamicFrame = frame;
-                dynamicFrameId = id;
-                console.log("Dynamic iframe found with ID:", id);
-                break;
-            }
-        }
-        if (dynamicFrame) break;
+async  function certSign(page, certName, certPassword) {
+    // 3-3 인증서 팝업창 선택
+    const frame = await page.frameLocator('#dscert');
+    await page.waitForTimeout(2000);
+    const strSlide = await frame.locator("#wrap_stg_01");
+
+    // 테이블이 존재하는지 확인
+    if (await strSlide.count() > 0) {
+        console.log('테이블을 찾았습니다.');
+    } else {
+        console.log('테이블을 찾을 수 없습니다.');
     }
 
-    return dynamicFrameId;
+    // 서정현()002368820140731123000311
 
+    const nButton = await frame.getByRole("row").getByTitle(certName,{exact:true});
+    const btnCnt = await nButton.count();
+    if (btnCnt > 0) {
+        await nButton.click();
+    }
+    else {
+        log.error(`세금계산서용 인증서의 이름이 정확한지 확인하세요: "${certName}"`);
+        console.log(`세금계산서용 인증서의 이름이 정확한지 확인하세요: "${certName}"`);
+    }
+
+    // await page.getByText(data.taxCertificateName,{exact:true}).click();
+    // await page.getByRole("textbox", { name: "인증서 암호" }).click();
+    await frame
+        .locator("#input_cert_pw") // 인증서 암호란 클릭
+        .click();
+    await frame
+        .locator("#input_cert_pw") //
+        .fill(certPassword); // 인증서 암호 채우기
+    // 확인 버튼 눌러서 로그인
+    await frame
+        .getByRole("button", { name: "확인" }).click();
 }
+
 module.exports = { runAutomation_homeTax };
