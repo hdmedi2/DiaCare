@@ -10,7 +10,7 @@ const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
 const day = today.getDate().toString().padStart(2, '0'); // 18
 const dateString = year + '-' + month + '-' + day; // 2023-06-18
 let logPath = "";
-let userFileDirectory = "";
+let userFileDirectory;
 let userHomeTaxDirectory = "";
 let result = "";
 
@@ -267,7 +267,7 @@ async function downloadFile(downloadsDirectory, url, filename) {
         })
         .catch((err) => console.error("Fetch failed:", err));
 }
-
+/*
 function isEmptyCertificationInfo(data) {
     if (isEmpty(data.taxCertificateLocation)) return true;
     if (data.taxCertificateLocation !== '하드디스크' && isEmpty(data.taxCertificatePath)) return true;
@@ -275,6 +275,7 @@ function isEmptyCertificationInfo(data) {
     if (isEmpty(data.taxCertificateLocation)) return true;
 
 }
+*/
 
 async  function certSign(page, certName, certPassword) {
     // 3-3 인증서 팝업창 선택
