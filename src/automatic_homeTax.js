@@ -1,7 +1,5 @@
 const { chromium } = require("playwright");
 const fs = require("fs");
-const { parse } = require("json2csv");
-const {XMLHttpRequest} = require("xmlhttprequest");
 const {HOMETAX_URL, SAVE_HOMETAX_DIR, SAVE_FILE_DIR, SAVE_LOG_DIR, SAVE_MAIN_DIR} = require("../config/default.json");
 const log = require("electron-log");
 const path = require("path");
@@ -251,45 +249,6 @@ function isEmpty(value) {
         if (value.trim() === "") return Boolean(true);
         else return Boolean(false);
     }
-}
-
-// Chrome Preferences 파일 경로 설정
-function getChromePreferencesPath() {
-    const platform = os.platform();
-    let preferencesPath;
-
-    if (platform === 'win32') {
-        preferencesPath = path.join(
-            process.env.LOCALAPPDATA,
-            'Google',
-            'Chrome',
-            'User Data',
-            'Default',
-            'Preferences'
-        );
-    } else if (platform === 'darwin') {
-        preferencesPath = path.join(
-            os.homedir(),
-            'Library',
-            'Application Support',
-            'Google',
-            'Chrome',
-            'Default',
-            'Preferences'
-        );
-    } else if (platform === 'linux') {
-        preferencesPath = path.join(
-            os.homedir(),
-            '.config',
-            'google-chrome',
-            'Default',
-            'Preferences'
-        );
-    } else {
-        throw new Error('Unsupported platform: ' + platform);
-    }
-
-    return preferencesPath;
 }
 
 async function downloadFile(downloadsDirectory, url, filename) {
