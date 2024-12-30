@@ -265,11 +265,13 @@ async function runAutomation_billing(data) {
     // 페이지의 모든 쿠키 가져오기
     console.log("start pharmacyListByBizNo");
     const cookieData = await page.context().cookies();
+    /*
     let pharmacyDataNum = await pharmacyListByBizNo(cookieData, data.pharmacyBizNo);
     console.log("end pharmacyListByBizNo");
 
     if (pharmacyDataNum > 1) {
       // 업체목록이 2건 이상이면 선택
+      await page.waitForTimeout(3000);
       await frame
           .frameLocator('iframe[title="bipbkz300p01"]')
           .locator(`text=${extractedText}`)
@@ -282,7 +284,21 @@ async function runAutomation_billing(data) {
           .frameLocator('iframe[title="bipbkz300p01"]')
           .getByRole("link", { name: "선택" })
           .click();
+    }
+    */
+    const bipbkz300p01 = await searchIframePopup(page, "bipbkz300p01", "_iframe");
 
+    if (bipbkz300p01) {
+      const pharmacyCnt =  await frame.frameLocator('iframe[title="bipbkz300p01"]')
+          .locator(`text=${extractedText}`).waitFor();
+      await frame
+          .frameLocator('iframe[title="bipbkz300p01"]')
+          .getByText(extractedText)
+          .click();
+      await frame
+          .frameLocator('iframe[title="bipbkz300p01"]')
+          .getByRole("link", { name: "선택" })
+          .click();
     }
 
     // 처방전발행일
@@ -351,7 +367,7 @@ async function runAutomation_billing(data) {
     await button.click();
     // 1형 당뇨
     if (firstPart === "1형") {
-      console.log("diabetes 01");
+        console.log("diabetes 01");
       await frame.locator("#sel_bcbnf_recv_cond_type1_itemTable_1").click();
       if (
         secondPart === "연속혈당측정용 전극" ||
@@ -548,6 +564,8 @@ async function runAutomation_billing(data) {
           직전 동일 준요양기관의 청구내역이 있습니다. 동일한 내역으로 청구하시겠습니까? Yes / No
        */
       const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId}"]`);
+      // const innerFrame = frame.frameLocator('iframe[id="confirm_1735550451070_iframe"]');
+
       await innerFrame.locator('a#btn_No').waitFor();
       await innerFrame.locator('a#btn_No').click();
 

@@ -118,6 +118,7 @@ const createWindow = async () => {
       height: height,
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
+      nodeIntegration: false,
       enableRemoteModule: false,
     },
   });
