@@ -524,20 +524,23 @@ async function runAutomation_billing(data) {
     }
     console.log("end diseaseCodeName");
 
-    // 혈당검사횟수, 인슐린투여횟수
-    console.log("start bloodGlucoseTestNumber, insulinInjectionNumber");
-    await frame.locator("#inp_data_cnt13").click();
-    await frame.locator("#inp_data_cnt13").fill("");
-    await frame.locator("#inp_data_cnt13").fill(data.blood);
-    await frame.locator("#inp_data_cnt14").click();
-    await frame.locator("#inp_data_cnt14").fill("");
-    await frame.locator("#inp_data_cnt14").fill(data.insulin);
-    console.log("end bloodGlucoseTestNumber, insulinInjectionNumber");
-
-    // 구매일, 사용개시일, 지급일수
     // 1형 연속혈당측정 유무 확인
     const isCgm = !isEmpty(data.cgmStartDate);
 
+    if (!isCgm) {
+      // 혈당검사횟수, 인슐린투여횟수
+      console.log("start bloodGlucoseTestNumber, insulinInjectionNumber");
+      await frame.locator("#inp_data_cnt13").click();
+      await frame.locator("#inp_data_cnt13").fill("");
+      await frame.locator("#inp_data_cnt13").fill(data.blood);
+      await frame.locator("#inp_data_cnt14").click();
+      await frame.locator("#inp_data_cnt14").fill("");
+      await frame.locator("#inp_data_cnt14").fill(data.insulin);
+      console.log("end bloodGlucoseTestNumber, insulinInjectionNumber");
+
+    }
+
+    // 구매일, 사용개시일, 지급일수
     console.log("start purchaseDate, eatDays");
 
     await frame.locator("#cal_buy_dd_input").click();
@@ -545,63 +548,111 @@ async function runAutomation_billing(data) {
     //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
     await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
 
-    //이전 품목의 금여종료일이 2020.11.23입니다. 사용개시일을 2024.11.24로 자동세팅됩니다.
-    const useStartDateAutoSetAlert = await searchIframePopup(page, "alert_", "_iframe");
-    let isUseStartDateAutoSetAlert = !isEmpty(useStartDateAutoSetAlert);
+    if (isCgm) {
+      // 사유발생일 시점의 중복자격 주민번호 조회 (id="bipbkz110p01")
+      try {
+        const frameExists = await frame
+            .frameLocator('iframe[title="bipbkz110p01"]')
+            .locator("#grv_list_body_tbody")
+            .getByRole("row")
+            .elementHandles();
 
-    await page.waitForTimeout(3000);
+        // 상병코드 조회결과가 1개 이상일때
+        if (frameExists.length > 1) {
+          let selectCell = frameExists.length - 1;
+          await frame
+              .frameLocator('iframe[title="bipbkz110p01"]')
+              .locator("#grv_list_cell_" + selectCell + "_0")
+              .dblclick();
 
-    if (isUseStartDateAutoSetAlert) {
-      const innerFrame = frame.frameLocator(`iframe[id="${useStartDateAutoSetAlert}"]`);
-      await innerFrame.locator('a#btn_Confirm').waitFor();
-      await innerFrame.locator('a#btn_Confirm').click();
-    }
+        } else {
+          await frame
+              .frameLocator('iframe[title="bipbkz110p01"]')
+              .locator("#grv_list_cell_0_0")
+              .dblclick();
 
-    await page.waitForTimeout(6000);
+        }
 
-    const dupIframeId = await searchIframePopup(page, "confirm_", "_iframe");
+        console.log("Element was clicked.");
 
-    if(dupIframeId){
-      console.log("start dupIframeId");
-      /*
-          직전 동일 준요양기관의 청구내역이 있습니다. 동일한 내역으로 청구하시겠습니까? Yes / No
-       */
-      const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId}"]`);
-      // const innerFrame = frame.frameLocator('iframe[id="confirm_1735550451070_iframe"]');
+      } catch (innerError) {
+        console.log("Frame or element not found:", innerError.message);
+      }
 
-      await innerFrame.locator('a#btn_No').waitFor();
-      await innerFrame.locator('a#btn_No').click();
+
+    } else {
+      //이전 품목의 금여종료일이 2020.11.23입니다. 사용개시일을 2024.11.24로 자동세팅됩니다.
+      const useStartDateAutoSetAlert = await searchIframePopup(page, "alert_", "_iframe");
+      let isUseStartDateAutoSetAlert = !isEmpty(useStartDateAutoSetAlert);
+
+      await page.waitForTimeout(3000);
+
+      if (isUseStartDateAutoSetAlert) {
+        const innerFrame = frame.frameLocator(`iframe[id="${useStartDateAutoSetAlert}"]`);
+        await innerFrame.locator('a#btn_Confirm').waitFor();
+        await innerFrame.locator('a#btn_Confirm').click();
+      }
 
       await page.waitForTimeout(6000);
 
-      const dupIframeId2 = await searchIframePopup(page, "alert_", "_iframe");
-      if(dupIframeId2){
-        const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId2}"]`);
-        await innerFrame.locator('a#btn_Confirm').waitFor();
-        await innerFrame.locator('a#btn_Confirm').click();
+      const dupIframeId = await searchIframePopup(page, "confirm_", "_iframe");
+
+      if(dupIframeId){
+        console.log("start dupIframeId");
         /*
-        // 이부분은 Yes 를 눌렀을 때 수행되는 확인 팝업처리 부분
+            직전 동일 준요양기관의 청구내역이 있습니다. 동일한 내역으로 청구하시겠습니까? Yes / No
+         */
+        const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId}"]`);
+        // const innerFrame = frame.frameLocator('iframe[id="confirm_1735550451070_iframe"]');
+
+        await innerFrame.locator('a#btn_No').waitFor();
+        await innerFrame.locator('a#btn_No').click();
+
         await page.waitForTimeout(6000);
 
-        const dupIframeId3 = await searchIframePopup(page, "alert_", "_iframe");
-
-        if(dupIframeId3){
-          const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId3}"]`);
+        const dupIframeId2 = await searchIframePopup(page, "alert_", "_iframe");
+        if(dupIframeId2){
+          const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId2}"]`);
           await innerFrame.locator('a#btn_Confirm').waitFor();
           await innerFrame.locator('a#btn_Confirm').click();
+          /*
+          // 이부분은 Yes 를 눌렀을 때 수행되는 확인 팝업처리 부분
+          await page.waitForTimeout(6000);
+
+          const dupIframeId3 = await searchIframePopup(page, "alert_", "_iframe");
+
+          if(dupIframeId3){
+            const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId3}"]`);
+            await innerFrame.locator('a#btn_Confirm').waitFor();
+            await innerFrame.locator('a#btn_Confirm').click();
+          }
+
+          */
         }
 
-        */
-      }
+      } else {
+        if (!isUseStartDateAutoSetAlert) {
+          await frame.locator("#cal_buy_dt_input").click();
+          await frame.locator("#cal_buy_dt_input").fill(data.purchase);
 
-    } else {
-      if (!isUseStartDateAutoSetAlert) {
-        await frame.locator("#cal_buy_dt_input").click();
-        await frame.locator("#cal_buy_dt_input").fill(data.purchase);
+        }
 
       }
 
     }
+
+    // 화면에서 가져온 1형 정보들
+    //       const cgmStartDate = document.querySelector("#cgmStartDate").value;
+    //       const cgmEndDate = document.querySelector("#cgmEndDate").value;
+    //       const cgmWearDays = document.querySelector("#cgmWearDays").value;
+    //       const cgmWearPercent = document.querySelector("#cgmWearPercent").value;
+    //       const cgmAvgBloodGlucose = document.querySelector("#cgmAvgBloodGlucose").value;
+    //       const cgmCovBloodGlucosePercent = document.querySelector("#cgmCovBloodGlucosePercent").value;
+    //       const cgmCovBloodGlucoseMgdl = document.querySelector("#cgmCovBloodGlucoseMgdl").value;
+    //       const cgmGlycatedHemoglobinDate = document.querySelector("#cgmGlycatedHemoglobinDate").value;
+    //       const cgmGlycatedHemoglobinPercent = document.querySelector("#cgmGlycatedHemoglobinPercent").value;
+    //       const cgmSeqNoList = document.querySelector("#cgmSeqNoList");
+
 
     await frame.locator("#inp_pay_freq").fill(data.eat);
     await frame.locator("#inp_pay_freq").click();
