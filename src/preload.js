@@ -287,6 +287,18 @@ window.addEventListener("DOMContentLoaded", () => {
         // API 연결을 위한 token
         csrfToken: csrfToken,
         csrfHeader: csrfHeader,
+        // 1형 당뇨 추가되어야 할 내용
+        cgmStartDate: cgmStartDate,
+        cgmEndDate: cgmEndDate,
+        cgmWearDays: cgmWearDays,
+        cgmWearPercent:cgmWearPercent,
+        cgmAvgBloodGlucose:cgmAvgBloodGlucose,
+        cgmCovBloodGlucosePercent:cgmCovBloodGlucosePercent,
+        cgmCovBloodGlucoseMgdl: cgmCovBloodGlucoseMgdl,
+        cgmGlycatedHemoglobinDate:cgmGlycatedHemoglobinDate,
+        cgmGlycatedHemoglobinPercent:cgmGlycatedHemoglobinPercent,
+        cgmSeqNoList:cgmSeqNoList,
+
       };
 
       ipcRenderer.send("start-playwright", data);
@@ -357,7 +369,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const idCardSignedUrl = document
         .querySelector("#idCardSignedUrl")
         .value.replace(" ","+");
-      
+
 
       // 처방전 파일
       const prescriptionFileName = document
@@ -374,6 +386,18 @@ window.addEventListener("DOMContentLoaded", () => {
       const diabetesDocSignedUrl = document.querySelector(
         "#diabetesDocSignedUrl"
       ).value;
+
+      // 1형 당뇨때 추가될 내용들
+      const cgmStartDate = document.querySelector("#cgmStartDate").value;
+      const cgmEndDate = document.querySelector("#cgmEndDate").value;
+      const cgmWearDays = document.querySelector("#cgmWearDays").value;
+      const cgmWearPercent = document.querySelector("#cgmWearPercent").value;
+      const cgmAvgBloodGlucose = document.querySelector("#cgmAvgBloodGlucose").value;
+      const cgmCovBloodGlucosePercent = document.querySelector("#cgmCovBloodGlucosePercent").value;
+      const cgmCovBloodGlucoseMgdl = document.querySelector("#cgmCovBloodGlucoseMgdl").value;
+      const cgmGlycatedHemoglobinDate = document.querySelector("#cgmGlycatedHemoglobinDate").value;
+      const cgmGlycatedHemoglobinPercent = document.querySelector("#cgmGlycatedHemoglobinPercent").value;
+      const cgmSeqNoList = document.querySelector("#cgmSeqNoList");
 
       const data_1 = {
         // 환자이름
@@ -421,6 +445,18 @@ window.addEventListener("DOMContentLoaded", () => {
         // 출력문서 파일
         diabetesDocFileName: diabetesDocFileName,
         diabetesDocSignedUrl: diabetesDocSignedUrl,
+
+        // 1형 당뇨 추가되어야 할 내용
+        cgmStartDate: cgmStartDate,
+        cgmEndDate: cgmEndDate,
+        cgmWearDays: cgmWearDays,
+        cgmWearPercent:cgmWearPercent,
+        cgmAvgBloodGlucose:cgmAvgBloodGlucose,
+        cgmCovBloodGlucosePercent:cgmCovBloodGlucosePercent,
+        cgmCovBloodGlucoseMgdl: cgmCovBloodGlucoseMgdl,
+        cgmGlycatedHemoglobinDate:cgmGlycatedHemoglobinDate,
+        cgmGlycatedHemoglobinPercent:cgmGlycatedHemoglobinPercent,
+        cgmSeqNoList:cgmSeqNoList,
       };
 
       ipcRenderer.send("start", data_1);
@@ -432,7 +468,7 @@ window.addEventListener("DOMContentLoaded", () => {
   ) {
     const url = window.location.href;
 
-    /*const button = document.querySelector("#nhisBtn"); 
+    /*const button = document.querySelector("#nhisBtn");
 
     button_bill.addEventListener("click", () => {
       const csrfToken = document.querySelector("meta[name='_csrf']").content;
