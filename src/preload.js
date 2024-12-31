@@ -129,6 +129,7 @@ window.addEventListener("DOMContentLoaded", () => {
     button_delegation.innerText = "위임 등록하기";
 
     // Add click event listener to the button
+    /* Start [요양비 청구하기] */
     button_bill.addEventListener("click", () => {
       const csrfToken = document.querySelector("meta[name='_csrf']").content;
       const csrfHeader = document.querySelector(
@@ -230,8 +231,17 @@ window.addEventListener("DOMContentLoaded", () => {
         "#diabetesDocSignedUrl"
       ).value;
 
-
-
+      // 1형 당뇨때 추가될 내용들
+      const cgmStartDate = document.querySelector("#cgmStartDate").value;
+      const cgmEndDate = document.querySelector("#cgmEndDate").value;
+      const cgmWearDays = document.querySelector("#cgmWearDays").value;
+      const cgmWearPercent = document.querySelector("#cgmWearPercent").value;
+      const cgmAvgBloodGlucose = document.querySelector("#cgmAvgBloodGlucose").value;
+      const cgmCovBloodGlucosePercent = document.querySelector("#cgmCovBloodGlucosePercent").value;
+      const cgmCovBloodGlucoseMgdl = document.querySelector("#cgmCovBloodGlucoseMgdl").value;
+      const cgmGlycatedHemoglobinDate = document.querySelector("#cgmGlycatedHemoglobinDate").value;
+      const cgmGlycatedHemoglobinPercent = document.querySelector("#cgmGlycatedHemoglobinPercent").value;
+      const cgmSeqNoList = document.querySelector("#cgmSeqNoList");
 
       const data = {
         // 당뇨진료이력 Id
@@ -303,7 +313,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
       ipcRenderer.send("start-playwright", data);
     });
-
+    /* End [요양비 청구하기] */
+    /* Start [위임 등록하기] */
     button_delegation.addEventListener("click", () => {
       const patientName = document.querySelector("#patientName").value;
       const patientSSN = document.querySelector(
@@ -387,18 +398,6 @@ window.addEventListener("DOMContentLoaded", () => {
         "#diabetesDocSignedUrl"
       ).value;
 
-      // 1형 당뇨때 추가될 내용들
-      const cgmStartDate = document.querySelector("#cgmStartDate").value;
-      const cgmEndDate = document.querySelector("#cgmEndDate").value;
-      const cgmWearDays = document.querySelector("#cgmWearDays").value;
-      const cgmWearPercent = document.querySelector("#cgmWearPercent").value;
-      const cgmAvgBloodGlucose = document.querySelector("#cgmAvgBloodGlucose").value;
-      const cgmCovBloodGlucosePercent = document.querySelector("#cgmCovBloodGlucosePercent").value;
-      const cgmCovBloodGlucoseMgdl = document.querySelector("#cgmCovBloodGlucoseMgdl").value;
-      const cgmGlycatedHemoglobinDate = document.querySelector("#cgmGlycatedHemoglobinDate").value;
-      const cgmGlycatedHemoglobinPercent = document.querySelector("#cgmGlycatedHemoglobinPercent").value;
-      const cgmSeqNoList = document.querySelector("#cgmSeqNoList");
-
       const data_1 = {
         // 환자이름
         name: patientName,
@@ -445,64 +444,14 @@ window.addEventListener("DOMContentLoaded", () => {
         // 출력문서 파일
         diabetesDocFileName: diabetesDocFileName,
         diabetesDocSignedUrl: diabetesDocSignedUrl,
-
-        // 1형 당뇨 추가되어야 할 내용
-        cgmStartDate: cgmStartDate,
-        cgmEndDate: cgmEndDate,
-        cgmWearDays: cgmWearDays,
-        cgmWearPercent:cgmWearPercent,
-        cgmAvgBloodGlucose:cgmAvgBloodGlucose,
-        cgmCovBloodGlucosePercent:cgmCovBloodGlucosePercent,
-        cgmCovBloodGlucoseMgdl: cgmCovBloodGlucoseMgdl,
-        cgmGlycatedHemoglobinDate:cgmGlycatedHemoglobinDate,
-        cgmGlycatedHemoglobinPercent:cgmGlycatedHemoglobinPercent,
-        cgmSeqNoList:cgmSeqNoList,
       };
 
       ipcRenderer.send("start", data_1);
     });
-  } else if (
-   // 위임등록현황 delegation-list,
-    url.includes("/pharm/diabetes/delegation-list")  /* ||
-    url.includes("/pharm/diabetes/nhis-delegation-list") */
-  ) {
-    const url = window.location.href;
-
-    /*const button = document.querySelector("#nhisBtn");
-
-    button_bill.addEventListener("click", () => {
-      const csrfToken = document.querySelector("meta[name='_csrf']").content;
-      const csrfHeader = document.querySelector(
-        "meta[name='_csrf_header']"
-      ).content;
-
-      console.log("test start!");
-
-      ipcRenderer.send("start-crawl-delegation");
-    });*/
-
-    const buttonToBack = document.querySelector("#nhisBtn");
-
-    buttonToBack.addEventListener("click", () => {
-      const csrfToken = document.querySelector("meta[name='_csrf']").content;
-      const csrfHeader = document.querySelector(
-        "meta[name='_csrf_header']"
-      ).content;
-
-      console.log("test start 123!");
-
-      ipcRenderer.send("start-crawl-delegation", data_0);
-    });
-
-    // 1. 프론트에서 이벤트 리스너 생성 (preload.js)
-    // 계산기 > 계산목록 전자 세금계산서 자동 발행 시작 button 클릭
-    // if (url.includes("/pharm/diabetes/calc-list-view") || url.includes("/pharm/diabetes/calc-list")) {
-    //  const autoTaxInvoiceBillBtnEl = document.querySelector("#autoTaxInvoiceBillBtn"); //id="autoTaxInvoiceBillBtn"
-    //  autoTaxInvoiceBillBtnEl.innerText = "세금계산서 자동청구 시작";
-
-
+    /* End [위임 등록하기] */
 
   }
+
 });
 
 /**

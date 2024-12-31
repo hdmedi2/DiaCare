@@ -535,10 +535,13 @@ async function runAutomation_billing(data) {
     console.log("end bloodGlucoseTestNumber, insulinInjectionNumber");
 
     // 구매일, 사용개시일, 지급일수
+    // 1형 연속혈당측정 유무 확인
+    const isCgm = !isEmpty(data.cgmStartDate);
+
     console.log("start purchaseDate, eatDays");
+
     await frame.locator("#cal_buy_dd_input").click();
     await frame.locator("#cal_buy_dd_input").fill(data.purchase);
-
     //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
     await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
 
