@@ -280,7 +280,13 @@ function isEmptyCertificationInfo(data) {
 async  function certSign(page, certName, certPassword) {
     // 3-3 인증서 팝업창 선택
     const frame = await page.frameLocator('#dscert');
-    await page.waitForTimeout(2000);
+    try {
+        await frame.locator("#wrap_stg_01").waitForTimeout(2000);
+    }
+    catch(e){
+        console.error(e.message);
+        log.error(e.message);
+    }
     const strSlide = await frame.locator("#wrap_stg_01");
 
     // 테이블이 존재하는지 확인
@@ -292,7 +298,14 @@ async  function certSign(page, certName, certPassword) {
 
     // 서정현()002368820140731123000311
     if (certName!=="" && certName!==undefined) {
-        const nButton = await frame.getByRole("row").getByTitle(certName,{exact:true});
+      //  await page.getByText(certName, {exact: true}).click();
+      //  await page.getByRole("textbox", {name: "인증서 암호"}).click();
+      //  await page
+      //      .getByRole("textbox", {name: "인증서 암호"})
+      //      .fill(certPassword);
+        const nButton = await frame
+                              .getByRole("row")
+                              .getByText(certName,{exact:true});
         const btnCnt = await nButton.count();
         if (btnCnt > 0) {
             await nButton.click();
@@ -300,13 +313,14 @@ async  function certSign(page, certName, certPassword) {
         else {
             log.error(`세금계산서용 인증서의 이름이 정확한지 확인하세요: "${certName}"`);
             console.log(`세금계산서용 인증서의 이름이 정확한지 확인하세요: "${certName}"`);
+
         }
     }
 
     // await page.getByText(data.taxCertificateName,{exact:true}).click();
     // await page.getByRole("textbox", { name: "인증서 암호" }).click();
     await frame.locator("#input_cert_pw").click(); // 인증서 암호란 클릭
-    await page.keyboard.type(certPassword, {delay:100}); // 인증서 암호 채우기 //
+    await page.keyboard.type(certPassword, {delay:30}); // 인증서 암호 채우기 //
 
     // 확인 버튼 눌러서 로그인
     await frame
