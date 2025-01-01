@@ -744,26 +744,6 @@
       window.electron.send('close-popup'); // 창 닫기 요청
     });
 
-    /*document.getElementById('auth-form').addEventListener('submit', (event) => {
-      event.preventDefault();
-
-      const certificateLocation = document.getElementById('certificate-location').value;
-      const certificatePath = document.getElementById('certificate-path').value;
-      const certificateName = document.getElementById('certificate-name').value;
-      const certificatePassword = document.getElementById('certificate-password').value;
-      const corporateId = document.getElementById('corporate-id').value;
-
-      window.electron.send('save-settings', {
-        certificateLocation,
-        certificatePath,
-        certificateName,
-        certificatePassword,
-        corporateId
-      });
-
-      window.electron.send('close-popup'); // 창 닫기 요청
-
-    });*/
 
     window.electron.receive('load-settings', (data) => {
       if (data.certificateLocation) document.getElementById('certificate-location').value = data.certificateLocation;

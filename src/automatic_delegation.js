@@ -2,7 +2,7 @@ const { chromium } = require("playwright");
 const path = require("path");
 const fs = require("fs");
 const { electronToWebEventRun } = require("./logUtil");
-const {MEDICARE_URL, SAVE_LOG_DIR, SAVE_MAIN_DIR} = require("../config/default.json");
+const {MEDICARE_URL, SAVE_LOG_DIR, SAVE_MAIN_DIR, SAVE_FILE_DIR, SAVE_HOMETAX_DIR } = require("../config/default.json");
 const log = require("electron-log");
 const os = require("os");
 const today = new Date();
@@ -12,25 +12,44 @@ const day = today.getDate().toString().padStart(2, '0'); // 18
 const dateString = year + '-' + month + '-' + day; // 2023-06-18
 
 let logPath = "";
-let userHomeDirectory = "";
+let userHomeTaxDirectory = "";
+let userFileDirectory = "";
+/* 2. 운영체제 별로 로그, 첨부파일, 세금계산서 자료 경로 지정 */
 const osName = os.platform();
-
+// 2-1. 위치 설정
 if (osName === "win32") {
   const systemDrive = process.env.SYSTEMDRIVE; // 일반적으로 'C:' 반환
+  // C:\\DiaCare\\logs
   logPath = path.join(systemDrive, SAVE_MAIN_DIR, SAVE_LOG_DIR);
-  userHomeDirectory = path.join(systemDrive, SAVE_MAIN_DIR, dateString);
+  // C:\\DiaCare\\files\\2024-12-14
+  userFileDirectory  = path.join(systemDrive, SAVE_MAIN_DIR, SAVE_FILE_DIR, dateString);
+  // C:\\DiaCare\\hometax\\2024-12-14
+  userHomeTaxDirectory = path.join(systemDrive, SAVE_MAIN_DIR, SAVE_HOMETAX_DIR, dateString);
 }
 else {
   // Windows 이와의 운영체제인 경우는 홈 디렉토리 아래에 로그 기록
-  // ~/DiaCare/logs
   const homeDir = os.homedir();
+  // ~/DiaCare/logs
   logPath = path.join(homeDir, SAVE_MAIN_DIR, SAVE_LOG_DIR);
-  userHomeDirectory = path.join(homeDir, SAVE_MAIN_DIR, dateString);
+  // ~/DiaCare/files/2024-12-14
+  userFileDirectory = path.join(homeDir, SAVE_MAIN_DIR, SAVE_FILE_DIR, dateString);
+  // ~/DiaCare/hometax/2024-12-14
+  userHomeTaxDirectory = path.join(homeDir, SAVE_MAIN_DIR, SAVE_HOMETAX_DIR, dateString);
 }
 
-// 로그 폴더 없으면 생성
+// 2-2. 로그 폴더 없으면 생성
 if (!fs.existsSync(logPath)) {
   fs.mkdirSync(logPath, { recursive: true });
+}
+
+// 2-3. 사용자 파일 디렉토리 생성
+if (!fs.existsSync(userFileDirectory)) {
+  fs.mkdirSync(userFileDirectory, { recursive: true });
+}
+
+// 2-4. 홈택스 신고 자료 디렉토리 생성
+if (!fs.existsSync(userHomeTaxDirectory)) {
+  fs.mkdirSync(userHomeTaxDirectory, { recursive: true });
 }
 
 Object.assign(console, log.functions);
@@ -63,7 +82,7 @@ async function runAutomation_delegation(data_1) {
   }
 
   // const userHomeDirectory = process.env.HOME || process.env.USERPROFILE;
-  const downloadsDirectory = path.join(userHomeDirectory,data_1.name); // path.join(userHomeDirectory, "Downloads");
+  const downloadsDirectory = path.join(userFileDirectory,data_1.name); // path.join(userHomeDirectory, "Downloads");
   // 환자명으로 디렉토리 생성
   if (!fs.existsSync(downloadsDirectory)) {
     fs.mkdirSync(downloadsDirectory, { recursive: true });
@@ -248,9 +267,11 @@ async function runAutomation_delegation(data_1) {
   const parts = data_1.select.split("|").map((part) => part.trim());
   const firstPart = parts[0].trim(); // 당뇨 유형
   const secondPart = parts[1].trim(); // 인슐린 투여 여부
+  // 당뇨 2형
   if (firstPart === "2형") {
     await frame.getByLabel("당뇨병 소모성 재료").check();
-  } else if (firstPart === "임신중") {
+  }
+  else if (firstPart === "임신중") {
     await frame.getByLabel("당뇨병 소모성 재료").check();
     console.log("임신중 -- 팝업닫기 시작");
     // 알림창
@@ -289,14 +310,19 @@ async function runAutomation_delegation(data_1) {
     } else {
       console.error("Dynamic iframe not found.");
     }
-  } else if (firstPart === "1형") {
+  }
+  // 당뇨 1형
+  else if (firstPart === "1형") {
     if (
       secondPart === "연속혈당측정용 전극" ||
       secondPart === "연속혈당측정용 전극(기본)" ||
       secondPart === "연속혈당측정용 전극(센서, 복합형)"
     ) {
       await frame.getByLabel("연속혈당측정용 전극(센서)").check();
-    } else if (secondPart === "투여") {
+    }
+    // 2024.12.11 연속혈당 전극 + 당뇨 소모성 재료
+    // else
+    if (secondPart === "투여") {
       await frame.getByLabel("당뇨병 소모성 재료").check();
     }
   }

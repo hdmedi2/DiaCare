@@ -737,8 +737,7 @@
         corporateId
       });
 
-      alert("전자세금계산서용 인증서 정보가 저장되었습니다!");
-      window.close();
+      window.electron.send('close-popup'); // 창 닫기 요청
     });
 
     window.electron.receive('tax-load-settings', (data) => {

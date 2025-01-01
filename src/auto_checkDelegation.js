@@ -2,30 +2,55 @@ const { chromium } = require("playwright");
 const fs = require("fs");
 const { parse } = require("json2csv");
 const {sendDelegationJsonToServer} = require("./sendDelegationToBack");
-const {MEDICARE_URL, SAVE_MAIN_DIR, SAVE_LOG_DIR } = require("../config/default.json");
+const {MEDICARE_URL, SAVE_MAIN_DIR, SAVE_LOG_DIR, SAVE_FILE_DIR, SAVE_HOMETAX_DIR } = require("../config/default.json");
 const os = require("os");
 const path = require("path");
 const log = require("electron-log");
-let logPath = "";
-// let userHomeDirectory = "";
-const osName = os.platform();
+const today = new Date();
+const year = today.getFullYear(); // 2023
+const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
+const day = today.getDate().toString().padStart(2, '0'); // 18
+const dateString = year + '-' + month + '-' + day; // 2023-06-18
 
+let logPath = "";
+let userFileDirectory = "";
+let userHomeTaxDirectory = "";
+/* 2. 운영체제 별로 로그, 첨부파일, 세금계산서 자료 경로 지정 */
+const osName = os.platform();
+// 2-1. 위치 설정
 if (osName === "win32") {
   const systemDrive = process.env.SYSTEMDRIVE; // 일반적으로 'C:' 반환
+  // C:\\DiaCare\\logs
   logPath = path.join(systemDrive, SAVE_MAIN_DIR, SAVE_LOG_DIR);
-  // userHomeDirectory = path.join(systemDrive, SAVE_MAIN_DIR, dateString);
+  // C:\\DiaCare\\files\\2024-12-14
+  userFileDirectory  = path.join(systemDrive, SAVE_MAIN_DIR, SAVE_FILE_DIR, dateString);
+  // C:\\DiaCare\\hometax\\2024-12-14
+  userHomeTaxDirectory = path.join(systemDrive, SAVE_MAIN_DIR, SAVE_HOMETAX_DIR, dateString);
 }
 else {
   // Windows 이와의 운영체제인 경우는 홈 디렉토리 아래에 로그 기록
-  // ~/DiaCare/logs
   const homeDir = os.homedir();
+  // ~/DiaCare/logs
   logPath = path.join(homeDir, SAVE_MAIN_DIR, SAVE_LOG_DIR);
-  // userHomeDirectory = path.join(homeDir, SAVE_MAIN_DIR, dateString);
+  // ~/DiaCare/files/2024-12-14
+  userFileDirectory = path.join(homeDir, SAVE_MAIN_DIR, SAVE_FILE_DIR, dateString);
+  // ~/DiaCare/hometax/2024-12-14
+  userHomeTaxDirectory = path.join(homeDir, SAVE_MAIN_DIR, SAVE_HOMETAX_DIR, dateString);
 }
 
-// 로그 폴더 없으면 생성
+// 2-2. 로그 폴더 없으면 생성
 if (!fs.existsSync(logPath)) {
   fs.mkdirSync(logPath, { recursive: true });
+}
+
+// 2-3. 사용자 파일 디렉토리 생성
+if (!fs.existsSync(userFileDirectory)) {
+  fs.mkdirSync(userFileDirectory, { recursive: true });
+}
+
+// 2-4. 홈택스 신고 자료 디렉토리 생성
+if (!fs.existsSync(userHomeTaxDirectory)) {
+  fs.mkdirSync(userHomeTaxDirectory, { recursive: true });
 }
 
 Object.assign(console, log.functions);

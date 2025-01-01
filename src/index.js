@@ -5,23 +5,27 @@ const {
   session,
   Menu,
   safeStorage,
-    screen
+    screen, ipcRenderer
 } = require("electron");
 const os = require('os');
 const path = require("path");
 const fs = require("fs");
+// 요양비 청구
 const { runAutomation_billing } = require("./automatic_billing");
 const { runAutomation_delegation } = require("./automatic_delegation");
 const { checkBilling } = require("./auto_checkBilling");
 const { checkDelegation } = require("./auto_checkDelegation");
 const { sendLogToServer } = require("./logUtil");
 const { autoUpdater } = require("electron-updater");
-
+// 홈택스 전자세금계산서 신고
+const { runAutomation_homeTax } = require("./automatic_homeTax");
 const { crawlDelegation } = require("./crawl_delegation");
 const { sendDelegationToBack } = require("./sendDelegationToBack");
 
 const SESSION_FILE_PATH = path.join(app.getPath("userData"), "session.json");
 const SETTINGS_FILE_PATH = path.join(app.getPath("userData"), "settings.json");
+const TAX_SETTINGS_FILE_PATH = path.join(app.getPath("userData"), "tax_settings.json");
+
 // const {create} = require("axios");
 const {PHARM_URL, SAVE_LOG_DIR, SAVE_MAIN_DIR } = require("../config/default.json");
 const log = require("electron-log");
@@ -114,6 +118,7 @@ const createWindow = async () => {
       height: height,
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
+      nodeIntegration: false,
       enableRemoteModule: false,
     },
   });
@@ -137,7 +142,7 @@ const deleteSession = async () => {
 };
 
 const manageLocalData = async (type, data = null) => {
-  const filePath = type === "session" ? SESSION_FILE_PATH : SETTINGS_FILE_PATH;
+  const filePath = (type === "session") ? SESSION_FILE_PATH : ((type=== "settings") ? SETTINGS_FILE_PATH : TAX_SETTINGS_FILE_PATH);
 
   if (data) {
     try {
@@ -360,29 +365,19 @@ app.whenReady().then(() => {
     {
       label: "공인인증서",
       submenu: [{ label: "인증서 설정", click: createSettingWindow },
-                { label: "--------"},
-                { label: "세금계산서용 인증서 설정", click: ()=>createSettingWindow({
-                                                        width: 630,
-                                                        height: 560,
-                                                        file: "taxCertSetting.html",
-                                                        label: "세금계산서"
-                                                      })
-                }
                ],
     },
     {
-      label: "요양마당",
+      label: "전자세금계산서",
       submenu: [
         {
-          label: "청구 내역 가져오기",
-          click: () =>
-            createSettingWindow({
-              width: 350,
-              height: 250,
-              file: "mediCare.html",
-              label: "청구내역"
-            }), // 커스텀 설정 창
-        },
+          label: "세금계산서용 인증서 설정",
+          click: () => createSettingWindow({
+            width: 630, height: 560,
+            file: "taxCertSetting.html",
+            label: "세금계산서"
+          })
+        }
       ],
     },
   ]);
@@ -431,6 +426,28 @@ ipcMain.on("start-check-delegation", async (event, data_0) => {
   }
 });
 
+// 홈택스 신고
+ipcMain.on("start-hometax", async (event, data_0) => {
+  try {
+    const settings = await manageLocalData("settings");
+    const taxSettings = await manageLocalData("tax-settings");
+    if (settings) {
+      const automationData = {
+        ...settings,
+        ...taxSettings,
+        ...data_0,
+      };
+      console.log("Automation Data:", automationData); // 확인용 출력
+      await runAutomation_homeTax(automationData);
+
+    } else {
+      console.error("Failed to load settings.");
+    }
+  } catch (error) {
+    console.error("Error Reading:", error);
+  }
+});
+
 ipcMain.on("start-crawl-delegation", async (event, data_0) => {
   try {
     const settings = await manageLocalData("settings");
@@ -450,12 +467,16 @@ ipcMain.on("start-crawl-delegation", async (event, data_0) => {
   }
 });
 
-ipcMain.on("start-check-bill", async () => {
+ipcMain.on("start-check-bill", async (event, data_0) => {
   try {
     const settings = await manageLocalData("settings");
 
     if (settings) {
-      await checkBilling(settings);
+        const automationData = {
+          ...settings,
+          ...data_0,
+        };
+      await checkBilling(automationData);
     } else {
       console.error("Failed to load settings.");
     }
@@ -544,13 +565,71 @@ ipcMain.on("load-settings", async (event) => {
 });
 
 ipcMain.on("tax-load-settings", async (event) => {
-  const settings = await loadLocalData("settings");
+  const settings = await loadLocalData("tax-settings");
   event.reply("tax-load-settings", settings || {});
 });
 
 ipcMain.on("tax-save-settings", async (event, data) => {
-  await manageLocalData("settings", data);
+  await manageLocalData("tax-settings", data);
 });
+
+ipcMain.on("start-playwright", async (event, data) => {
+  try {
+    const settings = await manageLocalData("settings");
+    const taxSettings = await managedLocalData("tax-settings");
+    if (settings) {
+      // Merge the settings with the data received from the renderer process
+      const automationData = {
+        ...settings,
+        ...taxSettings,
+        ...data,
+      };
+      //console.log("Automation Data:", automationData); // 확인용 출력
+      await runAutomation_billing(automationData);
+    } else {
+      console.error("Failed to load settings.");
+    }
+  } catch (e) {
+    console.error("Error running automation:", e.message);
+    await sendLogToServer(
+        data.docId,
+        "fail",
+        `Automation task failed: ${e.message}`,
+        data.csrfToken,
+        data.csrfHeader
+    );
+  }
+});
+
+/* 세금계산서 신고 부분 */
+
+ipcMain.on("start-hometax-playwright", async (event, data) => {
+  try {
+    const settings = await manageLocalData("settings");
+    if (settings) {
+      // Merge the settings with the data received from the renderer process
+      const automationData = {
+        ...settings,
+        ...data,
+      };
+      console.log("Automation Data:", automationData); // 확인용 출력
+      await runAutomation_homeTax(automationData);
+    } else {
+      console.error("Failed to load settings.");
+    }
+  } catch (e) {
+    console.error("Error running automation:", e.message);
+    await sendLogToServer(
+        data.docId,
+        "fail",
+        `Automation task failed: ${e.message}`,
+        data.csrfToken,
+        data.csrfHeader
+    );
+  }
+});
+
+
 
 
 

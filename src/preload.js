@@ -20,15 +20,101 @@ window.addEventListener("DOMContentLoaded", () => {
                       };
 
   const button_delegation_history = document.querySelector("#autoDelegationHistory"); //id="autoDelegationHistory"
-  button_delegation_history.addEventListener('click', () => {
-    console.log("Delegation History clicked");
-    ipcRenderer.send('start-check-delegation', data_0);
-  });
-  const button_billing_history = document.querySelector("#autoBillingHistory"); //id="autoBillingHistory"
-  button_billing_history.addEventListener('click', () => {
-    console.log("Billing History clicked");
-    ipcRenderer.send('start-check-bill');
-  });
+  if (!isEmpty(button_delegation_history)) {
+    button_delegation_history.addEventListener('click', () => {
+      console.log("Delegation History clicked");
+      ipcRenderer.send('start-check-delegation', data_0);
+    });
+
+  } else {
+    console.info('Delegation History button is not found.');
+  }
+
+  let button_billing_history = document.querySelector("#autoBillingHistory"); //id="autoBillingHistory"
+  if (!isEmpty(button_billing_history)) {
+    button_billing_history.addEventListener('click', () => {
+      console.info("Billing History clicked");
+      ipcRenderer.send('start-check-bill', data_0);
+    });
+
+  } else {
+    console.info('Billing History button is not found.');
+  }
+
+  // 계산기 > 계산목록 전자 세금계산서 자동 발행 시작 button 클릭
+  if (url.includes("/pharm/diabetes/calc-list-view") || url.includes("/pharm/diabetes/calc-list")) {
+    const autoTaxInvoiceBillBtnEl = document.querySelector("#autoTaxInvoiceBillBtn"); //id="autoTaxInvoiceBillBtn"
+    autoTaxInvoiceBillBtnEl.innerText = "세금계산서 자동청구 시작";
+
+    let button_billing_history = document.querySelector("#autoBillingHistory"); //id="autoBillingHistory"
+    if (!isEmpty(button_billing_history)) {
+      button_billing_history.addEventListener('click', () => {
+        console.info("Billing History clicked");
+        const csrfToken = document.querySelector("meta[name='_csrf']").content;
+        const csrfHeader = document.querySelector(
+            "meta[name='_csrf_header']"
+        ).content;
+        const autoTaxInvoiceFile = document.querySelector(
+            "#autoTaxInvoiceFile"
+        ).value;
+        const taxInvoiceData = {
+          ...data_0,
+          // 전자세금계산서 엑셀파일
+          homeTaxInvoiceFile: autoTaxInvoiceFile,
+          // API 연결을 위한 token
+          csrfToken: csrfToken,
+          csrfHeader: csrfHeader,
+        };
+        ipcRenderer.send('start-check-bill', taxInvoiceData);
+      });
+
+    } else {
+      console.info('Billing History button is not found.');
+    }
+  }
+
+  // 계산기 > 계산목록 조회
+  if (
+      url.includes("/pharm/diabetes/calc-list-view") ||
+      url.includes("/pharm/diabetes/calc-list")
+  ) {
+    // 전자세금계산서 신고등록
+    let button_hometax_billing = document.querySelector("#autoTaxInvoiceBillBtn");
+    if (!isEmpty(button_hometax_billing)) {
+        button_hometax_billing.addEventListener('click', () => {
+          /* 2024.12.18
+           홈택스 신고자료 파일명 설정
+         */
+          const hometaxFileName = document
+              .querySelector("#hometaxFileName")
+              .value.replace(" ", "_");
+
+          /* 2024.12.18
+             홈택스 신고자료 파일명 signed url 설정
+           */
+          const hometaxFileSignedUrl = document
+              .querySelector("#hometaxFileSignedUrl")
+              .value.replace(" ", "_");
+          /* 2024.12.18
+             홈택스 파일명이 존재하는 경우
+           */
+          const isHometaxFileExist = !isEmpty(hometaxFileName) && isEmpty(hometaxFileSignedUrl);
+
+          const autoTaxData = {
+            ...data_0,
+            hometaxFileSignedUrl,
+            hometaxFileName,
+            isHometaxFileExist: isHometaxFileExist,
+          };
+
+          console.info("autoTaxInvoiceBillBtn clicked");
+          ipcRenderer.send('start-hometax', autoTaxData);
+        });
+    } else {
+      console.info('"autoTaxInvoiceBillBtn" button is not found.');
+    }
+
+  }
 
   // 계산기 > 데이터 수정하기 calc-update ,  계산목록 > 환자 한명 선택하면 calc-detail
   if (
@@ -43,6 +129,7 @@ window.addEventListener("DOMContentLoaded", () => {
     button_delegation.innerText = "위임 등록하기";
 
     // Add click event listener to the button
+    /* Start [요양비 청구하기] */
     button_bill.addEventListener("click", () => {
       const csrfToken = document.querySelector("meta[name='_csrf']").content;
       const csrfHeader = document.querySelector(
@@ -144,6 +231,18 @@ window.addEventListener("DOMContentLoaded", () => {
         "#diabetesDocSignedUrl"
       ).value;
 
+      // 1형 당뇨때 추가될 내용들
+      const cgmStartDate = document.querySelector("#cgmStartDate").value;
+      const cgmEndDate = document.querySelector("#cgmEndDate").value;
+      const cgmWearDays = document.querySelector("#cgmWearDays").value;
+      const cgmWearPercent = document.querySelector("#cgmWearPercent").value;
+      const cgmAvgBloodGlucose = document.querySelector("#cgmAvgBloodGlucose").value;
+      const cgmCovBloodGlucosePercent = document.querySelector("#cgmCovBloodGlucosePercent").value;
+      const cgmCovBloodGlucoseMgdl = document.querySelector("#cgmCovBloodGlucoseMgdl").value;
+      const cgmGlycatedHemoglobinDate = document.querySelector("#cgmGlycatedHemoglobinDate").value;
+      const cgmGlycatedHemoglobinPercent = document.querySelector("#cgmGlycatedHemoglobinPercent").value;
+      const cgmSeqNoList = document.querySelector("#cgmSeqNoList").value;
+
       const data = {
         // 당뇨진료이력 Id
         docId: pharmacyPatientDiabetesTreatId,
@@ -198,11 +297,24 @@ window.addEventListener("DOMContentLoaded", () => {
         // API 연결을 위한 token
         csrfToken: csrfToken,
         csrfHeader: csrfHeader,
+        // 1형 당뇨 추가되어야 할 내용
+        cgmStartDate: cgmStartDate,
+        cgmEndDate: cgmEndDate,
+        cgmWearDays: cgmWearDays,
+        cgmWearPercent:cgmWearPercent,
+        cgmAvgBloodGlucose:cgmAvgBloodGlucose,
+        cgmCovBloodGlucosePercent:cgmCovBloodGlucosePercent,
+        cgmCovBloodGlucoseMgdl: cgmCovBloodGlucoseMgdl,
+        cgmGlycatedHemoglobinDate:cgmGlycatedHemoglobinDate,
+        cgmGlycatedHemoglobinPercent:cgmGlycatedHemoglobinPercent,
+        cgmSeqNoList:cgmSeqNoList,
+
       };
 
       ipcRenderer.send("start-playwright", data);
     });
-
+    /* End [요양비 청구하기] */
+    /* Start [위임 등록하기] */
     button_delegation.addEventListener("click", () => {
       const patientName = document.querySelector("#patientName").value;
       const patientSSN = document.querySelector(
@@ -268,7 +380,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const idCardSignedUrl = document
         .querySelector("#idCardSignedUrl")
         .value.replace(" ","+");
-      
+
 
       // 처방전 파일
       const prescriptionFileName = document
@@ -336,39 +448,10 @@ window.addEventListener("DOMContentLoaded", () => {
 
       ipcRenderer.send("start", data_1);
     });
-  } else if (
-   // 위임등록현황 delegation-list,
-    url.includes("/pharm/diabetes/delegation-list")  /*||
-    url.includes("/pharm/diabetes/nhis-delegation-list") */
-  ) {
-    const url = window.location.href;
+    /* End [위임 등록하기] */
 
-    /*const button = document.querySelector("#nhisBtn"); 
-
-    button_bill.addEventListener("click", () => {
-      const csrfToken = document.querySelector("meta[name='_csrf']").content;
-      const csrfHeader = document.querySelector(
-        "meta[name='_csrf_header']"
-      ).content;
-
-      console.log("test start!");
-
-      ipcRenderer.send("start-crawl-delegation");
-    });*/
-
-    const buttonToBack = document.querySelector("#nhisBtn");
-
-    buttonToBack.addEventListener("click", () => {
-      const csrfToken = document.querySelector("meta[name='_csrf']").content;
-      const csrfHeader = document.querySelector(
-        "meta[name='_csrf_header']"
-      ).content;
-
-      console.log("test start 123!");
-
-      ipcRenderer.send("start-crawl-delegation", data_0);
-    });
   }
+
 });
 
 /**
@@ -382,4 +465,17 @@ function formatDate(date) {
   const day = String(date.getDate()).padStart(2, '0');
 
   return `${year}.${month}.${day}`;
+}
+
+/**
+ * 빈값 체크
+ * @param value 체크하려는 값
+ * @returns {boolean}
+ */
+function isEmpty(value) {
+  if (typeof value === "undefined" || value === null || value === "" || value === "null") {
+    return Boolean(true);
+  } else {
+    return Boolean(false);
+  }
 }
