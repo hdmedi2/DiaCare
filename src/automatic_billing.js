@@ -947,7 +947,7 @@ async function runAutomation_billing(data) {
       .getByRole("button", { name: "③ 적 용" })
       .click();*/
 
-    // 최종제출
+    // 최종제출하시겠습니까?
     await frame.getByRole("link", { name: "최종제출" }).click();
 
     // 최종 제출 하시겠습니까? 예 아니요 버튼 (confirm_ _iframe)
