@@ -727,7 +727,8 @@ async function runAutomation_billing(data) {
       await frame.locator("#inp_ispt_rslt_vl").click();
       await frame.locator("#inp_ispt_rslt_vl").clear();
       await frame.locator("#inp_ispt_rslt_vl").fill(data.cgmGlycatedHemoglobinPercent);
-      // cgmSeqNoList
+      // 10. 제품일련번호 리스트 cgmSeqNoList
+
     }
 
     //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
@@ -745,10 +746,33 @@ async function runAutomation_billing(data) {
 
     console.log("end purchaseDate, eatDays");
 
+    // 연속혈당측정전극(센서) 체크 된 경우
+    const cgmSeqNoList = [];
+    if (data.isCgmSensor === true && !isEmpty(data.cgmSeqNoList))
+    {
+      console.log("start split cgmSeqNoList Array...");
+      // data.cgmSeqList 분리
+      // 콤마로 분리된 항목들이 있으면 분리 후 배열로 만들고, 단일 원소이면 하나만 입력함
+      if(data.cgmSeqNoList.indexOf(",")>0) {
+        const items = data.cgmSeqNoList.split(",");
+        cgmSeqNoList.push(...items);
+      }
+      else {
+        cgmSeqNoList.push(data.cgmSeqNoList);
+      }
+      console.log(`** cgmSeqNoList = [${cgmSeqNoList}]`);
+
+      console.log("end split cgmSeqNoList Array...");
+    }
+    else {
+      console.log(`*** there is no cgmSeqNoList ${data.cgmSeqNoList}...`);
+    }
+
     // 제품사용내역등록(식별번호등록)
     console.log("start taking diabetes supplies info");
     await frame.locator("#btn_sub").waitFor({ state: "visible" });
     await frame.locator("#btn_sub").click();
+
     //await frame.locator("#btn_sub").press("Enter");
     // 제품명, 수량, 금액
     for (let i = 0; i < 10; i++) {
@@ -772,10 +796,62 @@ async function runAutomation_billing(data) {
             .frameLocator('iframe[title="pop_bipbkc154p01"]')
             .locator(`#grd_tbbibo07_cell_${i}_10`)
             .click();
-        await frame
-            .frameLocator('iframe[title="pop_bipbkc154p01"]')
-            .locator("#G_grd_tbbibo07__CASH_PRDCT_USE_QTY")
-            .fill(data.p_quantity[i]);
+
+        // 연속혈당측정용 전극센서
+        if (!data.isCgmSensor) {
+          await frame
+              .frameLocator('iframe[title="pop_bipbkc154p01"]')
+              .locator("#G_grd_tbbibo07__CASH_PRDCT_USE_QTY")
+              .fill(data.p_quantity[i]);
+        }
+        // 연속혈당측정용 전극(센서) 체크된 경우
+        else
+        {
+          await frame
+              .frameLocator('iframe[title="pop_bipbkc154p01"]')
+              .locator(`#grd_tbbibo07_cell_${i}_11`)
+              .click();
+          await page.waitForTimeout(2000);
+
+                const innerIframe155p01 =
+                    await frame
+                         .frameLocator('iframe[title="pop_bipbkc154p01"]')
+                         .frameLocator('iframe[title="pop_bipbkc155p01"]');
+                if (innerIframe155p01) {
+                  console.log("------innter Iframe155p01 found---------");
+                }
+                else {
+                  console.log("------No innter Iframe155p01 found---------");
+                }
+                if (cgmSeqNoList && cgmSeqNoList.length > 0) {
+                  for (let y = 0; y < cgmSeqNoList.length; y++) {
+                    await innerIframe155p01
+                        //.locator("#btn_addRow")
+                        .getByRole("link",{name: "행추가"})
+                        .waitFor();
+                    await innerIframe155p01
+                        .getByRole("link",{name: "행추가"})
+                        .click(); // click
+                    // 새로운 행이 즉시 만들어지지는 않으므로 보일 때까지 대기 필요
+                    await innerIframe155p01
+                            .locator(`#grd_tbbibo12_cell_${y}_3`)
+                            .click();
+                    // cgmSeqNoList 찍어보기
+                    console.log(`cgmSeqNoList[${y}] - 일련번호:${cgmSeqNoList[y]}`)
+                    log.info(`cgmSeqNoList[${y}] - 일련번호:${cgmSeqNoList[y]}`)
+
+                    await innerIframe155p01
+                        .locator("#G_grd_tbbibo12__EQPMT_ORGNLY_NO")
+                        .fill(cgmSeqNoList[y]);
+                  }
+                  innerIframe155p01.getByRole("link",{name: "닫기"});
+                }
+                await page.waitForTimeout(2000);
+                await innerIframe155p01
+                    .getByRole('link', {name: "닫기"})
+                    .click();
+        }
+
         await frame
             .frameLocator('iframe[title="pop_bipbkc154p01"]')
             .locator(`#grd_tbbibo07_cell_${i}_13`)

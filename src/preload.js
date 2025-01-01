@@ -241,7 +241,7 @@ window.addEventListener("DOMContentLoaded", () => {
       const cgmCovBloodGlucoseMgdl = document.querySelector("#cgmCovBloodGlucoseMgdl").value;
       const cgmGlycatedHemoglobinDate = document.querySelector("#cgmGlycatedHemoglobinDate").value;
       const cgmGlycatedHemoglobinPercent = document.querySelector("#cgmGlycatedHemoglobinPercent").value;
-      const cgmSeqNoList = document.querySelector("#cgmSeqNoList");
+      const cgmSeqNoList = document.querySelector("#cgmSeqNoList").value;
 
       const data = {
         // 당뇨진료이력 Id
