@@ -386,8 +386,7 @@ async function runAutomation_billing(data) {
       } else if (secondPart === "미투여") {
         await frame.locator("#sel_bcbnf_recv_cond_type2_itemTable_2").click();
       }
-    }
-    else if (firstPart === "1형") {
+    } else if (firstPart === "1형") {
       // 1형 당뇨
       console.log("diabetes 01");
       await frame.locator("#sel_bcbnf_recv_cond_type1_itemTable_1").click();
@@ -400,8 +399,7 @@ async function runAutomation_billing(data) {
         await frame
             .locator('label:has-text("연속혈당측정용 전극(센서)")')
             .check();
-      }
-      else {
+      } else {
         await frame
             .locator('label:has-text("연속혈당측정용 전극(센서)")')
             .uncheck();
@@ -578,80 +576,96 @@ async function runAutomation_billing(data) {
 
     //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
     await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
-    await frame
-        .frameLocator('iframe[title="bipbkz110p01"]')
-        .locator(`text="${data.name}"`)
-        .last()
-        .waitFor({timeout: 1000});
 
-    const bipbkz110p01 = await frame
-        .frameLocator('iframe[title="bipbkz110p01"]')
-        .locator("#grv_list_body_tbody")
-        .getByRole("row")
-        .elementHandles();
+    try {
 
-    // 조회결과가 2개 이상일때
-    if (bipbkz110p01.length > 1) {
-      await bipbkz110p01[1].click();
       await frame
           .frameLocator('iframe[title="bipbkz110p01"]')
-          .getByRole("link", {name: "선택"})
-          .click();
-      console.log(`Element ${data.name} patient clicked.`);
+          .locator(`text="${data.name}"`)
+          .last()
+          .waitFor({timeout: 2000});
+
+      const bipbkz110p01 = await frame
+          .frameLocator('iframe[title="bipbkz110p01"]')
+          .locator("#grv_list_body_tbody")
+          .getByRole("row")
+          .elementHandles();
+
+      // 조회결과가 2개 이상일때
+      if (bipbkz110p01.length > 1) {
+        await bipbkz110p01[1].click();
+        await frame
+            .frameLocator('iframe[title="bipbkz110p01"]')
+            .getByRole("link", {name: "선택"})
+            .click();
+        console.log(`> ${data.name} patient clicked.`);
+      }
+    } catch (e) {
+      console.log(`사용개시일: ${data.purchase} - [${data.name}] 중복된 이름이 없거나 팝업창이 뜨지 않아서 팝업창 처리 skip 됨.`);
+      log.info(`사용개시일: ${data.purchase} - [${data.name}] 중복된 이름이 없거나 팝업창이 뜨지 않아서 팝업창 처리 skip 됨.`);
     }
 
+    // 급여종료일 강제 자동 설정
+    try {
+      await page.waitForTimeout(3000);
+      //이전 품목의 금여종료일이 2020.11.23입니다. 사용개시일을 2024.11.24로 자동세팅됩니다.
+      // alert_1735689446376_iframe
+      const useStartDateAutoSetAlert = await searchIframePopup(page, "alert_", "_iframe");
+      const isUseStartDateAutoSetAlert = !isEmpty(useStartDateAutoSetAlert);
 
-    //이전 품목의 금여종료일이 2020.11.23입니다. 사용개시일을 2024.11.24로 자동세팅됩니다.
-    // alert_1735689446376_iframe
-    const useStartDateAutoSetAlert = await searchIframePopup(page, "alert_", "_iframe");
-    const isUseStartDateAutoSetAlert = !isEmpty(useStartDateAutoSetAlert);
-
-    await page.waitForTimeout(3000);
-
-    if (isUseStartDateAutoSetAlert) {
-      const innerFrame = frame.frameLocator(`iframe[id="${useStartDateAutoSetAlert}"]`);
-      await innerFrame.locator('a#btn_Confirm').waitFor();
-      await innerFrame.locator('a#btn_Confirm').click();
-    }
-
-
-    await page.waitForTimeout(4000);
-    const dupIframeId = await searchIframePopup(page, "confirm_", "_iframe");
-
-    if (dupIframeId) {
-      console.log("start dupIframeId");
-      /*
-          직전 동일 준요양기관의 청구내역이 있습니다. 동일한 내역으로 청구하시겠습니까? Yes / No
-      */
-      const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId}"]`);
-      // const innerFrame = frame.frameLocator('iframe[id="confirm_1735550451070_iframe"]');
-      await innerFrame.locator('a#btn_No').waitFor();
-      await innerFrame.locator('a#btn_No').click();
-
-      await page.waitForTimeout(6000);
-
-      const dupIframeId2 = await searchIframePopup(page, "alert_", "_iframe");
-      if (dupIframeId2) {
-        const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId2}"]`);
+      if (isUseStartDateAutoSetAlert) {
+        const innerFrame = frame.frameLocator(`iframe[id="${useStartDateAutoSetAlert}"]`);
         await innerFrame.locator('a#btn_Confirm').waitFor();
         await innerFrame.locator('a#btn_Confirm').click();
-        /*
-            // 이부분은 Yes 를 눌렀을 때 수행되는 확인 팝업처리 부분
-            await page.waitForTimeout(6000);
-
-            const dupIframeId3 = await searchIframePopup(page, "alert_", "_iframe");
-
-            if(dupIframeId3){
-              const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId3}"]`);
-              await innerFrame.locator('a#btn_Confirm').waitFor();
-              await innerFrame.locator('a#btn_Confirm').click();
-            }
-        */
       }
+    } catch (e) {
+      console.log(`alert 창 기다리다가 처리안됨.\n이전 품목의 금여종료일이 yyyy.mm.dd입니다. 사용개시일을 yyyy2.mm2.dd2로 자동세팅됩니다.`);
+      log.info(`alert 창 기다리다가 처리안됨.\n이전 품목의 금여종료일이 yyyy.mm.dd입니다. 사용개시일을 yyyy2.mm2.dd2로 자동세팅됩니다.`);
     }
+
+    try {
+      await page.waitForTimeout(4000);
+
+      const dupIframeId = await searchIframePopup(page, "confirm_", "_iframe");
+
+      if (dupIframeId) {
+        console.log("start dupIframeId");
+        /*
+            직전 동일 준요양기관의 청구내역이 있습니다. 동일한 내역으로 청구하시겠습니까? Yes / No
+        */
+        const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId}"]`);
+        // const innerFrame = frame.frameLocator('iframe[id="confirm_1735550451070_iframe"]');
+        await innerFrame.locator('a#btn_No').waitFor();
+        await innerFrame.locator('a#btn_No').click();
+
+        await page.waitForTimeout(6000);
+
+        const dupIframeId2 = await searchIframePopup(page, "alert_", "_iframe");
+        if (dupIframeId2) {
+          const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId2}"]`);
+          await innerFrame.locator('a#btn_Confirm').waitFor();
+          await innerFrame.locator('a#btn_Confirm').click();
+          /*
+              // 이부분은 Yes 를 눌렀을 때 수행되는 확인 팝업처리 부분
+              await page.waitForTimeout(6000);
+
+              const dupIframeId3 = await searchIframePopup(page, "alert_", "_iframe");
+
+              if(dupIframeId3){
+                const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId3}"]`);
+                await innerFrame.locator('a#btn_Confirm').waitFor();
+                await innerFrame.locator('a#btn_Confirm').click();
+              }
+          */
+        }
+      }
+    } catch (e) {
+      console.log(`직전 동일 준요양기관의 청구내역이 있습니다. 동일한 내역으로 청구하시겠습니까? Yes/No 확인창 안뜸`);
+      log.info(`직전 동일 준요양기관의 청구내역이 있습니다. 동일한 내역으로 청구하시겠습니까? Yes/No 확인창 안뜸`);
+    }
+    // 사용개시일 채움
     // iframe 내 input box 선택
     const inputValue = await frame.locator("#cal_buy_dt_input").inputValue();
-
 
     // 빈 문자열인지 확인
     if (inputValue === '') {
@@ -661,90 +675,33 @@ async function runAutomation_billing(data) {
     } else {
       console.log('purchaseDate value:', inputValue);
     }
-
+    await page.waitForTimeout(1000);
     // 지급일수(청구일수)
     await frame.locator("#inp_pay_freq").click();
     await frame.locator("#inp_pay_freq").clear();
     await frame.locator("#inp_pay_freq").fill(data.eat);
 
-
-    if (data.isCgmSensor) {
-      // 화면에서 가져온 1형 정보들
-      // [6.변동계수 cgmCovBloodGlucosePercent 또는 7.표준편차 cgmCovBloodGlucoseMgdl 입력 필수입니다]
-      // [3.착용일수 cgmWearDays 또는 4.착용비율 입력 cgmWearPercent  필수입니다]
-
-      if (isEmpty(data.cgmWearDays) && isEmpty(data.cgmWearPercent)) {
-        log.error(`환자명: ${data.name}(${data.ssn.split("-")[0]})/1형/연속혈당측정전극`);
-        log.error(`착용일수 ${data.cgmWearDays} 또는 착용비율 ${data.cgmWearPercent}는 입력 필수입니다.`);
-      }
-
-      if (isEmpty(data.cgmCovBloodGlucosePercent) && isEmpty(data.cgmCovBloodGlucoseMgdl)) {
-        log.error(`환자명: ${data.name}(${data.ssn.split("-")[0]})/1형/연속혈당측정전극`);
-        log.error(`변동계수 ${data.cgmCovBloodGlucosePercent} 또는 표준편차 ${data.cgmCovBloodGlucoseMgdl}는 입력 필수입니다.`);
-      }
-
-      // 1.연속혈당측정기간 시작일 cgmStartDate
-      await frame.locator("#cal_util_term_fr_dt_input").click();
-      await frame.locator("#cal_util_term_fr_dt_input").clear();
-      await frame.locator("#cal_util_term_fr_dt_input").fill(data.cgmStartDate.replaceAll("-",""));
-
-      // 2.연속혈당측정기간 종료일 cgmEndDate
-      await frame.locator("#cal_util_term_to_dt_input").click();
-      await frame.locator("#cal_util_term_to_dt_input").clear();
-      await frame.locator("#cal_util_term_to_dt_input").fill(data.cgmEndDate.replaceAll("-",""));
-
-      // 3.착용일수 cgmWearDays
-      await frame.locator("#inp_data_cnt03").click(); //
-      await frame.locator("#inp_data_cnt03").clear(); //
-      await frame.locator("#inp_data_cnt03").fill(data.cgmWearDays);
-
-      // 4.착용비율
-      await frame.locator("#inp_wear_rat").click();
-      await frame.locator("#inp_wear_rat").clear();
-      await frame.locator("#inp_wear_rat").fill(data.cgmWearPercent);  // 착용비율
-
-      // 5.당평균값  cgmAvgBloodGlucose
-      await frame.locator("#inp_bdsg_avg_vl").click();
-      await frame.locator("#inp_bdsg_avg_vl").clear();
-      await frame.locator("#inp_bdsg_avg_vl").fill(data.cgmAvgBloodGlucose); // 당평균값
-
-      // 6.변동계수 cgmCovBloodGlucosePercent
-      await frame.locator("#inp_cnslt_cor_cd").click();
-      await frame.locator("#inp_cnslt_cor_cd").clear();
-      await frame.locator("#inp_cnslt_cor_cd").fill(data.cgmCovBloodGlucosePercent);
-
-      // 7.표준편차  cgmCovBloodGlucoseMgdl
-      await frame.locator("#inp_stnd_dvtn").click();
-      await frame.locator("#inp_stnd_dvtn").clear();
-      await frame.locator("#inp_stnd_dvtn").fill(data.cgmCovBloodGlucoseMgdl); // 표준편차 cgmCovBloodGlucoseMgdl
-
-      // 8. 당화혈색소 검사시행일 cgmGlycatedHemoglobinDate
-      await frame.locator("#cal_enfo_dt_input").click();
-      await frame.locator("#cal_enfo_dt_input").clear();
-      await frame.locator("#cal_enfo_dt_input").fill(data.cgmGlycatedHemoglobinDate);
-
-      // 9.  당화혈색소 검사수치 cgmGlycatedHemoglobinPercent
-      await frame.locator("#inp_ispt_rslt_vl").click();
-      await frame.locator("#inp_ispt_rslt_vl").clear();
-      await frame.locator("#inp_ispt_rslt_vl").fill(data.cgmGlycatedHemoglobinPercent);
-      // 10. 제품일련번호 리스트 cgmSeqNoList
-
-    }
+    // 1형당뇨 전극센서 체크시에 처리할 내용들
+    await processType1Input(data, frame);
 
     //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
     await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
+    try {
+        await page.waitForTimeout(3000);
 
-    await page.waitForTimeout(3000);
+        const dupIframeId4 = await searchIframePopup(page, "alert_", "_iframe");
 
-    const dupIframeId4 = await searchIframePopup(page, "alert_", "_iframe");
-
-    if(dupIframeId4){
-      const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId4}"]`);
-      await innerFrame.locator('a#btn_Confirm').waitFor();
-      await innerFrame.locator('a#btn_Confirm').click();
+        if (dupIframeId4) {
+          const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId4}"]`);
+          await innerFrame.locator('a#btn_Confirm').waitFor();
+          await innerFrame.locator('a#btn_Confirm').click();
+        }
+    } catch (e){
+       console.log(`첨부파일 업로드 시작 전 물어보는 창 처리 중 오류 발생: ${e.message}`);
+       log.error(`첨부파일 업로드 시작 전 물어보는 창 처리 중 오류 발생: ${e.message}`)
     }
-
     console.log("end purchaseDate, eatDays");
+    log.info("end purchaseDate, eatDays");
 
     // 연속혈당측정전극(센서) 체크 된 경우
     const cgmSeqNoList = [];
@@ -1110,5 +1067,78 @@ function isEmpty(value) {
   }
 }
 
+async function processType1Input(data, frame){
+  // 1형 당뇨 혹은 임신성 당뇨에서 연속혈당측정전극센서 선택한 경우만
+  try {
+    if (data.isCgmSensor) {
+      // 화면에서 가져온 1형 정보들
+      // [6.변동계수 cgmCovBloodGlucosePercent 또는 7.표준편차 cgmCovBloodGlucoseMgdl 입력 필수입니다]
+      // [3.착용일수 cgmWearDays 또는 4.착용비율 입력 cgmWearPercent  필수입니다]
+
+      if (isEmpty(data.cgmWearDays) && isEmpty(data.cgmWearPercent)) {
+        log.error(`환자명: ${data.name}(${data.ssn.split("-")[0]})/1형/연속혈당측정전극`);
+        log.error(`착용일수 ${data.cgmWearDays} 또는 착용비율 ${data.cgmWearPercent}는 입력 필수입니다.`);
+      }
+
+      if (isEmpty(data.cgmCovBloodGlucosePercent) && isEmpty(data.cgmCovBloodGlucoseMgdl)) {
+        log.error(`환자명: ${data.name}(${data.ssn.split("-")[0]})/1형/연속혈당측정전극`);
+        log.error(`변동계수 ${data.cgmCovBloodGlucosePercent} 또는 표준편차 ${data.cgmCovBloodGlucoseMgdl}는 입력 필수입니다.`);
+      }
+
+      // 1.연속혈당측정기간 시작일 cgmStartDate
+      await frame.locator("#cal_util_term_fr_dt_input").click();
+      await frame.locator("#cal_util_term_fr_dt_input").clear();
+      await frame.locator("#cal_util_term_fr_dt_input").fill(data.cgmStartDate.replaceAll("-", ""));
+
+      // 2.연속혈당측정기간 종료일 cgmEndDate
+      await frame.locator("#cal_util_term_to_dt_input").click();
+      await frame.locator("#cal_util_term_to_dt_input").clear();
+      await frame.locator("#cal_util_term_to_dt_input").fill(data.cgmEndDate.replaceAll("-", ""));
+
+      // 3.착용일수 cgmWearDays
+      await frame.locator("#inp_data_cnt03").click(); //
+      await frame.locator("#inp_data_cnt03").clear(); //
+      await frame.locator("#inp_data_cnt03").fill(data.cgmWearDays);
+
+      // 4.착용비율
+      await frame.locator("#inp_wear_rat").click();
+      await frame.locator("#inp_wear_rat").clear();
+      await frame.locator("#inp_wear_rat").fill(data.cgmWearPercent);  // 착용비율
+
+      // 5.당평균값  cgmAvgBloodGlucose
+      await frame.locator("#inp_bdsg_avg_vl").click();
+      await frame.locator("#inp_bdsg_avg_vl").clear();
+      await frame.locator("#inp_bdsg_avg_vl").fill(data.cgmAvgBloodGlucose); // 당평균값
+
+      // 6.변동계수 cgmCovBloodGlucosePercent
+      await frame.locator("#inp_cnslt_cor_cd").click();
+      await frame.locator("#inp_cnslt_cor_cd").clear();
+      await frame.locator("#inp_cnslt_cor_cd").fill(data.cgmCovBloodGlucosePercent);
+
+      // 7.표준편차  cgmCovBloodGlucoseMgdl
+      await frame.locator("#inp_stnd_dvtn").click();
+      await frame.locator("#inp_stnd_dvtn").clear();
+      await frame.locator("#inp_stnd_dvtn").fill(data.cgmCovBloodGlucoseMgdl); // 표준편차 cgmCovBloodGlucoseMgdl
+
+      // 8. 당화혈색소 검사시행일 cgmGlycatedHemoglobinDate
+      await frame.locator("#cal_enfo_dt_input").click();
+      await frame.locator("#cal_enfo_dt_input").clear();
+      await frame.locator("#cal_enfo_dt_input").fill(data.cgmGlycatedHemoglobinDate);
+
+      // 9.  당화혈색소 검사수치 cgmGlycatedHemoglobinPercent
+      await frame.locator("#inp_ispt_rslt_vl").click();
+      await frame.locator("#inp_ispt_rslt_vl").clear();
+      await frame.locator("#inp_ispt_rslt_vl").fill(data.cgmGlycatedHemoglobinPercent);
+      // 10. 제품일련번호 리스트 cgmSeqNoList
+    } else {
+      console.log(`연속혈당측정용 전극(센서) 해당 안됨`);
+      log.info(`연속혈당측정용 전극(센서) 해당 안됨`);
+    }
+
+  } catch (e) {
+      console.log(`연속혈당측정용 전극(센서) 내용 입력 중 오류 발생 `);
+      log.info(`연속혈당측정용 전극(센서) 내용 입력 중 오류 발생`);
+  }
+}
 
 
