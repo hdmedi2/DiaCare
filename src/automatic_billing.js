@@ -242,7 +242,7 @@ async function runAutomation_billing(data) {
     // 팝업 창(일반적인 요양비 청구가 맞습니까?) 확인 버튼 -> 약국 선택
     // 동적으로 생성되는 태그 값 찾기
     console.log("start general care expenses alert");
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(1000);
 
     const dynamicFrameId = await searchIframePopup(page, "confirm_", "_iframe");
 
@@ -258,40 +258,51 @@ async function runAutomation_billing(data) {
     // 페이지의 모든 쿠키 가져오기
     console.log("start pharmacyListByBizNo");
     const cookieData = await page.context().cookies();
-    /*
-    let pharmacyDataNum = await pharmacyListByBizNo(cookieData, data.pharmacyBizNo);
-    console.log("end pharmacyListByBizNo");
+    try {
+          let pharmacyDataNum = await pharmacyListByBizNo(cookieData, data.pharmacyBizNo);
+          console.log("end pharmacyListByBizNo");
 
-    if (pharmacyDataNum > 1) {
-      // 업체목록이 2건 이상이면 선택
-      await page.waitForTimeout(3000);
-      await frame
-          .frameLocator('iframe[title="bipbkz300p01"]')
-          .locator(`text=${extractedText}`)
-          .waitFor();
-      await frame
-          .frameLocator('iframe[title="bipbkz300p01"]')
-          .getByText(extractedText)
-          .click();
-      await frame
-          .frameLocator('iframe[title="bipbkz300p01"]')
-          .getByRole("link", { name: "선택" })
-          .click();
+          if (pharmacyDataNum > 1) {
+            // 업체목록이 2건 이상이면 선택
+            await frame
+                .frameLocator('iframe[title="bipbkz300p01"]')
+                .locator(`text=${extractedText}`)
+                .waitFor({timeout: 1000});
+            await frame
+                .frameLocator('iframe[title="bipbkz300p01"]')
+                .getByText(extractedText)
+                .click();
+            await frame
+                .frameLocator('iframe[title="bipbkz300p01"]')
+                .getByRole("link", { name: "선택" })
+                .click();
+          }
+    } catch (e) {
+        console.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
+        log.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
     }
-    */
-    const bipbkz300p01 = await searchIframePopup(page, "bipbkz300p01", "_iframe");
 
-    if (bipbkz300p01) {
-      const pharmacyCnt = await frame.frameLocator('iframe[title="bipbkz300p01"]')
-          .locator(`text=${extractedText}`).waitFor();
-      await frame
-          .frameLocator('iframe[title="bipbkz300p01"]')
-          .getByText(extractedText)
-          .click();
-      await frame
-          .frameLocator('iframe[title="bipbkz300p01"]')
-          .getByRole("link", {name: "선택"})
-          .click();
+    try {
+      const bipbkz300p01 = await searchIframePopup(page, "bipbkz300p01", "_iframe");
+
+      if (bipbkz300p01) {
+        const pharmacyCnt = await frame.frameLocator('iframe[title="bipbkz300p01"]')
+            .locator(`text=${extractedText}`).waitFor({timeout:1000});
+        await frame
+            .frameLocator('iframe[title="bipbkz300p01"]')
+            .getByText(extractedText)
+            .click();
+        await frame
+            .frameLocator('iframe[title="bipbkz300p01"]')
+            .getByRole("link", {name: "선택"})
+            .click();
+      } else {
+        log.info("bipbkz300p01_iframe not found");
+      }
+
+    }catch (e) {
+      console.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
+      log.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
     }
 
     // 처방전발행일
@@ -638,7 +649,7 @@ async function runAutomation_billing(data) {
         await innerFrame.locator('a#btn_No').waitFor();
         await innerFrame.locator('a#btn_No').click();
 
-        await page.waitForTimeout(6000);
+        await page.waitForTimeout(3000);
 
         const dupIframeId2 = await searchIframePopup(page, "alert_", "_iframe");
         if (dupIframeId2) {
@@ -647,7 +658,7 @@ async function runAutomation_billing(data) {
           await innerFrame.locator('a#btn_Confirm').click();
           /*
               // 이부분은 Yes 를 눌렀을 때 수행되는 확인 팝업처리 부분
-              await page.waitForTimeout(6000);
+              await page.waitForTimeout(3000);
 
               const dupIframeId3 = await searchIframePopup(page, "alert_", "_iframe");
 
@@ -865,7 +876,7 @@ async function runAutomation_billing(data) {
     let dynamicFrameId_save_alert;
     for (let i = frames_save_alert.length - 1; i >= 0; i--) {
       const frame_save_alert = frames_save_alert[i];
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(2000);
       const ids_save_alert = await frame_save_alert.evaluate(() => {
         const iframes = Array.from(document.querySelectorAll("iframe"));
         return iframes.map((iframe) => iframe.id);
