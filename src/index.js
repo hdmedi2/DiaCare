@@ -348,7 +348,7 @@ app.whenReady().then(() => {
       label: "View",
       submenu: [
         { role: "reload" },
-        { role: "toggledevtools" },
+        // { role: "toggledevtools" },
         { role: "resetzoom" },
         { role: "zoomin" },
         { role: "zoomout" },
