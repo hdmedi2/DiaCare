@@ -258,11 +258,16 @@ async function runAutomation_billing(data) {
     // 페이지의 모든 쿠키 가져오기
     console.log("start pharmacyListByBizNo");
     const cookieData = await page.context().cookies();
+
+    await page.waitForTimeout(2000);
+    // 사업자등록번호 여러 개인 경우 처리
+    let pass = "";
     try {
           let pharmacyDataNum = await pharmacyListByBizNo(cookieData, data.pharmacyBizNo);
-          console.log("end pharmacyListByBizNo");
+          console.log("checking pharmacyListByBizNo...");
 
           if (pharmacyDataNum > 1) {
+            pass = "p1_1";
             // 업체목록이 2건 이상이면 선택
             await frame
                 .frameLocator('iframe[title="bipbkz300p01"]')
@@ -277,32 +282,37 @@ async function runAutomation_billing(data) {
                 .getByRole("link", { name: "선택" })
                 .click();
           }
+          else {
+            pass = "p1_2";
+          }
     } catch (e) {
         console.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
         log.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
     }
 
-    try {
-      const bipbkz300p01 = await searchIframePopup(page, "bipbkz300p01", "_iframe");
+    if (pass === "p1_2") {
+          try {
+            const bipbkz300p01 = await searchIframePopup(page, "bipbkz300p01", "_iframe");
 
-      if (bipbkz300p01) {
-        const pharmacyCnt = await frame.frameLocator('iframe[title="bipbkz300p01"]')
-            .locator(`text=${extractedText}`).waitFor({timeout:1000});
-        await frame
-            .frameLocator('iframe[title="bipbkz300p01"]')
-            .getByText(extractedText)
-            .click();
-        await frame
-            .frameLocator('iframe[title="bipbkz300p01"]')
-            .getByRole("link", {name: "선택"})
-            .click();
-      } else {
-        log.info("bipbkz300p01_iframe not found");
-      }
+            if (bipbkz300p01) {
+              const pharmacyCnt = await frame.frameLocator('iframe[title="bipbkz300p01"]')
+                  .locator(`text=${extractedText}`).waitFor({timeout: 500});
+              await frame
+                  .frameLocator('iframe[title="bipbkz300p01"]')
+                  .getByText(extractedText)
+                  .click();
+              await frame
+                  .frameLocator('iframe[title="bipbkz300p01"]')
+                  .getByRole("link", {name: "선택"})
+                  .click();
+            } else {
+              log.info("bipbkz300p01_iframe not found");
+            }
 
-    }catch (e) {
-      console.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
-      log.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
+          } catch (e) {
+            console.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
+            log.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
+          }
     }
 
     // 처방전발행일
@@ -1100,12 +1110,13 @@ async function processType1Input(data, frame){
       await frame.locator("#cal_util_term_fr_dt_input").click();
       await frame.locator("#cal_util_term_fr_dt_input").clear();
       await frame.locator("#cal_util_term_fr_dt_input").fill(data.cgmStartDate.replaceAll("-", ""));
+      await frame.locator("#cal_util_term_fr_dt_input").press("Enter");
 
       // 2.연속혈당측정기간 종료일 cgmEndDate
       await frame.locator("#cal_util_term_to_dt_input").click();
       await frame.locator("#cal_util_term_to_dt_input").clear();
       await frame.locator("#cal_util_term_to_dt_input").fill(data.cgmEndDate.replaceAll("-", ""));
-
+      await frame.locator("#cal_util_term_to_dt_input").press("Enter");
       // 3.착용일수 cgmWearDays
       await frame.locator("#inp_data_cnt03").click(); //
       await frame.locator("#inp_data_cnt03").clear(); //
