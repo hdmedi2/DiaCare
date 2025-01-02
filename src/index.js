@@ -120,6 +120,7 @@ const createWindow = async () => {
       contextIsolation: true,
       nodeIntegration: false,
       enableRemoteModule: false,
+      devtools:false
     },
   });
 
@@ -240,6 +241,7 @@ const createSettingWindow = (options = {}) => {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
       enableRemoteModule: false,
+      devTools:false
     },
     autoHideMenuBar: true,
   });
