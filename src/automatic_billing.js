@@ -230,6 +230,9 @@ async function runAutomation_billing(data) {
         'iframe[name="windowContainer_subWindow1_iframe"]'
     );
 
+    await page.on('frameattached', frame => {
+      console.log(`==> New iframe attached:${frame.url()}`);
+    });
     // 수진자 정보
     console.log("start sujinja info");
     await frame.locator("#sel_payClsfcCd").selectOption("당뇨병소모성재료");
@@ -588,7 +591,6 @@ async function runAutomation_billing(data) {
       console.log("end bloodGlucoseTestNumber, insulinInjectionNumber");
     }
 
-
     // 구매일, 사용개시일, 지급일수
     console.log("start purchaseDate, eatDays");
 
@@ -599,7 +601,6 @@ async function runAutomation_billing(data) {
     await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
 
     try {
-
       await frame
           .frameLocator('iframe[title="bipbkz110p01"]')
           .locator(`text="${data.name}"`)
@@ -628,7 +629,7 @@ async function runAutomation_billing(data) {
 
     // 급여종료일 강제 자동 설정
     try {
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(5000);
       //이전 품목의 금여종료일이 2020.11.23입니다. 사용개시일을 2024.11.24로 자동세팅됩니다.
       // alert_1735689446376_iframe
       const useStartDateAutoSetAlert = await searchIframePopup(page, "alert_", "_iframe");
@@ -639,13 +640,15 @@ async function runAutomation_billing(data) {
         await innerFrame.locator('a#btn_Confirm').waitFor();
         await innerFrame.locator('a#btn_Confirm').click();
       }
+      await page.waitForTimeout(5000);
     } catch (e) {
       console.log(`alert 창 기다리다가 처리안됨.\n이전 품목의 금여종료일이 yyyy.mm.dd입니다. 사용개시일을 yyyy2.mm2.dd2로 자동세팅됩니다.`);
       log.info(`alert 창 기다리다가 처리안됨.\n이전 품목의 금여종료일이 yyyy.mm.dd입니다. 사용개시일을 yyyy2.mm2.dd2로 자동세팅됩니다.`);
+      await page.waitForTimeout(2000);
     }
 
     try {
-      await page.waitForTimeout(4000);
+      await page.waitForTimeout(5000);
 
       const dupIframeId = await searchIframePopup(page, "confirm_", "_iframe");
 
@@ -659,7 +662,7 @@ async function runAutomation_billing(data) {
         await innerFrame.locator('a#btn_No').waitFor();
         await innerFrame.locator('a#btn_No').click();
 
-        await page.waitForTimeout(3000);
+        await page.waitForTimeout(5000);
 
         const dupIframeId2 = await searchIframePopup(page, "alert_", "_iframe");
         if (dupIframeId2) {
