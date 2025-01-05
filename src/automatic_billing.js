@@ -230,9 +230,6 @@ async function runAutomation_billing(data) {
         'iframe[name="windowContainer_subWindow1_iframe"]'
     );
 
-    await page.on('frameattached', frame => {
-      console.log(`==> New iframe attached:${frame.url()}`);
-    });
     // 수진자 정보
     console.log("start sujinja info");
     await frame.locator("#sel_payClsfcCd").selectOption("당뇨병소모성재료");
