@@ -148,16 +148,19 @@ async function runAutomation_homeTax(data) {
 
     await page.waitForTimeout(2000)
     await page.click('#mf_txppWframe_anchor22');
-    let r = false;
 
-    // 인증서 로그인 시도
-    r = await certSign(page, data.taxCertificateName, data.taxCertificatePassword);
+    let r = false;
+    //for (let i=0; i<3; i++) {
+        // 인증서 로그인 시도
+        r = await certSign(page, data.taxCertificateName, data.taxCertificatePassword);
+    //    if (r===true) break;
+    //}
 
     // 3-5. 전자세금계산서 발행 메뉴 찾아가기
     await page.waitForTimeout(8000)
     await page.getByText("계산서·영수증·카드").click();
     await page.getByRole("link", { name: "일괄/공동매입분 발급"}).click();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(4000);
     const link2 = await page.getByRole("link", { name: "전자(세금)계산서 일괄발급", exact: true });
 
     if (await link2.count() > 0) {
@@ -206,12 +209,10 @@ async function runAutomation_homeTax(data) {
                 const msg = dialog.message();
                 if (dialog.type() === 'confirm'
                     && msg.startsWith('전자세금계산서를 일괄발급하시겠습니까?') === true) {
-                    await page.waitForTimeout(8000);
                     await dialog.accept(); // '확인' 버튼 누르기
                     console.log("일괄발급 확인 확인창 제대로 닫힘");
                     result = "ok";
                 } else {
-                    await page.waitForTimeout(8000);
                     await dialog.dismiss(); // 다른 종류의 dialog는 닫기
                     console.log('그 외의 Dialog! 닫음');
                     result = "stop";
@@ -289,6 +290,7 @@ async  function certSign(page, certName, certPassword) {
     }
     catch(e){
         console.error(e.message);
+        log.error(e.message);
     }
     const strSlide = await frame.locator("#wrap_stg_01");
 
@@ -296,30 +298,39 @@ async  function certSign(page, certName, certPassword) {
     if (await strSlide.count() > 0) {
         console.log('certificate list found...');
     } else {
-        console.log('certificate list not found...');
+        console.log('certificate list not found....');
     }
 
+    // 서정현()002368820140731123000311
     if (certName!=="" && certName!==undefined) {
-        try {
-            const nButton = await frame
-                .getByRole("row", {name: certName})
-                .getByText(certName)
-                .dblclick();
-        } catch (e) {
-            console.log(`세금계산서용 인증서의 이름이 정확한지 확인하세요: "${certName}"`);
-            return false;
-        }
+      //  await page.getByText(certName, {exact: true}).click();
+      //  await page.getByRole("textbox", {name: "인증서 암호"}).click();
+      //  await page
+      //      .getByRole("textbox", {name: "인증서 암호"})
+      //      .fill(certPassword);
+      try{
+          const nButton = await frame
+              //  .getByRole("table",{name: "tabledataTable"})
+              .getByRole("row", { name: certName })
+              .getByText(certName)
+              .dblclick();
+      } catch(e) {
+          console.log(`세금계산서용 인증서의 이름이 정확한지 확인하세요: "${certName}"`);
+          return false;
+      }
     }
 
+    // await page.getByText(data.taxCertificateName,{exact:true}).click();
+    // await page.getByRole("textbox", { name: "인증서 암호" }).click();
     await frame.locator("#input_cert_pw").click(); // 인증서 암호란 클릭
     await page.keyboard.type(certPassword, {delay:30}); // 인증서 암호 채우기 //
 
     // 확인 버튼 눌러서 로그인
     if (certName!=="" && certName!==undefined) {
         await frame
-            .getByRole("button", {name: "확인"}).click();
-        await page.waitForTimeout(5000);
+            .getByRole("button", { name: "확인" }).click();
     }
+    await page.waitForTimeout(8000);
 }
 
 module.exports = { runAutomation_homeTax };
