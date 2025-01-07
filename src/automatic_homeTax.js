@@ -154,7 +154,7 @@ async function runAutomation_homeTax(data) {
     r = await certSign(page, data.taxCertificateName, data.taxCertificatePassword);
 
     // 3-5. 전자세금계산서 발행 메뉴 찾아가기
-    await page.waitForTimeout(8000)
+    await page.waitForTimeout(2000)
     await page.getByText("계산서·영수증·카드").click();
     await page.getByRole("link", { name: "일괄/공동매입분 발급"}).click();
     const link2 = await page.getByRole("link", { name: "전자(세금)계산서 일괄발급", exact: true });
@@ -177,9 +177,9 @@ async function runAutomation_homeTax(data) {
         try {
             // await fileInput.click(); // 클릭 금지
 
-            // await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
-            if (await fs.existsSync(path.join(userHomeTaxDirectory, "hometax_1341579686_20250107233835.xlsx"))) {
-                await fileInput.setInputFiles(path.join(userHomeTaxDirectory, "hometax_1341579686_20250107233835.xlsx")); // data.hometaxFileName
+            await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
+            if (await fs.existsSync(path.join(userHomeTaxDirectory, data.hometaxFileName))) {
+                await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
                 await page.waitForTimeout(8000);
                 // 파일 경로 지정
                 // console.log(`${path.join(userHomeTaxDirectory, "hometax_1341579686_20250107233835.xlsx")} 파일 로드 `);
@@ -327,7 +327,6 @@ async  function certSign(page, certName, certPassword) {
         await page.keyboard.type(certPassword, {delay:30}); // 인증서 암호 채우기 //
         await frame
             .getByRole("button", {name: "확인"}).click();
-        await page.waitForTimeout(2000);
     }
 }
 
