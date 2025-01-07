@@ -72,12 +72,10 @@ async function runAutomation_billing(data) {
         break;
       } catch (error) {
         console.warn(`Failed to launch ${channel}: ${error.message}`);
-        log.warn(`Failed to launch ${channel}: ${error.message}`);
       }
     }
     if (!browser) {
       console.error("No supported browser channels found.");
-      log.error("No supported browser channels found.");
       return;
     }
 
@@ -87,23 +85,20 @@ async function runAutomation_billing(data) {
     if (!fs.existsSync(downloadsDirectory)) {
       fs.mkdirSync(downloadsDirectory, {recursive: true});
     }
-
-    log.info(`download Directory: ${downloadsDirectory}`);
+    console.log(`download Directory: ${downloadsDirectory}`);
 
 
     // A-1.구매영수증 다운로드
     try {
       console.log("Start payment_receipt_file Download");
-      log.info("Start payment_receipt_file Download");
       await downloadFile(
           downloadsDirectory,
           data.paymentReceiptSignedUrl,
           data.paymentReceiptFileName
       );
-      log.info("Start payment_receipt_file Downloaded");
+      console.log("Start payment_receipt_file Downloaded");
     } catch (e) {
       console.error(e.message);
-      log.error(e.message);
     }
 
     // A-2.연속혈당측정용 전극 고유식별번호 다운로드
@@ -116,10 +111,8 @@ async function runAutomation_billing(data) {
             data.cgmSeqNoFileName
         );
         console.log("Start cgm_seq_no_file Downloaded");
-        log.info("Start cgm_seq_no_file Downloaded");
       }
     } catch (e) {
-      log.error("cgm_seq_no_file error", e.message);
       console.log("cgm_seq_no_file error", e.message);
     }
 
@@ -132,10 +125,8 @@ async function runAutomation_billing(data) {
           data.paymentClaimDelegationFileName
       );
       console.log("위임장: payment_claim_delegation_file Downloaded");
-      log.info("위임장: payment_claim_delegation_file Downloaded");
     } catch (e) {
       console.log(`위임장: ${e.message}`);
-      log.info(`위임장: ${e.message}`);
     }
 
     try {
@@ -146,12 +137,10 @@ async function runAutomation_billing(data) {
           data.prescriptionSignedUrl,
           data.prescriptionFileName
       );
-      log.info("처방전 prescription_file Downloaded");
-      console.log("처방전 prescription_file Downloaded");
+       console.log("처방전 prescription_file Downloaded");
 
     } catch (e) {
       console.log(`처방전 다운로드: ${e.message}`);
-      log.error(`처방전 다운로드: ${e.message}`);
     }
 
     try {
@@ -242,7 +231,7 @@ async function runAutomation_billing(data) {
     // 팝업 창(일반적인 요양비 청구가 맞습니까?) 확인 버튼 -> 약국 선택
     // 동적으로 생성되는 태그 값 찾기
     console.log("start general care expenses alert");
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(5000);
 
     const dynamicFrameId = await searchIframePopup(page, "confirm_", "_iframe");
 
@@ -259,7 +248,7 @@ async function runAutomation_billing(data) {
     console.log("start pharmacyListByBizNo");
     const cookieData = await page.context().cookies();
 
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(5000);
     // 사업자등록번호 여러 개인 경우 처리
     let pass = "";
     try {
@@ -287,7 +276,6 @@ async function runAutomation_billing(data) {
           }
     } catch (e) {
         console.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
-        log.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
     }
 
     if (pass === "p1_2") {
@@ -306,12 +294,11 @@ async function runAutomation_billing(data) {
                   .getByRole("link", {name: "선택"})
                   .click();
             } else {
-              log.info("bipbkz300p01_iframe not found");
+              console.log("bipbkz300p01_iframe not found");
             }
 
           } catch (e) {
-            console.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
-            log.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
+            console.log(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
           }
     }
 
@@ -400,7 +387,27 @@ async function runAutomation_billing(data) {
         await frame
             .locator('label:has-text("연속혈당측정용 전극(센서)")')
             .check();
+
+        // 동일 처방전으로 전극 청구한 이력이 존재합니다. 청구 불가합니다.
+        try {
+          await page.waitForTimeout(5000);
+          //동일 처방전으로 전극 청구한 이력이 존재합니다. 청구 불가합니다.
+          // alert_1735689446376_iframe
+          const useStartDateAutoSetAlert = await searchIframePopup(page, "alert_", "_iframe");
+          const isUseStartDateAutoSetAlert = !isEmpty(useStartDateAutoSetAlert);
+
+          if (isUseStartDateAutoSetAlert) {
+            console.log(`전극 센서 체크 후 발생: 동일 처방전으로 전극 청구한 이력이 존재합니다. 청구 불가합니다.`);
+            const innerFrame = frame.frameLocator(`iframe[id="${useStartDateAutoSetAlert}"]`);
+            await innerFrame.locator('a#btn_Confirm').waitFor();
+            await innerFrame.locator('a#btn_Confirm').click();
+          }
+        } catch (e) {
+          console.log(`동일 처방전으로 전극 청구한 이력이 존재합니다. 청구 불가합니다. 419L - 알림창 처리 중 오류 발생 `);
+          await page.waitForTimeout(2000);
+        }
       }
+
       console.log("Pregnancy 임신중 당뇨 | 1형");
       if (secondPart === "투여") {
         await frame.locator("#sel_bcbnf_recv_cond_type2_itemTable_1").click();
@@ -420,6 +427,24 @@ async function runAutomation_billing(data) {
         await frame
             .locator('label:has-text("연속혈당측정용 전극(센서)")')
             .check();
+        // 동일 처방전으로 전극 청구한 이력이 존재합니다. 청구 불가합니다.
+        try {
+          await page.waitForTimeout(5000);
+          //동일 처방전으로 전극 청구한 이력이 존재합니다. 청구 불가합니다.
+          // alert_1735689446376_iframe
+          const useStartDateAutoSetAlert = await searchIframePopup(page, "alert_", "_iframe");
+          const isUseStartDateAutoSetAlert = !isEmpty(useStartDateAutoSetAlert);
+
+          if (isUseStartDateAutoSetAlert) {
+            console.log(`전극 센서 체크 후 발생: 동일 처방전으로 전극 청구한 이력이 존재합니다. 청구 불가합니다.`);
+            const innerFrame = frame.frameLocator(`iframe[id="${useStartDateAutoSetAlert}"]`);
+            await innerFrame.locator('a#btn_Confirm').waitFor();
+            await innerFrame.locator('a#btn_Confirm').click();
+          }
+        } catch (e) {
+          console.log(`동일 처방전으로 전극 청구한 이력이 존재합니다. 청구 불가합니다. 458L - 알림창 처리 중 오류 발생 `);
+          await page.waitForTimeout(2000);
+        }
       } else {
         await frame
             .locator('label:has-text("연속혈당측정용 전극(센서)")')
@@ -452,6 +477,13 @@ async function runAutomation_billing(data) {
       }
     }
     console.log("end diabetes type, taking insulin, under age 19");
+
+    // 1형 당뇨 관련창 뜨는지 테스트
+    try {
+
+    } catch(err) {
+
+    }
 
     // 요양기관, 의사 번호, 전문의 번호
     console.log("start hospitalCareOrgNo, doctorLicenseNo, qualificationNo");
@@ -574,7 +606,7 @@ async function runAutomation_billing(data) {
 
     // 1형 연속혈당측정, 임신성 당뇨 연속혈당측정 전극센서 체크 유무 확인
     const isCgm = data.isCgmSensor;
-    log.info(`isCGm = ${isCgm}, 연속혈당측정시작일:${data.cgmStartDate}, 연속혈당측정 체크박스: ${data.isCgmSensor}`);
+    console.log(`isCGm = ${isCgm}, 연속혈당측정시작일:${data.cgmStartDate}, 연속혈당측정 체크박스: ${data.isCgmSensor}`);
     // 연속혈당측정전극센서 체크시 사라지는 항목들
     if (!data.isCgmSensor) {
       // 혈당검사횟수, 인슐린투여횟수
@@ -611,8 +643,8 @@ async function runAutomation_billing(data) {
           .elementHandles();
 
       // 조회결과가 2개 이상일때
-      if (bipbkz110p01.length > 1) {
-        await bipbkz110p01[1].click();
+      if (bipbkz110p01.length >= 1) {
+        await bipbkz110p01[bipbkz110p01.length-1].click();
         await frame
             .frameLocator('iframe[title="bipbkz110p01"]')
             .getByRole("link", {name: "선택"})
@@ -621,12 +653,10 @@ async function runAutomation_billing(data) {
       }
     } catch (e) {
       console.log(`사용개시일: ${data.purchase} - [${data.name}] 중복된 이름이 없거나 팝업창이 뜨지 않아서 팝업창 처리 skip 됨.`);
-      log.info(`사용개시일: ${data.purchase} - [${data.name}] 중복된 이름이 없거나 팝업창이 뜨지 않아서 팝업창 처리 skip 됨.`);
     }
 
     // 급여종료일 강제 자동 설정
     try {
-      await page.waitForTimeout(5000);
       //이전 품목의 금여종료일이 2020.11.23입니다. 사용개시일을 2024.11.24로 자동세팅됩니다.
       // alert_1735689446376_iframe
       const useStartDateAutoSetAlert = await searchIframePopup(page, "alert_", "_iframe");
@@ -637,15 +667,12 @@ async function runAutomation_billing(data) {
         await innerFrame.locator('a#btn_Confirm').waitFor();
         await innerFrame.locator('a#btn_Confirm').click();
       }
-      await page.waitForTimeout(5000);
     } catch (e) {
       console.log(`alert 창 기다리다가 처리안됨.\n이전 품목의 금여종료일이 yyyy.mm.dd입니다. 사용개시일을 yyyy2.mm2.dd2로 자동세팅됩니다.`);
-      log.info(`alert 창 기다리다가 처리안됨.\n이전 품목의 금여종료일이 yyyy.mm.dd입니다. 사용개시일을 yyyy2.mm2.dd2로 자동세팅됩니다.`);
-      await page.waitForTimeout(2000);
     }
 
     try {
-      await page.waitForTimeout(5000);
+    //  await page.waitForTimeout(5000);
 
       const dupIframeId = await searchIframePopup(page, "confirm_", "_iframe");
 
@@ -682,14 +709,13 @@ async function runAutomation_billing(data) {
       }
     } catch (e) {
       console.log(`직전 동일 준요양기관의 청구내역이 있습니다. 동일한 내역으로 청구하시겠습니까? Yes/No 확인창 안뜸`);
-      log.info(`직전 동일 준요양기관의 청구내역이 있습니다. 동일한 내역으로 청구하시겠습니까? Yes/No 확인창 안뜸`);
     }
     // 사용개시일 채움
     // iframe 내 input box 선택
     const inputValue = await frame.locator("#cal_buy_dt_input").inputValue();
 
     // 빈 문자열인지 확인
-    if (inputValue === '') {
+    if (isEmpty(inputValue)) {
       console.log(`* purchaseDate is blank ==> fill(${data.purchase})`);
       await frame.locator("#cal_buy_dt_input").click();
       await frame.locator("#cal_buy_dt_input").fill(data.purchase);
@@ -702,49 +728,48 @@ async function runAutomation_billing(data) {
     await frame.locator("#inp_pay_freq").clear();
     await frame.locator("#inp_pay_freq").fill(data.eat);
 
-    // 1형당뇨 전극센서 체크시에 처리할 내용들
-    await processType1Input(data, frame);
-
-    //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
-    await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
-    try {
-        await page.waitForTimeout(3000);
-
-        const dupIframeId4 = await searchIframePopup(page, "alert_", "_iframe");
-
-        if (dupIframeId4) {
-          const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId4}"]`);
-          await innerFrame.locator('a#btn_Confirm').waitFor();
-          await innerFrame.locator('a#btn_Confirm').click();
-        }
-    } catch (e){
-       console.log(`첨부파일 업로드 시작 전 물어보는 창 처리 중 오류 발생: ${e.message}`);
-       log.error(`첨부파일 업로드 시작 전 물어보는 창 처리 중 오류 발생: ${e.message}`)
-    }
-    console.log("end purchaseDate, eatDays");
-    log.info("end purchaseDate, eatDays");
-
-    // 연속혈당측정전극(센서) 체크 된 경우
     const cgmSeqNoList = [];
-    if (data.isCgmSensor === true && !isEmpty(data.cgmSeqNoList))
-    {
-      console.log("start split cgmSeqNoList Array...");
-      // data.cgmSeqList 분리
-      // 콤마로 분리된 항목들이 있으면 분리 후 배열로 만들고, 단일 원소이면 하나만 입력함
-      if(data.cgmSeqNoList.indexOf(",")>0) {
-        const items = data.cgmSeqNoList.split(",");
-        cgmSeqNoList.push(...items);
+    // 1형당뇨 전극센서 체크시에 처리할 내용들
+    if (data.isCgmSensor) {
+      await processType1Input(data, frame);
+      if (!isEmpty(data.cgmSeqNoList)) {
+        console.log("start split cgmSeqNoList Array...");
+        // data.cgmSeqList 분리
+        // 콤마로 분리된 항목들이 있으면 분리 후 배열로 만들고, 단일 원소이면 하나만 입력함
+        if(data.cgmSeqNoList.indexOf(",")>0) {
+          const items = data.cgmSeqNoList.split(",");
+          cgmSeqNoList.push(...items);
+        }
+        else {
+          cgmSeqNoList.push(data.cgmSeqNoList);
+        }
+        console.log(`** cgmSeqNoList = [${cgmSeqNoList}]`);
+
+        console.log("end split cgmSeqNoList Array...");
       }
       else {
-        cgmSeqNoList.push(data.cgmSeqNoList);
+        console.log(`*** there is no cgmSeqNoList ${data.cgmSeqNoList}...`);
       }
-      console.log(`** cgmSeqNoList = [${cgmSeqNoList}]`);
+    } else {
+          //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
+          await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
 
-      console.log("end split cgmSeqNoList Array...");
+          try {
+            await page.waitForTimeout(3000);
+
+            const dupIframeId4 = await searchIframePopup(page, "alert_", "_iframe");
+
+            if (!isEmpty(dupIframeId4)) {
+              const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId4}"]`);
+              await innerFrame.locator('a#btn_Confirm').waitFor();
+              await innerFrame.locator('a#btn_Confirm').click();
+            }
+          } catch (e){
+            console.log(`첨부파일 업로드 시작 전 물어보는 창 처리 중 오류 발생: ${e.message}`);
+          }
     }
-    else {
-      console.log(`*** there is no cgmSeqNoList ${data.cgmSeqNoList}...`);
-    }
+
+    console.log("end purchaseDate, eatDays");
 
     // 제품사용내역등록(식별번호등록)
     console.log("start taking diabetes supplies info");
@@ -816,7 +841,6 @@ async function runAutomation_billing(data) {
                             .click();
                     // cgmSeqNoList 찍어보기
                     console.log(`cgmSeqNoList[${y}] - 일련번호:${cgmSeqNoList[y]}`)
-                    log.info(`cgmSeqNoList[${y}] - 일련번호:${cgmSeqNoList[y]}`)
 
                     await innerIframe155p01
                         .locator("#G_grd_tbbibo12__EQPMT_ORGNLY_NO")
@@ -847,6 +871,25 @@ async function runAutomation_billing(data) {
 
     await frame.getByRole("link", { name: "저장" }).click();
     console.log("Click the Save button");
+
+    // 동일 처방전으로 전극 청구한 이력이 존재합니다. 청구 불가합니다.
+    try {
+      //동일 처방전으로 전극 청구한 이력이 존재합니다. 청구 불가합니다.
+      // alert_1735689446376_iframe
+      const useStartDateAutoSetAlert = await searchIframePopup(page, "alert_", "_iframe");
+      const isUseStartDateAutoSetAlert = !isEmpty(useStartDateAutoSetAlert);
+
+      if (isUseStartDateAutoSetAlert) {
+        console.log(`전극 센서 체크 후 발생: 동일 처방전으로 전극 청구한 이력이 존재합니다. 청구 불가합니다.`);
+        const innerFrame = frame.frameLocator(`iframe[id="${useStartDateAutoSetAlert}"]`);
+        await innerFrame.locator('a#btn_Confirm').waitFor();
+        await innerFrame.locator('a#btn_Confirm').click();
+      }
+    } catch (e) {
+      console.log(`동일 처방전으로 전극 청구한 이력이 존재합니다. 청구 불가합니다. 901L - 알림창 처리 중 오류 발생 `);
+      await page.waitForTimeout(2000);
+    }
+
 
     // 알림창
     const frames_save = page.frames();
@@ -957,6 +1000,11 @@ async function runAutomation_billing(data) {
     }
     if (!isEmpty(data.paymentReceiptFileName)) {
       fileArr.push(path.join(downloadsDirectory, data.paymentReceiptFileName));
+    }
+
+    // 2025.1.7 연속혈당측정용 전극(센서) 일련번호 찍은 파일이 있으면
+    if (!isEmpty(data.cgmSeqNoFileName)) {
+      fileArr.push(path.join(downloadsDirectory, data.cgmSeqNoFileName));
     }
 
     fileArr.forEach(file => {
@@ -1097,13 +1145,13 @@ async function processType1Input(data, frame){
       // [3.착용일수 cgmWearDays 또는 4.착용비율 입력 cgmWearPercent  필수입니다]
 
       if (isEmpty(data.cgmWearDays) && isEmpty(data.cgmWearPercent)) {
-        log.error(`환자명: ${data.name}(${data.ssn.split("-")[0]})/1형/연속혈당측정전극`);
-        log.error(`착용일수 ${data.cgmWearDays} 또는 착용비율 ${data.cgmWearPercent}는 입력 필수입니다.`);
+        console.error(`환자명: ${data.name}(${data.ssn.split("-")[0]})/1형/연속혈당측정전극`);
+        console.error(`착용일수 ${data.cgmWearDays} 또는 착용비율 ${data.cgmWearPercent}는 입력 필수입니다.`);
       }
 
       if (isEmpty(data.cgmCovBloodGlucosePercent) && isEmpty(data.cgmCovBloodGlucoseMgdl)) {
-        log.error(`환자명: ${data.name}(${data.ssn.split("-")[0]})/1형/연속혈당측정전극`);
-        log.error(`변동계수 ${data.cgmCovBloodGlucosePercent} 또는 표준편차 ${data.cgmCovBloodGlucoseMgdl}는 입력 필수입니다.`);
+        console.error(`환자명: ${data.name}(${data.ssn.split("-")[0]})/1형/연속혈당측정전극`);
+        console.error(`변동계수 ${data.cgmCovBloodGlucosePercent} 또는 표준편차 ${data.cgmCovBloodGlucoseMgdl}는 입력 필수입니다.`);
       }
 
       // 1.연속혈당측정기간 시작일 cgmStartDate
@@ -1154,12 +1202,10 @@ async function processType1Input(data, frame){
       // 10. 제품일련번호 리스트 cgmSeqNoList
     } else {
       console.log(`연속혈당측정용 전극(센서) 해당 안됨`);
-      log.info(`연속혈당측정용 전극(센서) 해당 안됨`);
     }
 
   } catch (e) {
       console.log(`연속혈당측정용 전극(센서) 내용 입력 중 오류 발생 `);
-      log.info(`연속혈당측정용 전극(센서) 내용 입력 중 오류 발생`);
   }
 }
 
