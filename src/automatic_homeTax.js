@@ -157,7 +157,6 @@ async function runAutomation_homeTax(data) {
     await page.waitForTimeout(8000)
     await page.getByText("계산서·영수증·카드").click();
     await page.getByRole("link", { name: "일괄/공동매입분 발급"}).click();
-    await page.waitForTimeout(4000);
     const link2 = await page.getByRole("link", { name: "전자(세금)계산서 일괄발급", exact: true });
 
     if (await link2.count() > 0) {
@@ -178,9 +177,17 @@ async function runAutomation_homeTax(data) {
         try {
             // await fileInput.click(); // 클릭 금지
 
-            await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
-          //  await page.waitForTimeout(6000);
-            // 파일 경로 지정
+            // await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
+            if (await fs.existsSync(path.join(userHomeTaxDirectory, "hometax_1341579686_20250107233835.xlsx"))) {
+                await fileInput.setInputFiles(path.join(userHomeTaxDirectory, "hometax_1341579686_20250107233835.xlsx")); // data.hometaxFileName
+                await page.waitForTimeout(8000);
+                // 파일 경로 지정
+                // console.log(`${path.join(userHomeTaxDirectory, "hometax_1341579686_20250107233835.xlsx")} 파일 로드 `);
+            } // data.hometaxFileName
+            else {
+                console.log(`${path.join(userHomeTaxDirectory, data.hometaxFileName)} not found...`)
+            }
+
         } catch (e) {
             console.error(`업로드할 세금계산서 파일 찾는 중 오류 발생: ${e.message}`);
 
@@ -206,20 +213,20 @@ async function runAutomation_homeTax(data) {
                 const msg = dialog.message();
                 if (dialog.type() === 'confirm'
                     && msg.startsWith('전자세금계산서를 일괄발급하시겠습니까?') === true) {
-                    await page.waitForTimeout(8000);
+                    await page.waitForTimeout(5000);
                     await dialog.accept(); // '확인' 버튼 누르기
                     console.log("일괄발급 확인 확인창 제대로 닫힘");
                     result = "ok";
                 } else {
-                    await page.waitForTimeout(8000);
+                    await page.waitForTimeout(5000);
                     await dialog.dismiss(); // 다른 종류의 dialog는 닫기
                     console.log('그 외의 Dialog! 닫음');
                     result = "stop";
                 }
 
                 // 이벤트 리스너 제거
-                page.off('dialog', dialogHandler);
-                console.log('Dialog handler removed!');
+                // page.off('dialog', dialogHandler);
+                // console.log('Dialog handler removed!');
             };
 
             // dialog 이벤트를 핸들링
@@ -227,6 +234,7 @@ async function runAutomation_homeTax(data) {
             // 일괄발급(50건) 버튼 클릭
             await btnBndlEtxivIsnAllTop.click();
             console.log("일괄신고 버튼 클릭");
+
             // 패스워드 전송까지 하면 완료
             await certSign(page, "", data.taxCertificatePassword);
 
@@ -284,7 +292,7 @@ async  function certSign(page, certName, certPassword) {
     // 3-3 인증서 팝업창 선택
     const frame = await page.frameLocator('#dscert');
     try {
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(3000);
         await frame.locator("#wrap_stg_01");
     }
     catch(e){
@@ -312,13 +320,14 @@ async  function certSign(page, certName, certPassword) {
     }
 
     await frame.locator("#input_cert_pw").click(); // 인증서 암호란 클릭
-    await page.keyboard.type(certPassword, {delay:30}); // 인증서 암호 채우기 //
+    // await page.keyboard.type(certPassword, {delay:30}); // 인증서 암호 채우기 //
 
     // 확인 버튼 눌러서 로그인
     if (certName!=="" && certName!==undefined) {
+        await page.keyboard.type(certPassword, {delay:30}); // 인증서 암호 채우기 //
         await frame
             .getByRole("button", {name: "확인"}).click();
-        await page.waitForTimeout(5000);
+        await page.waitForTimeout(2000);
     }
 }
 
