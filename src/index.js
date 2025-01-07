@@ -319,7 +319,7 @@ app.whenReady().then(() => {
 
   const menu = Menu.buildFromTemplate([
     {
-      label: "File",
+      label: "프로그램",
       submenu: [
           {  label: "로그아웃",
             click: async () => {
@@ -333,7 +333,7 @@ app.whenReady().then(() => {
         ]
     },
     {
-      label: "Edit",
+      label: "편집",
       submenu: [
         { role: "undo" },
         { role: "redo" },
@@ -345,17 +345,18 @@ app.whenReady().then(() => {
       ],
     },
     {
-      label: "View",
+      label: "보기",
       submenu: [
-        { role: "reload" },
+        { label: "새로 고침",role: "reload" },
         // { role: "toggledevtools" },
-        { role: "resetzoom" },
-        { role: "zoomin" },
-        { role: "zoomout" },
-        { role: "togglefullscreen" },
+        { label: "원래 크기로",role: "resetzoom" },
+        { label: "확대",role: "zoomin" },
+        { label: "축소",role: "zoomout" },
+        { label: "전체화면",role: "togglefullscreen" },
+        { label: "최소화면",role: "minimize" },
+        { label: "창닫기",role: "close" }
       ],
     },
-    { label: "Window", submenu: [{ role: "minimize" }, { role: "close" }] },
     {
       label: "버전",
       submenu: [
