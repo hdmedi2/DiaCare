@@ -177,7 +177,6 @@ async function runAutomation_homeTax(data) {
         try {
             // await fileInput.click(); // 클릭 금지
 
-            await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
             if (await fs.existsSync(path.join(userHomeTaxDirectory, data.hometaxFileName))) {
                 await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
                 await page.waitForTimeout(8000);
