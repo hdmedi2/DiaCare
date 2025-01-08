@@ -183,9 +183,10 @@ async function runAutomation_homeTax(data) {
             let isXlsFound = fs.existsSync(path.join(userHomeTaxDirectory, data.hometaxFileName));
             if (isXlsFound) {
                 await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
+                // await fileInput.setInputFiles(path.join(userHomeTaxDirectory, "hometax_1341579686_20250107233835.xlsx"));
                 await page.waitForTimeout(8000);
                 // 파일 경로 지정
-                // console.log(`${path.join(userHomeTaxDirectory, "hometax_1341579686_20250107233835.xlsx")} 파일 로드 `);
+                console.log(`${path.join(userHomeTaxDirectory, data.hometaxFileName)} file loaded `);
             } // data.hometaxFileName
             else {
                 console.log(`${path.join(userHomeTaxDirectory, data.hometaxFileName)} not found...`)
