@@ -225,8 +225,8 @@ async function runAutomation_homeTax(data) {
                 }
 
                 // 이벤트 리스너 제거
-                // page.off('dialog', dialogHandler);
-                // console.log('Dialog handler removed!');
+                page.off('dialog', dialogHandler);
+                console.log('Dialog handler removed!');
             };
 
             // dialog 이벤트를 핸들링
