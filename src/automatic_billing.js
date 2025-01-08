@@ -12,7 +12,7 @@ const day = today.getDate().toString().padStart(2, '0'); // 18
 const dateString = year + '-' + month + '-' + day; // 2023-06-18
 
 let logPath = "";
-let userHomeDirectory = "";
+// let userHomeDirectory = "";
 let userFileDirectory = "";
 /* 2. 운영체제 별로 로그, 첨부파일, 세금계산서 자료 경로 지정 */
 const osName = os.platform();
@@ -283,7 +283,7 @@ async function runAutomation_billing(data) {
             const bipbkz300p01 = await searchIframePopup(page, "bipbkz300p01", "_iframe");
 
             if (bipbkz300p01) {
-              const pharmacyCnt = await frame.frameLocator('iframe[title="bipbkz300p01"]')
+              await frame.frameLocator('iframe[title="bipbkz300p01"]')
                   .locator(`text=${extractedText}`).waitFor({timeout: 500});
               await frame
                   .frameLocator('iframe[title="bipbkz300p01"]')
