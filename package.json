@@ -1,6 +1,6 @@
 {
   "name": "iyac_diabetes",
-  "version": "1.0.30",
+  "version": "1.0.32",
   "description": "아이약 당뇨케어",
   "main": "src/index.js",
   "scripts": {

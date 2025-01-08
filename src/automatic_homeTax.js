@@ -176,7 +176,6 @@ async function runAutomation_homeTax(data) {
         // 파일 경로를 강제로 설정
         try {
             // await fileInput.click(); // 클릭 금지
-
             let isXlsFound = fs.existsSync(path.join(userHomeTaxDirectory, data.hometaxFileName));
             if (isXlsFound) {
                 await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
@@ -188,7 +187,6 @@ async function runAutomation_homeTax(data) {
             else {
                 console.log(`${path.join(userHomeTaxDirectory, data.hometaxFileName)} not found...`)
             }
-
         } catch (e) {
             console.error(`업로드할 세금계산서 파일 찾는 중 오류 발생: ${e.message}`);
 
@@ -213,12 +211,12 @@ async function runAutomation_homeTax(data) {
                 const msg = dialog.message();
                 if (dialog.type() === 'confirm'
                     && msg.startsWith('전자세금계산서를 일괄발급하시겠습니까?') === true) {
-                    await page.waitForTimeout(5000);
+                    await page.waitForTimeout(8000);
                     await dialog.accept(); // '확인' 버튼 누르기
                     console.log("일괄발급 확인 확인창 제대로 닫힘");
                     result = "ok";
                 } else {
-                    await page.waitForTimeout(5000);
+                    await page.waitForTimeout(8000);
                     await dialog.dismiss(); // 다른 종류의 dialog는 닫기
                     console.log('그 외의 Dialog! 닫음');
                     result = "stop";
