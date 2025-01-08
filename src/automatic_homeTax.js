@@ -157,6 +157,7 @@ async function runAutomation_homeTax(data) {
     await page.waitForTimeout(2000)
     await page.getByText("계산서·영수증·카드").click();
     await page.getByRole("link", { name: "일괄/공동매입분 발급"}).click();
+    await page.waitForTimeout(2000);
     const link2 = await page.getByRole("link", { name: "전자(세금)계산서 일괄발급", exact: true });
 
     if (await link2.count() > 0) {
@@ -319,13 +320,13 @@ async  function certSign(page, certName, certPassword) {
     }
 
     await frame.locator("#input_cert_pw").click(); // 인증서 암호란 클릭
-    // await page.keyboard.type(certPassword, {delay:30}); // 인증서 암호 채우기 //
+    await page.keyboard.type(certPassword, {delay:30}); // 인증서 암호 채우기 //
 
     // 확인 버튼 눌러서 로그인
     if (certName!=="" && certName!==undefined) {
-        await page.keyboard.type(certPassword, {delay:30}); // 인증서 암호 채우기 //
         await frame
             .getByRole("button", {name: "확인"}).click();
+        await page.waitForTimeout(5000);
     }
 }
 
