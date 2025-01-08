@@ -171,14 +171,17 @@ async function runAutomation_homeTax(data) {
 
     await page.waitForSelector('#mf_txppWframe_filename');
     const fileInput = await page.locator("#mf_txppWframe_filename");
-    if (await fileInput.count()>0) {
+    let isXlsFound;
+    if (await fileInput.count() > 0) {
         console.log("파일 선택창 찾음");
         // 파일 경로를 강제로 설정
         try {
             // await fileInput.click(); // 클릭 금지
 
-            await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
-            if (await fs.existsSync(path.join(userHomeTaxDirectory, data.hometaxFileName))) {
+            // await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
+
+            let isXlsFound = fs.existsSync(path.join(userHomeTaxDirectory, data.hometaxFileName));
+            if (isXlsFound) {
                 await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
                 await page.waitForTimeout(8000);
                 // 파일 경로 지정
@@ -197,8 +200,7 @@ async function runAutomation_homeTax(data) {
         const convertBtn = await page.locator("#mf_txppWframe_trigger37");
         await convertBtn.click(); // 엑셀 변환버튼 클릭
         console.log("excel convert button clicked");
-    }
-    else {
+    } else {
         console.log("파일 선택창 못찾음");
     }
 
