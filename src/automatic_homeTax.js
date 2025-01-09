@@ -171,11 +171,15 @@ async function runAutomation_homeTax(data) {
 
     await page.waitForSelector('#mf_txppWframe_filename');
     const fileInput = await page.locator("#mf_txppWframe_filename");
-    if (await fileInput.count()>0) {
+
+    if (await fileInput.count() > 0) {
         console.log("파일 선택창 찾음");
         // 파일 경로를 강제로 설정
         try {
             // await fileInput.click(); // 클릭 금지
+
+            // await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
+
             let isXlsFound = fs.existsSync(path.join(userHomeTaxDirectory, data.hometaxFileName));
             if (isXlsFound) {
                 await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
@@ -211,12 +215,12 @@ async function runAutomation_homeTax(data) {
                 const msg = dialog.message();
                 if (dialog.type() === 'confirm'
                     && msg.startsWith('전자세금계산서를 일괄발급하시겠습니까?') === true) {
-                    await page.waitForTimeout(8000);
+                    await page.waitForTimeout(5000);
                     await dialog.accept(); // '확인' 버튼 누르기
                     console.log("일괄발급 확인 확인창 제대로 닫힘");
                     result = "ok";
                 } else {
-                    await page.waitForTimeout(8000);
+                    await page.waitForTimeout(5000);
                     await dialog.dismiss(); // 다른 종류의 dialog는 닫기
                     console.log('그 외의 Dialog! 닫음');
                     result = "stop";
