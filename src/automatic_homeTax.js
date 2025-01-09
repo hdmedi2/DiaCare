@@ -176,10 +176,6 @@ async function runAutomation_homeTax(data) {
         console.log("파일 선택창 찾음");
         // 파일 경로를 강제로 설정
         try {
-            // await fileInput.click(); // 클릭 금지
-
-            // await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
-
             let isXlsFound = fs.existsSync(path.join(userHomeTaxDirectory, data.hometaxFileName));
             if (isXlsFound) {
                 await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
