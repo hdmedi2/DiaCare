@@ -54,6 +54,7 @@ log.transports.file.resolvePathFn = () => path.join(logPath, 'main-' + dateStrin
 /* 요양비 청구하기 */
 async function runAutomation_billing(data) {
 
+  console.log("start", data)
   const channels = [
     "chrome",
     "chrome-beta",
@@ -137,7 +138,7 @@ async function runAutomation_billing(data) {
           data.prescriptionSignedUrl,
           data.prescriptionFileName
       );
-       console.log("처방전 prescription_file Downloaded");
+      console.log("처방전 prescription_file Downloaded");
 
     } catch (e) {
       console.log(`처방전 다운로드: ${e.message}`);
@@ -224,19 +225,46 @@ async function runAutomation_billing(data) {
     await frame.locator("#sel_payClsfcCd").selectOption("당뇨병소모성재료");
     await frame.locator("#inp_sujinjaJuminNo1").fill(data.ssn.split("-")[0]);
     await frame.locator("#inp_sujinjaJuminNo2").fill(data.ssn.split("-")[1]);
+
     await frame.locator("#inp_sujinjaNm").fill(data.name);
     await frame.locator("#inp_sujinjaNm").press("Enter");
     console.log("end sujinja info");
 
     // 팝업 창(일반적인 요양비 청구가 맞습니까?) 확인 버튼 -> 약국 선택
-    // 동적으로 생성되는 태그 값 찾기
     console.log("start general care expenses alert");
-    await page.waitForTimeout(5000);
 
+    page.on('frameattached', async (frame) => {
+      console.log('🎉 새 iframe 추가됨:', frame.url());
+      const elementHandle = await frame.$("#tbx_Message");
+      const interval = setInterval(async () => {
+        try {
+          const elementHandle = await frame.$("#tbx_Message");
+
+          if (elementHandle) {
+            const content = await elementHandle.textContent();
+            console.log(`✅ 요소 발견:1`, content);
+            if (content.includes("일반적인 요양비 청구가 맞습니까?")) {
+              console.log(' ok');
+               await frame.locator("#btn_Yes").click();
+            }
+            clearInterval(interval);
+          } else {
+            console.log('⏳ iframe 내 요소 아직 없음.2');
+          }
+        } catch (error) {
+          console.error('⚠️ iframe 감시 중 오류:3', error);
+          clearInterval(interval);
+        }
+      }, 2000);
+    });
+
+    await page.waitForTimeout(5000);
+    // 동적으로 생성되는 태그 값 찾기
     const dynamicFrameId = await searchIframePopup(page, "confirm_", "_iframe");
 
     if (dynamicFrameId) {
       const innerFrame = frame.frameLocator(`iframe[id="${dynamicFrameId}"]`);
+      console.log("dynamicFrameId",dynamicFrameIdssss)
       await innerFrame.getByRole("link", {name: "예"}).waitFor();
       await innerFrame.getByRole("link", {name: "예"}).click();
     } else {
@@ -252,54 +280,54 @@ async function runAutomation_billing(data) {
     // 사업자등록번호 여러 개인 경우 처리
     let pass = "";
     try {
-          let pharmacyDataNum = await pharmacyListByBizNo(cookieData, data.pharmacyBizNo);
-          console.log("checking pharmacyListByBizNo...");
+      let pharmacyDataNum = await pharmacyListByBizNo(cookieData, data.pharmacyBizNo);
+      console.log("checking pharmacyListByBizNo...");
 
-          if (pharmacyDataNum > 1) {
-            pass = "p1_1";
-            // 업체목록이 2건 이상이면 선택
-            await frame
-                .frameLocator('iframe[title="bipbkz300p01"]')
-                .locator(`text=${extractedText}`)
-                .waitFor({timeout: 1000});
-            await frame
-                .frameLocator('iframe[title="bipbkz300p01"]')
-                .getByText(extractedText)
-                .click();
-            await frame
-                .frameLocator('iframe[title="bipbkz300p01"]')
-                .getByRole("link", { name: "선택" })
-                .click();
-          }
-          else {
-            pass = "p1_2";
-          }
+      if (pharmacyDataNum > 1) {
+        pass = "p1_1";
+        // 업체목록이 2건 이상이면 선택
+        await frame
+            .frameLocator('iframe[title="bipbkz300p01"]')
+            .locator(`text=${extractedText}`)
+            .waitFor({timeout: 1000});
+        await frame
+            .frameLocator('iframe[title="bipbkz300p01"]')
+            .getByText(extractedText)
+            .click();
+        await frame
+            .frameLocator('iframe[title="bipbkz300p01"]')
+            .getByRole("link", { name: "선택" })
+            .click();
+      }
+      else {
+        pass = "p1_2";
+      }
     } catch (e) {
-        console.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
+      console.info(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
     }
 
     if (pass === "p1_2") {
-          try {
-            const bipbkz300p01 = await searchIframePopup(page, "bipbkz300p01", "_iframe");
+      try {
+        const bipbkz300p01 = await searchIframePopup(page, "bipbkz300p01", "_iframe");
 
-            if (bipbkz300p01) {
-              await frame.frameLocator('iframe[title="bipbkz300p01"]')
-                  .locator(`text=${extractedText}`).waitFor({timeout: 500});
-              await frame
-                  .frameLocator('iframe[title="bipbkz300p01"]')
-                  .getByText(extractedText)
-                  .click();
-              await frame
-                  .frameLocator('iframe[title="bipbkz300p01"]')
-                  .getByRole("link", {name: "선택"})
-                  .click();
-            } else {
-              console.log("bipbkz300p01_iframe not found");
-            }
+        if (bipbkz300p01) {
+          await frame.frameLocator('iframe[title="bipbkz300p01"]')
+              .locator(`text=${extractedText}`).waitFor({timeout: 500});
+          await frame
+              .frameLocator('iframe[title="bipbkz300p01"]')
+              .getByText(extractedText)
+              .click();
+          await frame
+              .frameLocator('iframe[title="bipbkz300p01"]')
+              .getByRole("link", {name: "선택"})
+              .click();
+        } else {
+          console.log("bipbkz300p01_iframe not found");
+        }
 
-          } catch (e) {
-            console.log(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
-          }
+      } catch (e) {
+        console.log(`bipbkz300p01_iframe 나타나지 않음 - ${e.message}`);
+      }
     }
 
     // 처방전발행일
@@ -672,7 +700,7 @@ async function runAutomation_billing(data) {
     }
 
     try {
-    //  await page.waitForTimeout(5000);
+      //  await page.waitForTimeout(5000);
 
       const dupIframeId = await searchIframePopup(page, "confirm_", "_iframe");
 
@@ -751,22 +779,22 @@ async function runAutomation_billing(data) {
         console.log(`*** there is no cgmSeqNoList ${data.cgmSeqNoList}...`);
       }
     } else {
-          //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
-          await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
+      //await frame.locator("#wq_uuid_797").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
+      await frame.locator("#wframeDetail").click(); // 허공을 클릭해야 아래의 confirm_iframe 창이 뜨기 때문에 존재하는 코드
 
-          try {
-            await page.waitForTimeout(3000);
+      try {
+        await page.waitForTimeout(3000);
 
-            const dupIframeId4 = await searchIframePopup(page, "alert_", "_iframe");
+        const dupIframeId4 = await searchIframePopup(page, "alert_", "_iframe");
 
-            if (!isEmpty(dupIframeId4)) {
-              const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId4}"]`);
-              await innerFrame.locator('a#btn_Confirm').waitFor();
-              await innerFrame.locator('a#btn_Confirm').click();
-            }
-          } catch (e){
-            console.log(`첨부파일 업로드 시작 전 물어보는 창 처리 중 오류 발생: ${e.message}`);
-          }
+        if (!isEmpty(dupIframeId4)) {
+          const innerFrame = frame.frameLocator(`iframe[id="${dupIframeId4}"]`);
+          await innerFrame.locator('a#btn_Confirm').waitFor();
+          await innerFrame.locator('a#btn_Confirm').click();
+        }
+      } catch (e){
+        console.log(`첨부파일 업로드 시작 전 물어보는 창 처리 중 오류 발생: ${e.message}`);
+      }
     }
 
     console.log("end purchaseDate, eatDays");
@@ -816,42 +844,45 @@ async function runAutomation_billing(data) {
               .click();
           await page.waitForTimeout(2000);
 
-                const innerIframe155p01 =
-                    await frame
-                         .frameLocator('iframe[title="pop_bipbkc154p01"]')
-                         .frameLocator('iframe[title="pop_bipbkc155p01"]');
-                if (innerIframe155p01) {
-                  console.log("------innter Iframe155p01 found---------");
-                }
-                else {
-                  console.log("------No innter Iframe155p01 found---------");
-                }
-                if (cgmSeqNoList && cgmSeqNoList.length > 0) {
-                  for (let y = 0; y < cgmSeqNoList.length; y++) {
-                    await innerIframe155p01
-                        //.locator("#btn_addRow")
-                        .getByRole("link",{name: "행추가"})
-                        .waitFor();
-                    await innerIframe155p01
-                        .getByRole("link",{name: "행추가"})
-                        .click(); // click
-                    // 새로운 행이 즉시 만들어지지는 않으므로 보일 때까지 대기 필요
-                    await innerIframe155p01
-                            .locator(`#grd_tbbibo12_cell_${y}_3`)
-                            .click();
-                    // cgmSeqNoList 찍어보기
-                    console.log(`cgmSeqNoList[${y}] - 일련번호:${cgmSeqNoList[y]}`)
+          const innerIframe155p01 =
+              await frame
+                  .frameLocator('iframe[title="pop_bipbkc154p01"]')
+                  .frameLocator('iframe[title="pop_bipbkc155p01"]');
+          if (innerIframe155p01) {
+            console.log("------innter Iframe155p01 found---------");
+          }
+          else {
+            console.log("------No innter Iframe155p01 found---------");
+          }
+          if (cgmSeqNoList && cgmSeqNoList.length > 0) {
+            for (let y = 0; y < cgmSeqNoList.length; y++) {
+              await innerIframe155p01
+                  //.locator("#btn_addRow")
+                  .getByRole("link",{name: "행추가"})
+                  .waitFor();
+              await innerIframe155p01
+                  .getByRole("link",{name: "행추가"})
+                  .click(); // click
+              // 새로운 행이 즉시 만들어지지는 않으므로 보일 때까지 대기 필요
 
-                    await innerIframe155p01
-                        .locator("#G_grd_tbbibo12__EQPMT_ORGNLY_NO")
-                        .fill(cgmSeqNoList[y]);
-                  }
-                  innerIframe155p01.getByRole("link",{name: "닫기"});
-                }
-                await page.waitForTimeout(2000);
-                await innerIframe155p01
-                    .getByRole('link', {name: "닫기"})
-                    .click();
+              await page.waitForTimeout(100);
+              const gridY = Math.min(4,y);//가상 그리드라 항상 5개열만존재
+              await innerIframe155p01
+                  .locator(`#grd_tbbibo12_cell_${gridY}_3`)
+                  .click();
+              // cgmSeqNoList 찍어보기
+              console.log(`cgmSeqNoList[${y}] - 일련번호:${cgmSeqNoList[y]}`)
+
+              await innerIframe155p01
+                  .locator("#G_grd_tbbibo12__EQPMT_ORGNLY_NO")
+                  .fill(cgmSeqNoList[y]);
+            }
+            innerIframe155p01.getByRole("link",{name: "닫기"});
+          }
+          await page.waitForTimeout(2000);
+          await innerIframe155p01
+              .getByRole('link', {name: "닫기"})
+              .click();
         }
 
         await frame
@@ -1205,7 +1236,7 @@ async function processType1Input(data, frame){
     }
 
   } catch (e) {
-      console.log(`연속혈당측정용 전극(센서) 내용 입력 중 오류 발생 `);
+    console.log(`연속혈당측정용 전극(센서) 내용 입력 중 오류 발생 `);
   }
 }
 

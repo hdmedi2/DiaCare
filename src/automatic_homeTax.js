@@ -85,6 +85,10 @@ async function runAutomation_homeTax(data) {
     try {
         if (!isEmpty(data.hometaxFileName) && !isEmpty(data.hometaxFileSignedUrl)) {
             console.log("Start hometax file Download");
+            console.log("file1",userHomeTaxDirectory)
+            console.log("file2",data.hometaxFileSignedUrl)
+            console.log("file3",data.hometaxFileName)
+
             await downloadFile(
                 userHomeTaxDirectory,
                 data.hometaxFileSignedUrl,
@@ -134,6 +138,13 @@ async function runAutomation_homeTax(data) {
 
     // 3-2. 공인인증서 로그인
     const page = await context.newPage();
+
+    await page.addInitScript(() => {
+        window.open = () => {
+            console.log('pop close');
+            return null;
+        };
+    });
     await page.goto(HOMETAX_URL);
 
 
@@ -148,25 +159,13 @@ async function runAutomation_homeTax(data) {
 
     await page.waitForTimeout(2000)
     await page.click('#mf_txppWframe_anchor22');
+    await page.waitForLoadState("domcontentloaded");
+
     let r = false;
 
     // 인증서 로그인 시도
     r = await certSign(page, data.taxCertificateName, data.taxCertificatePassword);
-
-    // 3-5. 전자세금계산서 발행 메뉴 찾아가기
-    await page.waitForTimeout(2000)
-    await page.getByText("계산서·영수증·카드").click();
-    await page.getByRole("link", { name: "일괄/공동매입분 발급"}).click();
-    const link2 = await page.getByRole("link", { name: "전자(세금)계산서 일괄발급", exact: true });
-
-    if (await link2.count() > 0) {
-        await link2.click();
-    }
-    else {
-        console.log("홈택스에서 일괄 발급 링크 못찾음");
-        log.error("홈택스에서 일괄 발급 메뉴 링크 못찾음");
-    }
-
+    await page.goto("https://hometax.go.kr/websquare/websquare.html?w2xPath=/ui/pp/index_pp.xml&tmIdx=46&tm2lIdx=4601010000&tm3lIdx=4601010500")
     await page.waitForLoadState("domcontentloaded", {timeout:8000});
 
     await page.waitForSelector('#mf_txppWframe_filename');
@@ -234,7 +233,7 @@ async function runAutomation_homeTax(data) {
             console.log("일괄신고 버튼 클릭");
 
             // 패스워드 전송까지 하면 완료
-            await certSign(page, "", data.taxCertificatePassword);
+            await certSign(page, data.taxCertificateName, data.taxCertificatePassword);
 
             log.info("전자세금계산서 일괄발급 완료");
         }
@@ -297,7 +296,7 @@ async  function certSign(page, certName, certPassword) {
         console.error(e.message);
     }
     const strSlide = await frame.locator("#wrap_stg_01");
-
+    
     // 테이블이 존재하는지 확인
     if (await strSlide.count() > 0) {
         console.log('certificate list found...');
@@ -320,12 +319,14 @@ async  function certSign(page, certName, certPassword) {
     await frame.locator("#input_cert_pw").click(); // 인증서 암호란 클릭
     // await page.keyboard.type(certPassword, {delay:30}); // 인증서 암호 채우기 //
 
-    // 확인 버튼 눌러서 로그인
+    // 확인 버튼 눌러서 로그인ㄹㄹ
     if (certName!=="" && certName!==undefined) {
         await page.keyboard.type(certPassword, {delay:30}); // 인증서 암호 채우기 //
         await frame
             .getByRole("button", {name: "확인"}).click();
     }
+    await page.waitForTimeout(2000)
+
 }
 
 module.exports = { runAutomation_homeTax };

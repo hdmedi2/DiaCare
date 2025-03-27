@@ -1,6 +1,6 @@
 {
   "name": "iyac_diabetes",
-  "version": "1.0.32",
+  "version": "1.0.40",
   "description": "아이약 당뇨케어",
   "main": "src/index.js",
   "scripts": {
@@ -8,11 +8,11 @@
     "start": "cross-env NODE_ENV=development electron .",
     "clean-dist": "node scripts/clean-dist-folder.js",
     "clean-out": "node scripts/clean-out-folder.js",
-    "obfuscate": "npm run clean-out && javascript-obfuscator src --output out --compact false --control-flow-flattening false --string-array false --identifier-names-generator mangled --rename-globals true",
+    "obfuscate": "yarn run clean-out && javascript-obfuscator src --output out --compact false --control-flow-flattening false --string-array false --identifier-names-generator mangled --rename-globals true",
     "version-up": "node scripts/version-bump.js",
     "build": "node scripts/clean-out-folder.js && npm run obfuscate && electron-builder --win --x64",
     "make": "electron-builder --win --x64",
-    "publish": "npm run obfuscate && npm run clean-dist && electron-builder --win --x64 --publish always"
+    "publish": "yarn run obfuscate && yarn run clean-dist && electron-builder --win --x64 --publish always"
   },
   "build": {
     "asar": true,
@@ -33,27 +33,35 @@
       "main": "out/index.js"
     },
     "afterPack": "scripts/attach-manifest.js",
+    "artifactName": "${productName}-setup.${ext}",
     "publish": [
       {
         "provider": "github",
         "owner": "hdmedi2",
         "repo": "DiaCareDist",
-        "releaseType": "release"
+        "releaseType": "release",
+        "token": "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"
       }
     ],
     "directories": {
       "output": "dist"
     },
     "win": {
-      "target":  [
-        { "target": "nsis",
-          "arch": ["x64"] }
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
+      "requestedExecutionLevel": "asInvoker",
       "icon": "./assets/iyac_app_logo.ico",
       "rfc3161TimeStampServer": "http://timestamp.digicert.com",
-      "signingHashAlgorithms": ["sha256"]
-      
-     },
+      "signingHashAlgorithms": [
+        "sha256"
+      ]
+    },
     "nsis": {
       "oneClick": false,
       "perMachine": true,
@@ -82,6 +90,7 @@
     "cross-env": "^7.0.3",
     "electron-log": "^5.2.3",
     "electron-updater": "^6.3.9",
+    "is-elevated": "^4.0.0",
     "json2csv": "^6.0.0-alpha.2",
     "playwright": "1.38",
     "xmlhttprequest": "^1.8.0"
@@ -93,5 +102,3 @@
     "rcedit": "^4.0.1"
   }
 }
-
-
