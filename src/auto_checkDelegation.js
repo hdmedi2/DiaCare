@@ -149,6 +149,31 @@ const { width, height } = require('electron').screen.getPrimaryDisplay().workAre
         "https://medicare.nhis.or.kr/portal/bk/c/193/selectBcbnfDmdMdtResultList.do"
     ),
   ]);
+  function isAdmin() {
+    if (process.platform === 'win32') {
+      try {
+        // Windows: 'net session' 명령어는 관리자 권한이 필요합니다.
+        // 성공적으로 실행되면 (에러 없이 stdout 반환) 관리자 권한이 있는 것으로 간주합니다.
+        // 'fltmc'도 많이 사용됩니다. 둘 중 하나를 사용하거나 더 확실한 방법을 위해 네이티브 모듈을 고려할 수 있습니다.
+        childProcess.execSync('net session', { stdio: 'ignore' });
+        // childProcess.execSync('fltmc', { stdio: 'ignore' }); // 대체 명령어
+        return true;
+      } catch (e) {
+        // 명령어 실행 실패 시 (권한 없음 등) 관리자 권한이 없는 것으로 간주합니다.
+        // console.error('권한 확인 중 에러:', e.code, e.message); // 디버깅 시 에러 확인
+        return false;
+      }
+    } else {
+      // macOS & Linux: process.geteuid()가 0이면 root 권한입니다.
+      // process.getuid는 실제 사용자 ID, process.geteuid는 유효 사용자 ID(권한 상승 시 변경될 수 있음)
+      return process.geteuid && process.geteuid() === 0;
+    }
+  }
+
+
+  // 애플리케이션 로드 후 권한 확인 및 로그 출력
+  const hasAdminRights = isAdmin();
+  console.log(`관리자 권한으로 실행 중인가요? ${hasAdminRights}`);
 
   // 응답 상태와 URL을 콘솔에 출력
   console.log("<<", response.status(), response.url());

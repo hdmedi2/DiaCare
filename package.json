@@ -1,6 +1,6 @@
 {
   "name": "iyac_diabetes",
-  "version": "1.0.40",
+  "version": "1.0.50",
   "description": "아이약 당뇨케어",
   "main": "src/index.js",
   "scripts": {
@@ -55,7 +55,7 @@
           ]
         }
       ],
-      "requestedExecutionLevel": "asInvoker",
+      "requestedExecutionLevel": "requireAdministrator",
       "icon": "./assets/iyac_app_logo.ico",
       "rfc3161TimeStampServer": "http://timestamp.digicert.com",
       "signingHashAlgorithms": [
@@ -92,7 +92,7 @@
     "electron-updater": "^6.3.9",
     "is-elevated": "^4.0.0",
     "json2csv": "^6.0.0-alpha.2",
-    "playwright": "1.38",
+    "playwright": "1.51.1",
     "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
