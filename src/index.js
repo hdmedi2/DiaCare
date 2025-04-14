@@ -5,7 +5,7 @@ const {
   session,
   Menu,
   safeStorage,
-    screen, ipcRenderer
+    screen, ipcRenderer, dialog
 } = require("electron");
 const os = require('os');
 const path = require("path");
@@ -106,13 +106,13 @@ if (!gotTheLock) {
   // 이미 애플리케이션이 실행 중이면 새 인스턴스 종료
   app.quit();
 }
-
+let mainWindow;
 const createWindow = async () => {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { width, height } = primaryDisplay.workAreaSize;
   console.log(`Screen resolution: ${width}x${height}`);
 
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     webPreferences: {
       width: width,
       height: height,
@@ -420,7 +420,11 @@ ipcMain.on("start-check-delegation", async (event, data_0) => {
       };
       //console.log("Automation Data:", automationData); // 확인용 출력
       await checkDelegation(automationData);
-
+      const webContents = event.sender;
+      const win = BrowserWindow.fromWebContents(webContents);
+      if (win) {
+        win.webContents.reloadIgnoringCache();
+      }
     } else {
       console.error("Failed to load settings.");
     }
@@ -441,7 +445,7 @@ ipcMain.on("start-hometax", async (event, data_0) => {
         ...data_0,
       };
       console.log("Automation Data:", automationData); // 확인용 출력
-      await runAutomation_homeTax(automationData);
+      await runAutomation_homeTax(automationData, mainWindow);
 
     } else {
       console.error("Failed to load settings.");
