@@ -10,6 +10,8 @@ const year = today.getFullYear(); // 2023
 const month = (today.getMonth() + 1).toString().padStart(2, '0'); // 06
 const day = today.getDate().toString().padStart(2, '0'); // 18
 const dateString = year + '-' + month + '-' + day; // 2023-06-18
+const { execFile } = require('child_process'); // Node.js 모듈 가져오기
+const { app } = require('electron');
 
 let logPath = "";
 // let userHomeDirectory = "";
@@ -69,7 +71,9 @@ async function runAutomation_billing(data) {
   try {
     for (const channel of channels) {
       try {
-        browser = await chromium.launch({headless: false, channel});
+        const downloadFolderPath = app.getPath('downloads'); // 사용자의 실제 다운로드 폴더
+
+        browser = await chromium.launch({headless: false, channel });
         break;
       } catch (error) {
         console.warn(`Failed to launch ${channel}: ${error.message}`);
@@ -173,14 +177,66 @@ async function runAutomation_billing(data) {
     // 요양마당 화면 크기 조절
     const {width, height} = require('electron').screen.getPrimaryDisplay().workAreaSize;
     const context = await browser.newContext({
-      viewport: {width, height}, // Playwright가 뷰포트를 설정하지 않도록 설정
+      viewport: {width, height},
     });
+
+    const userDataDir = path.join(__dirname, 'myUserDataDirectory');
+
+    console.log("userDataDir",userDataDir)
     const page = await context.newPage();
     // 시스템 화면 크기를 가져오는 기능
     await page.goto(MEDICARE_URL);
+    await page.waitForLoadState('networkidle', { timeout: 10000 });
+
 
     // 공인인증서 로그인
     await page.locator("#grp_loginBtn").click();
+    page.on('dialog', async dialog => {
+      console.log('Dialog message:', dialog.message()); // <-- 어떤 메시지가 뜨는지 확인!
+      // 필요하다면 자동으로 닫기: await dialog.dismiss(); 또는 await dialog.accept();
+      // 여기서는 내용을 확인하는 것이 중요하므로 일단 로그만 남깁니다.
+      // await dialog.dismiss(); // 만약 이 alert 때문에 진행이 안된다면 dismiss 처리 필요
+      if (dialog.message().includes('AnySign for PC')) {
+        // await dialog.accept(); // '확인' 버튼 클릭과 동일
+        // const downloadPromise = page.waitForEvent('download');
+        // const download = await downloadPromise;
+        const [download] = await Promise.all([
+          page.waitForEvent('download'),
+        ]);
+        // --- 여기가 핵심 ---
+        // 1. 원래 파일 이름(확장자 포함)을 가져옵니다.
+        const suggestedFilename = download.suggestedFilename(); // 예: "AnySign4PC_Installer.exe"
+        console.log(`Suggested filename: ${suggestedFilename}`); // .exe가 포함되어 있는지 확인!
+        // 2. 저장할 최종 경로를 완전하게 지정합니다 (폴더 + 파일 이름 + 확장자).
+        const savePath = path.join(app.getPath('downloads'), suggestedFilename);
+        console.log(`Saving file to: ${savePath}`);
+        // 3. 지정된 경로와 이름으로 파일을 저장합니다. (이 과정 후 임시 파일은 정리됨)
+        await download.saveAs(savePath);
+        console.log('File saved successfully.');
+
+        execFile(savePath, (error, stdout, stderr) => {
+          if (error) {
+            console.error(`Error executing file: ${error.message}`);
+            // 여기서 에러 처리 (권한 문제, 파일 손상 등)
+            // 예: 관리자 권한으로 재시도 로직 (복잡함) 또는 사용자에게 수동 실행 안내
+            return;
+          }
+          if (stderr) {
+            console.error(`Execution stderr: ${stderr}`);
+          }
+          console.log(`Execution stdout: ${stdout}`);
+          console.log('AnySign Installer executed (or attempted).');
+          // 여기서 설치 완료를 기다리거나 다음 단계 진행 (설치 과정 자동화는 별개의 복잡한 문제입니다)
+        });
+
+
+      } else {
+        // 다른 종류의 다이얼로그는 일단 닫음 (필요에 따라 로직 수정)
+        console.log('Dismissing other dialog.');
+        await dialog.dismiss();
+      }
+    });
+
     await page.locator("#btnCorpLogin").click();
     await page.getByRole("radio", {name: data.certificateLocation}).click();
     // 하드디스크의 경우 certificateLocation 값이 비어있기 때문에 오류 메시지가 뜸
@@ -247,7 +303,11 @@ async function runAutomation_billing(data) {
               console.log(' ok');
                await frame.locator("#btn_Yes").click();
             }
-            clearInterval(interval);
+            else if (content.includes("직전 동일 준요양기관의 청구내역이 있습니다")) {
+              console.log(' ok');
+              await frame.locator("#btn_No").click();
+            }
+            // clearInterval(interval);
           } else {
             console.log('⏳ iframe 내 요소 아직 없음.2');
           }
@@ -1058,7 +1118,7 @@ async function runAutomation_billing(data) {
       const elements = frame
           .frameLocator('iframe[title="popup_fileUpload"]')
           .frameLocator("#btrsFrame")
-          .locator("text=저장완료");
+          .locator("text=적재대기");
 
       if ((await elements.count()) >= fileArr.length) {
         break;
@@ -1067,7 +1127,7 @@ async function runAutomation_billing(data) {
       await page.waitForTimeout(500);
     }
 
-    console.log('"저장완료" 텍스트가 프레임 내에 나타났습니다.');
+    console.log('"적재대기" 텍스트가 프레임 내에 나타났습니다.');
     // 파일 저장
 
     const button3 = parentDiv.locator("button").nth(2);
