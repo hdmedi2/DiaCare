@@ -1,4 +1,5 @@
 const { chromium } = require("playwright");
+const { app, BrowserWindow, dialog } = require('electron');
 const fs = require("fs");
 const {HOMETAX_URL, SAVE_HOMETAX_DIR, SAVE_FILE_DIR, SAVE_LOG_DIR, SAVE_MAIN_DIR} = require("../config/default.json");
 const log = require("electron-log");
@@ -80,7 +81,7 @@ catch(e) {
  * @param data
  * @returns {Promise<void>}
  */
-async function runAutomation_homeTax(data) {
+async function runAutomation_homeTax(data, mainWindow) {
     // 3-6.전자세금계산서 체크박스 선택 분 다운로드
     try {
         if (!isEmpty(data.hometaxFileName) && !isEmpty(data.hometaxFileSignedUrl)) {
@@ -145,31 +146,25 @@ async function runAutomation_homeTax(data) {
             return null;
         };
     });
-    await page.goto(HOMETAX_URL);
+    await page.goto("https://hometax.go.kr/websquare/websquare.html?w2xPath=/ui/pp/index_pp.xml&tmIdx=46&tm2lIdx=4601010000&tm3lIdx=4601010500");
+    await page.waitForLoadState('networkidle', { timeout: 10000 });
+    const btnLoginNot = await page.getByRole("button", { name: "확인" })
+    await btnLoginNot.waitFor({ state: 'visible', timeout: 10000 });
+    await btnLoginNot.click();
 
+    const btnCertLogin = await page.locator('#mf_txppWframe_anchor22');
+    await btnCertLogin.waitFor({ state: 'visible', timeout: 10000 });
+    await btnCertLogin.click();
 
-    await page.waitForLoadState("domcontentloaded");
-
-    await page.locator('#mf_wfHeader_group1503').waitFor({state: 'visible'});
-
-    // 3-5. 전자세금계산서 발행 메뉴 찾아가기
-    await page.waitForTimeout(2000)
-    await page.click('#mf_wfHeader_group1503');
-    //
-
-    await page.waitForTimeout(2000)
-    await page.click('#mf_txppWframe_anchor22');
-    await page.waitForLoadState("domcontentloaded");
 
     let r = false;
 
     // 인증서 로그인 시도
     r = await certSign(page, data.taxCertificateName, data.taxCertificatePassword);
-    await page.goto("https://hometax.go.kr/websquare/websquare.html?w2xPath=/ui/pp/index_pp.xml&tmIdx=46&tm2lIdx=4601010000&tm3lIdx=4601010500")
-    await page.waitForLoadState("domcontentloaded", {timeout:8000});
 
     await page.waitForSelector('#mf_txppWframe_filename');
     const fileInput = await page.locator("#mf_txppWframe_filename");
+    await fileInput.waitFor({ state: 'visible', timeout: 10000 });
 
     if (await fileInput.count() > 0) {
         console.log("파일 선택창 찾음");
@@ -179,7 +174,8 @@ async function runAutomation_homeTax(data) {
             if (isXlsFound) {
                 await fileInput.setInputFiles(path.join(userHomeTaxDirectory, data.hometaxFileName)); // data.hometaxFileName
                 // await fileInput.setInputFiles(path.join(userHomeTaxDirectory, "hometax_1341579686_20250107233835.xlsx"));
-                await page.waitForTimeout(8000);
+                await fileInput.waitFor({ state: 'visible', timeout: 10000 });
+
                 // 파일 경로 지정
                 console.log(`${path.join(userHomeTaxDirectory, data.hometaxFileName)} file loaded `);
             } // data.hometaxFileName
@@ -193,6 +189,7 @@ async function runAutomation_homeTax(data) {
 
         // 엑셀 전환버튼 클릭
         const convertBtn = await page.locator("#mf_txppWframe_trigger37");
+        await convertBtn.waitFor({ state: 'visible', timeout: 10000 });
         await convertBtn.click(); // 엑셀 변환버튼 클릭
         console.log("excel convert button clicked");
     } else {
@@ -203,26 +200,25 @@ async function runAutomation_homeTax(data) {
     // mf_txppWframe_UTEETBAA77_wframe_trigger20 [확인]
 
         const btnBndlEtxivIsnAllTop = await page.locator("#mf_txppWframe_group3219");
-        if (await btnBndlEtxivIsnAllTop.count()>0) {
+    await btnBndlEtxivIsnAllTop.waitFor({ state: 'visible', timeout: 10000 });
+
+    if (await btnBndlEtxivIsnAllTop.count()>0) {
             // dialog 이벤트 핸들러
             const dialogHandler = async (dialog) => {
                 console.debug(`Dialog message: ${dialog.message()}`); // dialog 창 메시지 출력
                 const msg = dialog.message();
-                if (dialog.type() === 'confirm'
-                    && msg.startsWith('전자세금계산서를 일괄발급하시겠습니까?') === true) {
-                    await page.waitForTimeout(5000);
+                if (dialog.type() === 'confirm' && msg.startsWith('전자세금계산서를 일괄발급하시겠습니까?') === true) {
                     await dialog.accept(); // '확인' 버튼 누르기
                     console.log("일괄발급 확인 확인창 제대로 닫힘");
                     result = "ok";
-                } else {
-                    await page.waitForTimeout(5000);
-                    await dialog.dismiss(); // 다른 종류의 dialog는 닫기
+                }  else if (dialog.type() === 'confirm'  && msg.includes('가산세대상이 될 수 있습니다') === true) {
+                    console.log("가산세");
+                    await dialog.accept();
+                }
+                else  {
                     console.log('그 외의 Dialog! 닫음');
                     result = "stop";
                 }
-
-                // 이벤트 리스너 제거
-                page.off('dialog', dialogHandler);
                 console.log('Dialog handler removed!');
             };
 
@@ -234,8 +230,9 @@ async function runAutomation_homeTax(data) {
 
             // 패스워드 전송까지 하면 완료
             await certSign(page, data.taxCertificateName, data.taxCertificatePassword);
-
             log.info("전자세금계산서 일괄발급 완료");
+            // await page.waitForLoadState('networkidle', { timeout: 10000 });
+            // await page.waitForTimeout(3000);
         }
         else {
             console.log("일괄 신고 버튼 찾지 못함");
@@ -289,7 +286,7 @@ async  function certSign(page, certName, certPassword) {
     // 3-3 인증서 팝업창 선택
     const frame = await page.frameLocator('#dscert');
     try {
-        await page.waitForTimeout(3000);
+        await page.waitForLoadState('networkidle', { timeout: 10000 });
         await frame.locator("#wrap_stg_01");
     }
     catch(e){
@@ -325,7 +322,7 @@ async  function certSign(page, certName, certPassword) {
         await frame
             .getByRole("button", {name: "확인"}).click();
     }
-    await page.waitForTimeout(2000)
+    await page.waitForLoadState('networkidle', { timeout: 10000 });
 
 }
 
