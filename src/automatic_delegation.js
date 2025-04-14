@@ -447,7 +447,7 @@ async function runAutomation_delegation(data_1) {
     const elements = frame
       .frameLocator('iframe[title="popup_fileUpload"]')
       .frameLocator("#btrsFrame")
-      .locator("text=저장완료");
+      .locator("text=적재대기");
 
     if( (await elements.count()) >= fileArr.length  ){
       break;
@@ -460,12 +460,11 @@ async function runAutomation_delegation(data_1) {
     .frameLocator("#btrsFrame")
     .locator("text=저장완료")
     .waitFor({ timeout: 0 }); // 저장완료 text가 나타날때까지 무한 대기*/
-  console.log('"저장완료" 텍스트가 프레임 내에 나타났습니다.');
+  console.log('"적재대기" 텍스트가 프레임 내에 나타났습니다.');
   console.log("End 파일 전송 click");
 
   const button3 = parentDiv.locator("button").nth(2);
   await button3.click();
-
   // 파일 저장
   console.log("Start 파일 저장 click");
   /*await frame
