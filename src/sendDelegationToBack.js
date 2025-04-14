@@ -89,9 +89,13 @@ const sendDelegationToBack = async (
  */
 const sendDelegationJsonToServer = async (json, data) => {
   try {
+    console.log("111")
     const { manageLocalData } = require('./index');
+    console.log("222")
     const sessionData = await manageLocalData('session');
+    console.log("333", sessionData)
     const cookieHeader = sessionData.map(cookie => `${cookie.name}=${cookie.value}`).join('; ');
+    console.log("444", cookieHeader)
 
     const response = await axios.post(PHARM_URL + 'pharm/diabetes/json-delegation-save',
         {
@@ -99,8 +103,7 @@ const sendDelegationJsonToServer = async (json, data) => {
         }, {
           headers: {
             'Cookie': cookieHeader,
-            // 'Content-Type': 'application/json',
-            'Content-Type': 'text/plain',
+            'Content-Type': 'application/json',
             [data.csrfHeader]: data.csrfToken
           }
         });
